@@ -4,11 +4,15 @@ import PropTypes from 'prop-types';
 import { NodeResizer } from '@xyflow/react';
 
 /**
- * GroupNode - Glass morphism styled container node that can hold other nodes
- * Child nodes should have parentId set to this node's ID
+ * GroupNode - A simple labeled group container for child nodes
  *
- * IMPORTANT: Group nodes should have zIndex set lower than child nodes
- * in the node definition to ensure proper layering.
+ * This follows the React Flow pattern for group nodes:
+ * - The node's width/height is controlled via the style prop on the node definition
+ * - Child nodes use parentId to reference this node
+ * - Child nodes can use extent: 'parent' to stay within bounds
+ *
+ * Unlike standard nodes, group nodes are rendered as simple containers
+ * that React Flow manages for parent-child relationships.
  */
 const GroupNode = memo(({ data, selected }) => {
     const renderDashComponent = (component) => {
@@ -46,71 +50,57 @@ const GroupNode = memo(({ data, selected }) => {
         return null;
     };
 
-    const labelContent = data.label
+    const labelContent = data?.label
         ? (typeof data.label === 'string' ? data.label : renderDashComponent(data.label))
         : null;
 
-    const glassStyle = {
-        width: '100%',
-        height: '100%',
-        backdropFilter: 'blur(8px) saturate(120%)',
-        WebkitBackdropFilter: 'blur(8px) saturate(120%)',
-        background: 'var(--df-group-node-bg, rgba(243, 244, 246, 0.5))',
-        border: '2px dashed var(--df-group-node-border, rgba(156, 163, 175, 0.4))',
-        borderRadius: 'var(--df-radius-xl, 20px)',
-        boxShadow: selected
-            ? 'var(--df-glass-shadow, 0 8px 32px rgba(31, 38, 135, 0.15)), 0 0 0 2px var(--df-selection-border, rgba(59, 130, 246, 0.4))'
-            : 'var(--df-glass-shadow, 0 8px 32px rgba(31, 38, 135, 0.1))',
-        position: 'relative',
-        transition: 'all 250ms ease',
-        // Ensure group is behind child nodes - React Flow handles z-index
-        // but we set pointer-events to allow clicking through to children
-        pointerEvents: 'all',
-        ...data.style,
-    };
-
-    const labelStyle = {
-        position: 'absolute',
-        top: '-12px',
-        left: '16px',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '4px 10px',
-        background: 'var(--df-toolbar-bg, rgba(255, 255, 255, 0.95))',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        borderRadius: 'var(--df-radius-sm, 6px)',
-        border: '1px solid var(--df-node-border, rgba(255, 255, 255, 0.5))',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-        fontSize: '11px',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        color: 'var(--df-node-text-secondary, #495057)',
-        ...data.labelStyle,
-    };
-
-    const resizerHandleStyle = {
-        width: '10px',
-        height: '10px',
-        background: 'var(--df-handle-bg, #fff)',
-        border: '2px solid var(--df-handle-border, #64748b)',
-        borderRadius: '2px',
-    };
-
     return (
-        <div className={`df-glass-node df-group-node ${selected ? 'selected' : ''}`} style={glassStyle}>
+        <>
+            {/* NodeResizer for interactive resizing */}
             <NodeResizer
-                isVisible={selected && data.resizable !== false}
-                minWidth={data.minWidth || 200}
-                minHeight={data.minHeight || 150}
-                handleStyle={resizerHandleStyle}
-                lineStyle={{ borderWidth: 1, borderColor: 'var(--df-selection-border, rgba(59, 130, 246, 0.4))' }}
+                isVisible={selected && data?.resizable !== false}
+                minWidth={data?.minWidth || 100}
+                minHeight={data?.minHeight || 50}
+                handleStyle={{
+                    width: '8px',
+                    height: '8px',
+                    background: 'var(--df-selection-border, rgba(59, 130, 246, 0.8))',
+                    border: 'none',
+                    borderRadius: '2px',
+                }}
+                lineStyle={{
+                    borderWidth: 1,
+                    borderColor: 'var(--df-selection-border, rgba(59, 130, 246, 0.4))',
+                }}
             />
+
+            {/* Label badge - positioned inside top-left */}
             {labelContent && (
-                <div className="df-group-node-label" style={labelStyle}>
-                    {data.icon && (
+                <div
+                    className="df-group-node-label"
+                    style={{
+                        position: 'absolute',
+                        top: '8px',
+                        left: '8px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 10px',
+                        background: 'var(--df-toolbar-bg, rgba(255, 255, 255, 0.95))',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        borderRadius: 'var(--df-radius-sm, 6px)',
+                        border: '1px solid var(--df-node-border, rgba(200, 200, 200, 0.3))',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: 'var(--df-node-text-secondary, #6b7280)',
+                        zIndex: 1,
+                        pointerEvents: 'none',
+                        ...data?.labelStyle,
+                    }}
+                >
+                    {data?.icon && (
                         <span style={{ display: 'flex', alignItems: 'center' }}>
                             {data.icon}
                         </span>
@@ -118,7 +108,7 @@ const GroupNode = memo(({ data, selected }) => {
                     {labelContent}
                 </div>
             )}
-        </div>
+        </>
     );
 });
 
@@ -129,12 +119,10 @@ GroupNode.propTypes = {
      * Node data object containing label, icon, and styling options
      */
     data: PropTypes.shape({
-        /** Label content for the group - displayed above the group container */
+        /** Label content for the group - displayed in top-left corner */
         label: PropTypes.any,
         /** Icon element to display next to the label */
         icon: PropTypes.any,
-        /** Custom CSS styles for the group container */
-        style: PropTypes.object,
         /** Custom CSS styles for the label element */
         labelStyle: PropTypes.object,
         /** Whether the group can be resized (default: true) */

@@ -17,7 +17,7 @@ targetY=NULL)
 }
 
 \arguments{
-\item{id}{Character. }
+\item{id}{Character. Unique identifier for the edge}
 
 \item{data}{Lists containing elements 'duration', 'shape', 'size', 'color', 'count', 'reverse'.
 those elements have the following types:
@@ -26,27 +26,27 @@ those elements have the following types:
   - size (numeric; optional): size of the animated shape
   - color (character; optional): color of the animated shape
   - count (numeric; optional): number of shapes to animate along the path
-  - reverse (logical; optional): reverse the animation direction. }
+  - reverse (logical; optional): reverse the animation direction. Configuration data for the animated SVG edge}
 
-\item{markerEnd}{Logical | numeric | character | named list | unnamed list. }
+\item{markerEnd}{Logical | numeric | character | named list | unnamed list. Marker configuration for the edge end}
 
-\item{markerStart}{Logical | numeric | character | named list | unnamed list. }
+\item{markerStart}{Logical | numeric | character | named list | unnamed list. Marker configuration for the edge start}
 
-\item{selected}{Logical. }
+\item{selected}{Logical. Whether the edge is currently selected}
 
-\item{sourcePosition}{Character. }
+\item{sourcePosition}{Character. Position of the source handle ('top', 'bottom', 'left', 'right')}
 
-\item{sourceX}{Numeric. }
+\item{sourceX}{Numeric. X coordinate of the edge source}
 
-\item{sourceY}{Numeric. }
+\item{sourceY}{Numeric. Y coordinate of the edge source}
 
-\item{style}{Named list. }
+\item{style}{Named list. Custom CSS styles for the edge path}
 
-\item{targetPosition}{Character. }
+\item{targetPosition}{Character. Position of the target handle ('top', 'bottom', 'left', 'right')}
 
-\item{targetX}{Numeric. }
+\item{targetX}{Numeric. X coordinate of the edge target}
 
-\item{targetY}{Numeric. }
+\item{targetY}{Numeric. Y coordinate of the edge target}
 }
 
 \value{named list of JSON elements corresponding to React.js properties and their values}

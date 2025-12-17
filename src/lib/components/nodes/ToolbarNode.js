@@ -198,23 +198,40 @@ const ToolbarNode = memo(({ data, selected, isConnectable }) => {
 ToolbarNode.displayName = 'ToolbarNode';
 
 ToolbarNode.propTypes = {
+    /** Node data configuration object */
     data: PropTypes.shape({
+        /** Primary content to display in the node */
         label: PropTypes.any,
+        /** Secondary text displayed below the main label */
         sublabel: PropTypes.string,
+        /** Custom toolbar content - DashIconify or other components */
         toolbar: PropTypes.any,
+        /** Whether the toolbar is visible (default: shows when selected) */
         toolbarVisible: PropTypes.bool,
+        /** Position of the toolbar relative to the node */
         toolbarPosition: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
+        /** Alignment of the toolbar ('start', 'center', 'end') */
         toolbarAlign: PropTypes.oneOf(['start', 'center', 'end']),
+        /** Offset distance of the toolbar from the node */
         toolbarOffset: PropTypes.number,
+        /** Custom CSS styles for the toolbar */
         toolbarStyle: PropTypes.object,
+        /** Custom CSS styles for the node container */
         style: PropTypes.object,
+        /** Custom CSS styles for connection handles */
         handleStyle: PropTypes.object,
+        /** Position for the target (input) handle */
         targetPosition: PropTypes.string,
+        /** Position for the source (output) handle */
         sourcePosition: PropTypes.string,
+        /** Whether to show the target handle (default: true) */
         showTargetHandle: PropTypes.bool,
+        /** Whether to show the source handle (default: true) */
         showSourceHandle: PropTypes.bool,
     }).isRequired,
+    /** Whether the node is currently selected */
     selected: PropTypes.bool,
+    /** Whether connections can be made to/from this node */
     isConnectable: PropTypes.bool,
 };
 

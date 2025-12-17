@@ -81,17 +81,29 @@ const StraightEdge = ({
 };
 
 StraightEdge.propTypes = {
+    /** Unique identifier for the edge */
     id: PropTypes.string.isRequired,
+    /** X coordinate of the edge source */
     sourceX: PropTypes.number.isRequired,
+    /** Y coordinate of the edge source */
     sourceY: PropTypes.number.isRequired,
+    /** X coordinate of the edge target */
     targetX: PropTypes.number.isRequired,
+    /** Y coordinate of the edge target */
     targetY: PropTypes.number.isRequired,
+    /** Label text to display on the edge */
     label: PropTypes.any,
+    /** Custom CSS styles for the label */
     labelStyle: PropTypes.object,
+    /** Custom CSS styles for the edge path */
     style: PropTypes.object,
+    /** Marker configuration for the edge end */
     markerEnd: PropTypes.any,
+    /** Marker configuration for the edge start */
     markerStart: PropTypes.any,
+    /** Additional data passed to the edge */
     data: PropTypes.object,
+    /** Whether the edge is currently selected */
     selected: PropTypes.bool,
 };
 

@@ -661,4 +661,4 @@ def update_animation_speed(speed, edges):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8052)
+    app.run(debug=True, port=8095)

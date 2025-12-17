@@ -270,6 +270,7 @@ const InputNode = memo(({ data, selected, isConnectable }) => {
 InputNode.displayName = 'InputNode';
 
 InputNode.propTypes = {
+    /** Node data configuration object containing display and behavior settings */
     data: PropTypes.shape({
         /** Primary content to display in the node (string or Dash component) */
         label: PropTypes.any,

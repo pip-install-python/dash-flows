@@ -10,20 +10,18 @@ DevTools component for displaying debug information about the flow
 }
 
 \usage{
-devTools(nodes=NULL, viewport=NULL)
+devTools(nodes=NULL)
 }
 
 \arguments{
-\item{nodes}{List of lists containing elements 'id', 'type'.
+\item{nodes}{List of lists containing elements 'id', 'type', 'position'.
 those elements have the following types:
   - id (character; required)
-  - type (character; optional)s. Array of nodes to display information about}
-
-\item{viewport}{Lists containing elements 'x', 'y', 'zoom'.
+  - type (character; optional)
+  - position (optional): . position has the following type: lists containing elements 'x', 'y'.
 those elements have the following types:
-  - x (numeric; required)
-  - y (numeric; required)
-  - zoom (numeric; required). Current viewport information including position and zoom level}
+  - x (numeric; optional)
+  - y (numeric; optional)s. Array of nodes to display information about}
 }
 
 \value{named list of JSON elements corresponding to React.js properties and their values}

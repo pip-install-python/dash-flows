@@ -15,7 +15,7 @@ Uses CSS classes from glass-theme.css for styling, supporting:
 - Custom CSS variable overrides via theme prop
 - Custom icons via DashIconify or any Dash component
 Keyword arguments:
-- `data` (required): . data has the following type: lists containing elements 'label', 'title', 'sublabel', 'body', 'icon', 'iconColor', 'showIcon', 'layout', 'multiline', 'style', 'className', 'handleStyle', 'targetPosition', 'status', 'loadingVariant'.
+- `data` (required): Node data configuration object containing display and behavior settings. data has the following type: lists containing elements 'label', 'title', 'sublabel', 'body', 'icon', 'iconColor', 'showIcon', 'layout', 'multiline', 'style', 'className', 'handleStyle', 'targetPosition', 'status', 'loadingVariant'.
 Those elements have the following types:
   - `label` (Bool | Real | String | Dict | Array; optional): Primary content to display in the node (string or Dash component)
   - `title` (Bool | Real | String | Dict | Array; optional): Alias for label - use for clarity when also using body text

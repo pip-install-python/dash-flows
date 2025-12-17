@@ -1,98 +1,351 @@
 # Dash Flows
 
-Dash Flows is a Dash component library.
+A powerful React Flow integration for Plotly Dash, providing interactive node-based flow diagrams with a comprehensive set of components for building visual workflows, data pipelines, and interactive diagrams.
 
-React Flow for the Plotly Dash framework.
+![Dash Flows Example](assets/current_project.png)
 
-Get started with:
-1. Install Dash and its dependencies: https://dash.plotly.com/installation
-2. Run `python usage.py`
-3. Visit http://localhost:8050 in your web browser
+## Features
 
-## Contributing
+- **React Flow 12+ Integration**: Built on the latest React Flow library with full Dash compatibility
+- **Comprehensive Node Types**: Input, Output, Default, Group, Toolbar, and Resizable nodes
+- **Multiple Edge Types**: Bezier, Smooth Step, Step, Straight, Animated SVG, Button, and Data edges
+- **Custom Icons**: DashIconify integration for custom node icons with dynamic updates
+- **Flexible Node Layouts**: Stacked (vertical) or horizontal layouts with content-aware sizing
+- **Glass Morphism Theme**: Beautiful modern UI with glass effects, dark mode support, and multiple color schemes
+- **Status Indicators**: Visual loading, success, and error states for nodes
+- **ELK Layout Support**: Automatic graph layouts using the ELK algorithm
+- **Interactive Features**: Drag-and-drop, copy/paste, context menus, and more
+- **Mantine Integration**: Seamless dark/light mode with dash-mantine-components
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md)
+## Installation
 
-### Install dependencies
+```bash
+pip install dash-flows
+```
 
-If you have selected install_dependencies during the prompt, you can skip this part.
+## Quick Start
 
-1. Install npm packages
-    ```
-    $ npm install
-    ```
-2. Create a virtual env and activate.
-    ```
-    $ virtualenv venv
-    $ . venv/bin/activate
-    ```
-    _Note: venv\Scripts\activate for windows_
+```python
+import dash
+from dash import html
+from dash_flows import DashFlows
 
-3. Install python packages required to build components.
-    ```
-    $ pip install -r requirements.txt
-    ```
-4. Install the python packages for testing (optional)
-    ```
-    $ pip install -r tests/requirements.txt
-    ```
+app = dash.Dash(__name__)
 
-### Write your component code in `src/lib/components/DashFlows.react.js`.
+nodes = [
+    {
+        'id': '1',
+        'type': 'input',
+        'data': {'label': 'Start'},
+        'position': {'x': 250, 'y': 0},
+    },
+    {
+        'id': '2',
+        'data': {'label': 'Process'},
+        'position': {'x': 250, 'y': 100},
+    },
+    {
+        'id': '3',
+        'type': 'output',
+        'data': {'label': 'End'},
+        'position': {'x': 250, 'y': 200},
+    },
+]
 
-- The demo app is in `src/demo` and you will import your example component code into your demo app.
-- Test your code in a Python environment:
-    1. Build your code
-        ```
-        $ npm run build
-        ```
-    2. Run and modify the `usage.py` sample dash app:
-        ```
-        $ python usage.py
-        ```
-- Write tests for your component.
-    - A sample test is available in `tests/test_usage.py`, it will load `usage.py` and you can then automate interactions with selenium.
-    - Run the tests with `$ pytest tests`.
-    - The Dash team uses these types of integration tests extensively. Browse the Dash component code on GitHub for more examples of testing (e.g. https://github.com/plotly/dash-core-components)
-- Add custom styles to your component by putting your custom CSS files into your distribution folder (`dash_flows`).
-    - Make sure that they are referenced in `MANIFEST.in` so that they get properly included when you're ready to publish your component.
-    - Make sure the stylesheets are added to the `_css_dist` dict in `dash_flows/__init__.py` so dash will serve them automatically when the component suite is requested.
-- [Review your code](./review_checklist.md)
+edges = [
+    {'id': 'e1-2', 'source': '1', 'target': '2'},
+    {'id': 'e2-3', 'source': '2', 'target': '3'},
+]
 
-### Create a production build and publish:
+app.layout = html.Div([
+    DashFlows(
+        id='flow',
+        nodes=nodes,
+        edges=edges,
+        fitView=True,
+        style={'width': '100%', 'height': '600px'}
+    )
+])
 
-1. Build your code:
-    ```
-    $ npm run build
-    ```
-2. Create a Python distribution
-    ```
-    $ python setup.py sdist bdist_wheel
-    ```
-    This will create source and wheel distribution in the generated the `dist/` folder.
-    See [PyPA](https://packaging.python.org/guides/distributing-packages-using-setuptools/#packaging-your-project)
-    for more information.
+if __name__ == '__main__':
+    app.run(debug=True)
+```
 
-3. Test your tarball by copying it into a new environment and installing it locally:
-    ```
-    $ pip install dash_flows-0.0.3.tar.gz
-    ```
+## Components
 
-4. If it works, then you can publish the component to NPM and PyPI:
-    1. Publish on PyPI
-        ```
-        $ twine upload dist/*
-        ```
-    2. Cleanup the dist folder (optional)
-        ```
-        $ rm -rf dist
-        ```
-    3. Publish on NPM (Optional if chosen False in `publish_on_npm`)
-        ```
-        $ npm publish
-        ```
-        _Publishing your component to NPM will make the JavaScript bundles available on the unpkg CDN. By default, Dash serves the component library's CSS and JS locally, but if you choose to publish the package to NPM you can set `serve_locally` to `False` and you may see faster load times._
+### Main Component
 
-5. Share your component with the community! https://community.plotly.com/c/dash
-    1. Publish this repository to GitHub
-    2. Tag your GitHub repository with the plotly-dash tag so that it appears here: https://github.com/topics/plotly-dash
-    3. Create a post in the Dash community forum: https://community.plotly.com/c/dash
+- **DashFlows**: The main flow canvas component with full React Flow functionality
+
+### Node Types
+
+| Component | Description |
+|-----------|-------------|
+| `DefaultNode` | Standard node with configurable handles |
+| `InputNode` | Source node with green accent (output handles only) |
+| `OutputNode` | Sink node with purple accent (input handles only) |
+| `GroupNode` | Container node for grouping other nodes |
+| `ToolbarNode` | Node with floating toolbar on selection |
+| `ResizableNode` | Node that can be resized by the user |
+
+### Edge Types
+
+| Component | Description |
+|-----------|-------------|
+| `SimpleBezierEdge` | Smooth curved connection |
+| `SmoothStepEdge` | Rounded right-angle connections |
+| `StepEdge` | Sharp right-angle connections |
+| `StraightEdge` | Direct line connection |
+| `AnimatedSvgEdge` | Edge with animated flowing dots |
+| `ButtonEdge` | Edge with delete button |
+| `DataEdge` | Edge displaying data labels |
+
+### UI Components
+
+| Component | Description |
+|-----------|-------------|
+| `NodeStatusIndicator` | Loading/success/error states for nodes |
+| `NodeTooltip` | Hover tooltips for nodes |
+| `NodeSearch` | Search and filter nodes |
+| `ButtonHandle` | Interactive handle with button styling |
+| `DevTools` | Debug panel for development |
+
+## Theming
+
+Dash Flows includes a comprehensive theming system with CSS custom properties.
+
+### Theme Presets
+
+Apply theme classes to customize the appearance:
+
+- `.df-theme-glass` (default) - Glass morphism with blur effects
+- `.df-theme-solid` - Opaque cards with shadows
+- `.df-theme-minimal` - Clean, border-focused design
+
+### Color Schemes
+
+- `.df-scheme-default` - Neutral blue/purple
+- `.df-scheme-ocean` - Blues and teals
+- `.df-scheme-forest` - Greens and browns
+- `.df-scheme-sunset` - Oranges and reds
+- `.df-scheme-midnight` - Deep blues and purples
+- `.df-scheme-rose` - Pinks and reds
+
+### Dark Mode
+
+Dark mode is automatically supported via:
+- React Flow's `colorMode="dark"` prop
+- Mantine's `data-mantine-color-scheme="dark"` attribute
+- Custom `.dark-mode` class
+
+## Node Status Indicators
+
+Wrap nodes with status indicators to show processing states:
+
+```python
+from dash_flows import NodeStatusIndicator
+
+# In your node's data
+node = {
+    'id': '1',
+    'data': {
+        'label': 'Processing...',
+        'status': 'loading',  # 'initial', 'loading', 'success', 'error'
+    },
+    'position': {'x': 100, 'y': 100},
+}
+```
+
+Status types:
+- `initial` - Default state, no indicator
+- `loading` - Blue pulsing glow animation
+- `success` - Green border with checkmark badge
+- `error` - Red border with X badge and shake animation
+
+## Custom Icons with DashIconify
+
+Add custom icons to nodes using DashIconify:
+
+```python
+from dash_iconify import DashIconify
+
+node = {
+    'id': '1',
+    'type': 'input',
+    'data': {
+        'label': 'Data Source',
+        'icon': DashIconify(icon="mdi:database", width=20, color="white"),
+        'iconColor': '#10b981',  # Optional: icon background color
+        'body': 'PostgreSQL Database',  # Optional: description text
+    },
+    'position': {'x': 100, 'y': 100},
+}
+```
+
+## Node Layouts
+
+Control node appearance with the `layout` prop:
+
+```python
+# Stacked layout (default) - icon above text
+{'id': '1', 'data': {'label': 'Stacked', 'icon': icon, 'layout': 'stacked'}, ...}
+
+# Horizontal layout - icon left, text right
+{'id': '2', 'data': {'label': 'Horizontal', 'icon': icon, 'layout': 'horizontal'}, ...}
+
+# Icon-only (compact) - just set icon without label
+{'id': '3', 'data': {'icon': icon, 'showIcon': True}, ...}
+
+# Text-only (centered) - hide icon
+{'id': '4', 'data': {'label': 'Centered Text', 'showIcon': False}, ...}
+```
+
+## Handle Configuration
+
+Configure handles for custom node connection points:
+
+```python
+node = {
+    'id': '1',
+    'data': {
+        'label': 'Custom Handles',
+        'handles': [
+            {'type': 'target', 'position': 'top', 'id': 'input-1'},
+            {'type': 'target', 'position': 'left', 'id': 'input-2'},
+            {'type': 'source', 'position': 'bottom', 'id': 'output-1'},
+            {'type': 'source', 'position': 'right', 'id': 'output-2'},
+        ]
+    },
+    'position': {'x': 100, 'y': 100},
+}
+```
+
+## Examples
+
+The `examples/` directory contains comprehensive examples:
+
+| Example | Description |
+|---------|-------------|
+| `01_basic_nodes_and_edges.py` | Getting started with nodes and edges |
+| `02_all_node_types.py` | Showcase of all node types |
+| `03_all_edge_types.py` | Showcase of all edge types |
+| `04_background_variants.py` | Background patterns (dots, lines, cross) |
+| `05_controls_and_minimap.py` | Navigation controls and minimap |
+| `06_handle_configurations.py` | Custom handle positions |
+| `07_node_interactions.py` | Click, drag, and selection events |
+| `08_connection_validation.py` | Validate connections before creation |
+| `09_viewport_controls.py` | Zoom and pan controls |
+| `10_selection_multiselect.py` | Multi-node selection |
+| `11_dark_mode_mantine.py` | Dark mode with Mantine |
+| `12_elk_layouts.py` | Automatic ELK layouts |
+| `13_complete_showcase.py` | Full feature demonstration |
+| `14_dash_components_in_nodes.py` | Embed Dash components in nodes |
+| `15_save_restore.py` | Save and restore flow state |
+| `16_connection_limits.py` | Limit connections per handle |
+| `17_drag_and_drop.py` | Drag nodes from palette |
+| `18_export_image.py` | Export flow as image |
+| `19_copy_paste.py` | Copy and paste nodes |
+| `20_context_menu.py` | Right-click context menus |
+| `21_ui_components.py` | UI components showcase |
+| `22_custom_icons.py` | Custom icons with DashIconify & layouts |
+
+## API Reference
+
+### DashFlows Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `id` | string | Component ID for callbacks |
+| `nodes` | list | Array of node objects |
+| `edges` | list | Array of edge objects |
+| `fitView` | bool | Auto-fit view to content |
+| `colorMode` | string | 'light' or 'dark' |
+| `style` | dict | Container style |
+| `nodeTypes` | dict | Custom node type mappings |
+| `edgeTypes` | dict | Custom edge type mappings |
+| `onNodesChange` | callback | Node change handler |
+| `onEdgesChange` | callback | Edge change handler |
+| `onConnect` | callback | Connection handler |
+
+### Node Object
+
+```python
+{
+    'id': 'unique-id',
+    'type': 'default',  # 'input', 'output', 'group', etc.
+    'data': {
+        'label': 'Node Label',        # Primary text
+        'title': 'Title',             # Alias for label
+        'sublabel': 'Secondary text', # Below label
+        'body': 'Description',        # Below sublabel
+        'icon': DashIconify(...),     # Custom icon
+        'iconColor': '#3b82f6',       # Icon background
+        'showIcon': True,             # Toggle icon visibility
+        'layout': 'stacked',          # 'stacked' or 'horizontal'
+        'handles': [...],             # Optional handle config
+        'status': 'initial',          # 'initial', 'loading', 'success', 'error'
+    },
+    'position': {'x': 0, 'y': 0},
+    'style': {},  # Optional CSS styles
+    'className': '',  # Optional CSS class
+}
+```
+
+### Edge Object
+
+```python
+{
+    'id': 'unique-id',
+    'source': 'source-node-id',
+    'target': 'target-node-id',
+    'sourceHandle': 'handle-id',  # Optional
+    'targetHandle': 'handle-id',  # Optional
+    'type': 'default',  # Edge type
+    'animated': False,
+    'style': {},
+    'label': 'Edge Label',  # Optional
+}
+```
+
+## Development
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+pip install -r requirements.txt
+
+# Build components
+npm run build
+
+# Run development server
+python usage.py
+```
+
+### Building
+
+```bash
+# Production build
+npm run build
+
+# Create distribution
+python setup.py sdist bdist_wheel
+```
+
+## Requirements
+
+- Python >= 3.8
+- Dash >= 3.0.0
+- Node.js >= 8.11.0 (for development)
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Links
+
+- [GitHub Repository](https://github.com/pip-install-python/dash-flows)
+- [Issue Tracker](https://github.com/pip-install-python/dash-flows/issues)
+- [Dash Documentation](https://dash.plotly.com/)
+- [React Flow Documentation](https://reactflow.dev/)

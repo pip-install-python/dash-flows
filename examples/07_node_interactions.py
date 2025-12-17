@@ -49,6 +49,8 @@ app.layout = dmc.MantineProvider([
                 nodesDraggable=True,
                 nodesConnectable=True,
                 elementsSelectable=True,
+                # Enable multi-select with Shift key
+                multiSelectionKeyCode="Shift",
             ),
         ], span=8),
 
@@ -71,6 +73,12 @@ app.layout = dmc.MantineProvider([
                     html.Pre(id="selection-info", children="Select nodes...",
                              style={"fontSize": "11px", "maxHeight": "100px", "overflow": "auto"}),
                 ], p="sm", withBorder=True),
+
+                dmc.Paper([
+                    dmc.Text("Context Menu (Right-Click):", fw=600),
+                    html.Pre(id="context-menu-info", children="Right-click a node...",
+                             style={"fontSize": "11px", "maxHeight": "100px", "overflow": "auto"}),
+                ], p="sm", withBorder=True),
             ], gap="sm"),
         ], span=4),
     ]),
@@ -82,6 +90,7 @@ app.layout = dmc.MantineProvider([
         dmc.ListItem("Drag nodes to see position updates"),
         dmc.ListItem("Hold Shift and click to multi-select nodes"),
         dmc.ListItem("Use the selection box (drag on canvas) to select multiple nodes"),
+        dmc.ListItem("Right-click a node to see context menu event data"),
     ]),
 ])
 
@@ -131,6 +140,19 @@ def on_selection_change(selected_nodes, selected_edges):
         "selectedEdges": extract_ids(selected_edges),
     }
     return json.dumps(info, indent=2)
+
+
+@callback(
+    Output("context-menu-info", "children"),
+    Input("interaction-flow", "contextMenuNode"),
+    prevent_initial_call=True,
+)
+def on_context_menu(context_menu_node):
+    if not context_menu_node:
+        return "Right-click a node..."
+    # Show context menu event data
+    return json.dumps(context_menu_node, indent=2)
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=8066)

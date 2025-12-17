@@ -188,17 +188,29 @@ const AnimatedSvgEdge = ({
 };
 
 AnimatedSvgEdge.propTypes = {
+    /** Unique identifier for the edge */
     id: PropTypes.string.isRequired,
+    /** X coordinate of the edge source */
     sourceX: PropTypes.number.isRequired,
+    /** Y coordinate of the edge source */
     sourceY: PropTypes.number.isRequired,
+    /** X coordinate of the edge target */
     targetX: PropTypes.number.isRequired,
+    /** Y coordinate of the edge target */
     targetY: PropTypes.number.isRequired,
+    /** Position of the source handle ('top', 'bottom', 'left', 'right') */
     sourcePosition: PropTypes.string,
+    /** Position of the target handle ('top', 'bottom', 'left', 'right') */
     targetPosition: PropTypes.string,
+    /** Custom CSS styles for the edge path */
     style: PropTypes.object,
+    /** Marker configuration for the edge end */
     markerEnd: PropTypes.any,
+    /** Marker configuration for the edge start */
     markerStart: PropTypes.any,
+    /** Whether the edge is currently selected */
     selected: PropTypes.bool,
+    /** Configuration data for the animated SVG edge */
     data: PropTypes.shape({
         /** Animation duration in seconds */
         duration: PropTypes.number,

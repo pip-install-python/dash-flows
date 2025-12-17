@@ -113,13 +113,13 @@ app.clientside_callback(
             case 'btn-zoom-out':
                 return {'action': 'zoomOut', 'options': {}};
             case 'btn-reset-zoom':
-                return {'action': 'setZoom', 'options': {zoom: 1}};
+                return {'action': 'setZoom', 'zoom': 1, 'options': {}};
             case 'btn-pan-tl':
-                return {'action': 'setCenter', 'options': {x: 0, y: 0, zoom: 1}};
+                return {'action': 'setCenter', 'x': 0, 'y': 0, 'options': {zoom: 1, duration: 500}};
             case 'btn-pan-center':
-                return {'action': 'setCenter', 'options': {x: 450, y: 300, zoom: 1}};
+                return {'action': 'setCenter', 'x': 450, 'y': 300, 'options': {zoom: 1, duration: 500}};
             case 'btn-pan-br':
-                return {'action': 'setCenter', 'options': {x: 900, y: 550, zoom: 1}};
+                return {'action': 'setCenter', 'x': 900, 'y': 550, 'options': {zoom: 1, duration: 500}};
             default:
                 return window.dash_clientside.no_update;
         }

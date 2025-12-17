@@ -105,7 +105,7 @@ nodes = [
         "id": "child-1",
         "type": "default",
         "data": {"label": "Child A"},
-        "position": {"x": 30, "y": 50},
+        "position": {"x": 50, "y": 50},  # Position below the label badge
         "parentId": "group-1",
         "extent": "parent",  # Keep within parent bounds
     },
@@ -113,7 +113,7 @@ nodes = [
         "id": "child-2",
         "type": "default",
         "data": {"label": "Child B"},
-        "position": {"x": 30, "y": 150},
+        "position": {"x": 50, "y": 160},
         "parentId": "group-1",
         "extent": "parent",
     },

@@ -1,9 +1,9 @@
 # AUTO GENERATED FILE - DO NOT EDIT
 
 #' @export
-resizableNode <- function(data=NULL, selected=NULL) {
+resizableNode <- function(data=NULL, height=NULL, selected=NULL, width=NULL) {
     
-    props <- list(data=data, selected=selected)
+    props <- list(data=data, height=height, selected=selected, width=width)
     if (length(props) > 0) {
         props <- props[!vapply(props, is.null, logical(1))]
     }
@@ -11,7 +11,7 @@ resizableNode <- function(data=NULL, selected=NULL) {
         props = props,
         type = 'ResizableNode',
         namespace = 'dash_flows',
-        propNames = c('data', 'selected'),
+        propNames = c('data', 'height', 'selected', 'width'),
         package = 'dashFlows'
         )
 

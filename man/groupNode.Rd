@@ -6,7 +6,7 @@
 \title{GroupNode component}
 
 \description{
-GroupNode - Glass morphism styled container node that can hold other nodes Child nodes should have parentId set to this node's ID  IMPORTANT: Group nodes should have zIndex set lower than child nodes in the node definition to ensure proper layering.
+GroupNode - A simple labeled group container for child nodes  This follows the React Flow pattern for group nodes: - The node's width/height is controlled via the style prop on the node definition - Child nodes use parentId to reference this node - Child nodes can use extent: 'parent' to stay within bounds  Unlike standard nodes, group nodes are rendered as simple containers that React Flow manages for parent-child relationships.
 }
 
 \usage{
@@ -14,11 +14,10 @@ groupNode(data=NULL, selected=NULL)
 }
 
 \arguments{
-\item{data}{Lists containing elements 'label', 'icon', 'style', 'labelstyle', 'resizable', 'minwidth', 'minheight'.
+\item{data}{Lists containing elements 'label', 'icon', 'labelstyle', 'resizable', 'minwidth', 'minheight'.
 those elements have the following types:
-  - label (logical | numeric | character | named list | unnamed list; optional): label content for the group - displayed above the group container
+  - label (logical | numeric | character | named list | unnamed list; optional): label content for the group - displayed in top-left corner
   - icon (logical | numeric | character | named list | unnamed list; optional): icon element to display next to the label
-  - style (named list; optional): custom css styles for the group container
   - labelstyle (named list; optional): custom css styles for the label element
   - resizable (logical; optional): whether the group can be resized (default: true)
   - minwidth (numeric; optional): minimum width constraint for resizing

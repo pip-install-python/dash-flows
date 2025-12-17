@@ -30,7 +30,7 @@ those elements have the following types:
   - handlestyle (named list; optional): custom css styles for connection handles
   - sourceposition (character; optional): position for the source (output) handle
   - status (a value equal to: 'initial', 'loading', 'success', 'error'; optional): node status: 'initial', 'loading', 'success', 'error'
-  - loadingvariant (a value equal to: 'border', 'overlay'; optional): loading animation variant: 'border' or 'overlay'. }
+  - loadingvariant (a value equal to: 'border', 'overlay'; optional): loading animation variant: 'border' or 'overlay'. Node data configuration object containing display and behavior settings}
 
 \item{isConnectable}{Logical. Whether connections can be made from this node}
 

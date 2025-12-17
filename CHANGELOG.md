@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2025-12-10
+## [1.1.0] - 2025-12-15
 
 ### Added
 
@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Node Layout System
 - **Layout Prop**: New `layout` prop with two options:
   - `"stacked"` (default): Vertical arrangement with icon above text
-  - `"horizontal"`: Two-column layout with icon on left, text on right
+  - `"horizontal"`: Two[CHANGELOG.md](CHANGELOG.md)-column layout with icon on left, text on right
 - **Content-Aware Sizing**: Nodes automatically adjust size based on content configuration:
   - **Icon-only nodes**: Compact sizing that fits the icon (no wasted space)
   - **Text-only nodes**: Centered text without reserved icon space
@@ -46,6 +46,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Horizontal Layout**: Fixed horizontal layout not being applied correctly due to CSS specificity issues
 - **Icon-Only Node Width**: Fixed icon-only nodes being too wide by using `inline-flex` display
 
+#### New Examples
+- **Example 23**: `23_callback_stress_test.py` - Stress test for Dash callbacks with DashFlows
+  - 50 initial nodes in 5x10 grid
+  - Multiple simultaneous callbacks monitoring events
+  - Batch operations and live metrics
+  - Event logging for debugging
+
+### Changed
+
+- **Node Base Styling**: Changed from fixed `width` to `max-width` for better layout flexibility
+- **CSS Layout Classes**: Added `!important` flags to ensure layout overrides work correctly
+- **React 18+ Compatibility**: Converted `DashFlows.defaultProps` to JavaScript default parameters to eliminate React deprecation warnings
+- **GroupNode Simplification**: Refactored GroupNode to use React Fragment instead of wrapper divs, styling applied directly to `.react-flow__node-group`
+
+### Fixed
+
+- **Multi-select Not Working**: Added `multiSelectionKeyCode="Shift"` support in example 07
+- **Right-click Context Menu**: Fixed context menu callback in example 07 to display node data
+- **React defaultProps Warning**: Fixed React 18+ deprecation warning by using default parameters instead of `Component.defaultProps`
+- **GroupNode Nested Container**: Fixed GroupNode appearing with nested container by simplifying component to render only NodeResizer and label badge
+- **Viewport Control Buttons**: Fixed Pan to Top Left/Center/Bottom Right buttons in example 09 by correcting the `viewportAction` object structure
+- **Dark Mode Toggle (DMC)**: Fixed Mantine dark mode toggle in example 11 using modern `data-mantine-color-scheme` attribute pattern
+
 ### Technical
 
 - Added CSS classes for content detection: `.df-icon-only`, `.df-text-only`, `.df-full-content`
@@ -53,6 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added horizontal layout structure with `.df-node-icon-column` and `.df-node-text-column`
 - Added Iconify API fallback for rendering DashIconify icons when namespace unavailable
 - Enhanced `renderDashComponent` function to handle serialized Dash component format from callbacks
+- Added comprehensive JSDoc descriptions to all component propTypes for better IDE support
+- GroupNode now styles `.react-flow__node-group` directly with `!important` rules for proper React Flow integration
 
 ---
 

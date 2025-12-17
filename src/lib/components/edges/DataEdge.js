@@ -100,18 +100,31 @@ const DataEdge = ({
 };
 
 DataEdge.propTypes = {
+    /** Unique identifier for the edge */
     id: PropTypes.string.isRequired,
+    /** X coordinate of the edge source */
     sourceX: PropTypes.number.isRequired,
+    /** Y coordinate of the edge source */
     sourceY: PropTypes.number.isRequired,
+    /** X coordinate of the edge target */
     targetX: PropTypes.number.isRequired,
+    /** Y coordinate of the edge target */
     targetY: PropTypes.number.isRequired,
+    /** Position of the source handle ('top', 'bottom', 'left', 'right') */
     sourcePosition: PropTypes.string,
+    /** Position of the target handle ('top', 'bottom', 'left', 'right') */
     targetPosition: PropTypes.string,
+    /** ID of the source node to read data from */
     source: PropTypes.string.isRequired,
+    /** Custom CSS styles for the edge path */
     style: PropTypes.object,
+    /** Marker configuration for the edge end */
     markerEnd: PropTypes.any,
+    /** Marker configuration for the edge start */
     markerStart: PropTypes.any,
+    /** Whether the edge is currently selected */
     selected: PropTypes.bool,
+    /** Configuration data for the data edge */
     data: PropTypes.shape({
         /** Key to read from source node's data */
         key: PropTypes.string.isRequired,

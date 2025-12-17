@@ -17,36 +17,36 @@ targetX=NULL, targetY=NULL)
 }
 
 \arguments{
-\item{id}{Character. }
+\item{id}{Character. Unique identifier for the edge}
 
 \item{data}{Lists containing elements 'key', 'prefix', 'suffix', 'labelstyle'.
 those elements have the following types:
   - key (character; required): key to read from source node's data
   - prefix (character; optional): prefix to display before the value
   - suffix (character; optional): suffix to display after the value
-  - labelstyle (named list; optional): custom label styles. }
+  - labelstyle (named list; optional): custom label styles. Configuration data for the data edge}
 
-\item{markerEnd}{Logical | numeric | character | named list | unnamed list. }
+\item{markerEnd}{Logical | numeric | character | named list | unnamed list. Marker configuration for the edge end}
 
-\item{markerStart}{Logical | numeric | character | named list | unnamed list. }
+\item{markerStart}{Logical | numeric | character | named list | unnamed list. Marker configuration for the edge start}
 
-\item{selected}{Logical. }
+\item{selected}{Logical. Whether the edge is currently selected}
 
-\item{source}{Character. }
+\item{source}{Character. ID of the source node to read data from}
 
-\item{sourcePosition}{Character. }
+\item{sourcePosition}{Character. Position of the source handle ('top', 'bottom', 'left', 'right')}
 
-\item{sourceX}{Numeric. }
+\item{sourceX}{Numeric. X coordinate of the edge source}
 
-\item{sourceY}{Numeric. }
+\item{sourceY}{Numeric. Y coordinate of the edge source}
 
-\item{style}{Named list. }
+\item{style}{Named list. Custom CSS styles for the edge path}
 
-\item{targetPosition}{Character. }
+\item{targetPosition}{Character. Position of the target handle ('top', 'bottom', 'left', 'right')}
 
-\item{targetX}{Numeric. }
+\item{targetX}{Numeric. X coordinate of the edge target}
 
-\item{targetY}{Numeric. }
+\item{targetY}{Numeric. Y coordinate of the edge target}
 }
 
 \value{named list of JSON elements corresponding to React.js properties and their values}

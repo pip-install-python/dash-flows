@@ -12,6 +12,7 @@ import dash
 from dash import html, Input, Output, callback, clientside_callback
 import dash_flows
 import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 
 app = dash.Dash(__name__)
 
@@ -38,7 +39,11 @@ header = dmc.Group([
         variant="outline",
         size="lg",
         radius="md",
-        children=dmc.Text(id="theme-icon", children="*"),
+        color='yellow',
+        children=[
+        dmc.Paper(DashIconify(icon="radix-icons:sun", width=25), darkHidden=True),
+        dmc.Paper(DashIconify(icon="radix-icons:moon", width=25), lightHidden=True),
+    ],
     ),
 ], justify="space-between", style={"padding": "10px 20px", "borderBottom": "1px solid var(--mantine-color-gray-3)"})
 
@@ -86,22 +91,20 @@ app.layout = dmc.MantineProvider(
     ]
 )
 
-# Clientside callback for theme toggle
+# Clientside callback for theme toggle using the modern Mantine pattern
 clientside_callback(
     """
-    function(n_clicks, currentScheme) {
-        if (!n_clicks) {
-            return [currentScheme, currentScheme === 'dark' ? 'O' : '*'];
-        }
+    (n) => {
+        if (!n) return window.dash_clientside.no_update;
+        const currentScheme = document.documentElement.getAttribute('data-mantine-color-scheme') || 'light';
         const newScheme = currentScheme === 'light' ? 'dark' : 'light';
-        return [newScheme, newScheme === 'dark' ? 'O' : '*'];
+        document.documentElement.setAttribute('data-mantine-color-scheme', newScheme);
+        return newScheme;
     }
     """,
     Output("mantine-provider", "forceColorScheme"),
-    Output("theme-icon", "children"),
     Input("theme-toggle", "n_clicks"),
-    Input("mantine-provider", "forceColorScheme"),
-    prevent_initial_call=False,
+    prevent_initial_call=True,
 )
 
 if __name__ == "__main__":

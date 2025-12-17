@@ -993,40 +993,48 @@
     border-color: var(--df-default-node-border);
 }
 
-/* Group Node */
-.df-glass-node.df-group-node {
-    background: var(--df-group-node-bg);
-    border: 2px dashed var(--df-group-node-border);
-    border-radius: var(--df-radius-xl);
-    min-width: var(--df-group-node-min-width);
-    min-height: var(--df-group-node-min-height);
-    width: auto;
-    height: auto;
-    padding: 0;
-}
-
+/* Group Node - Style the React Flow wrapper directly */
 .react-flow__node-group {
+    background: var(--df-group-node-bg) !important;
+    border: 2px dashed var(--df-group-node-border) !important;
+    border-radius: var(--df-radius-lg) !important;
+    padding: 0 !important;
     z-index: 0 !important;
 }
 
 .react-flow__node-group.selected {
+    border: 2px solid var(--df-selection-border) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     z-index: 0 !important;
 }
 
+/* Group node label badge */
 .df-group-node-label {
     position: absolute;
-    top: -12px;
-    left: var(--df-spacing-md);
+    top: 8px;
+    left: 8px;
     background: var(--df-toolbar-bg);
-    padding: var(--df-spacing-xs) var(--df-spacing-sm);
+    padding: 4px 10px;
     border-radius: var(--df-radius-sm);
     font-size: 11px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     color: var(--df-node-text-secondary);
     border: 1px solid var(--df-node-border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
     z-index: 1;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Resize handles - only show on selection */
+.react-flow__node-group .react-flow__resize-control {
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.react-flow__node-group.selected .react-flow__resize-control {
+    opacity: 1;
 }
 
 /* =============================================================================

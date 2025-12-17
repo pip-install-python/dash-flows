@@ -1,9 +1,9 @@
 # AUTO GENERATED FILE - DO NOT EDIT
 
 #' @export
-devTools <- function(nodes=NULL, viewport=NULL) {
+devTools <- function(nodes=NULL) {
     
-    props <- list(nodes=nodes, viewport=viewport)
+    props <- list(nodes=nodes)
     if (length(props) > 0) {
         props <- props[!vapply(props, is.null, logical(1))]
     }
@@ -11,7 +11,7 @@ devTools <- function(nodes=NULL, viewport=NULL) {
         props = props,
         type = 'DevTools',
         namespace = 'dash_flows',
-        propNames = c('nodes', 'viewport'),
+        propNames = c('nodes'),
         package = 'dashFlows'
         )
 

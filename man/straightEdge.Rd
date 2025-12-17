@@ -17,29 +17,29 @@ targetY=NULL)
 }
 
 \arguments{
-\item{id}{Character. }
+\item{id}{Character. Unique identifier for the edge}
 
-\item{data}{Named list. }
+\item{data}{Named list. Additional data passed to the edge}
 
-\item{label}{Logical | numeric | character | named list | unnamed list. }
+\item{label}{Logical | numeric | character | named list | unnamed list. Label text to display on the edge}
 
-\item{labelStyle}{Named list. }
+\item{labelStyle}{Named list. Custom CSS styles for the label}
 
-\item{markerEnd}{Logical | numeric | character | named list | unnamed list. }
+\item{markerEnd}{Logical | numeric | character | named list | unnamed list. Marker configuration for the edge end}
 
-\item{markerStart}{Logical | numeric | character | named list | unnamed list. }
+\item{markerStart}{Logical | numeric | character | named list | unnamed list. Marker configuration for the edge start}
 
-\item{selected}{Logical. }
+\item{selected}{Logical. Whether the edge is currently selected}
 
-\item{sourceX}{Numeric. }
+\item{sourceX}{Numeric. X coordinate of the edge source}
 
-\item{sourceY}{Numeric. }
+\item{sourceY}{Numeric. Y coordinate of the edge source}
 
-\item{style}{Named list. }
+\item{style}{Named list. Custom CSS styles for the edge path}
 
-\item{targetX}{Numeric. }
+\item{targetX}{Numeric. X coordinate of the edge target}
 
-\item{targetY}{Numeric. }
+\item{targetY}{Numeric. Y coordinate of the edge target}
 }
 
 \value{named list of JSON elements corresponding to React.js properties and their values}
