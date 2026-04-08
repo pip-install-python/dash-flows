@@ -3,7 +3,7 @@ module DashFlows
 using Dash
 
 const resources_path = realpath(joinpath( @__DIR__, "..", "deps"))
-const version = "1.1.0"
+const version = "1.2.0"
 
 include("jl/animatedcirclenode.jl")
 include("jl/animatednodeedge.jl")
@@ -13,6 +13,7 @@ include("jl/resizablenode.jl")
 include("jl/animatedsvgedge.jl")
 include("jl/buttonedge.jl")
 include("jl/dataedge.jl")
+include("jl/floatingedge.jl")
 include("jl/simplebezieredge.jl")
 include("jl/smoothstepedge.jl")
 include("jl/stepedge.jl")

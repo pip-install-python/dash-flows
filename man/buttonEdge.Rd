@@ -6,7 +6,7 @@
 \title{ButtonEdge component}
 
 \description{
-ButtonEdge - Glass morphism styled edge with an interactive button
+ButtonEdge - Glass morphism styled edge with an interactive button and optional toolbar
 }
 
 \usage{
@@ -19,14 +19,16 @@ targetPosition=NULL, targetX=NULL, targetY=NULL)
 \arguments{
 \item{id}{Character. Unique identifier for the edge}
 
-\item{data}{Lists containing elements 'label', 'showbutton', 'buttonlabel', 'buttonstyle', 'buttontitle', 'onbuttonclick'.
+\item{data}{Lists containing elements 'label', 'showbutton', 'buttonlabel', 'buttonstyle', 'buttontitle', 'onbuttonclick', 'showtoolbar', 'toolbarstyle'.
 those elements have the following types:
   - label (logical | numeric | character | named list | unnamed list; optional): label text to display next to the button
   - showbutton (logical; optional): whether to show the button (default: true)
   - buttonlabel (character; optional): text/symbol to display on the button (default: '×')
   - buttonstyle (named list; optional): custom css styles for the button
   - buttontitle (character; optional): tooltip title for the button
-  - onbuttonclick (optional): callback function when button is clicked. Configuration data for the button edge}
+  - onbuttonclick (optional): callback function when button is clicked
+  - showtoolbar (logical; optional): show glass morphism toolbar when edge is selected
+  - toolbarstyle (named list; optional): custom css styles for the toolbar container. Configuration data for the button edge}
 
 \item{label}{Logical | numeric | character | named list | unnamed list. Label text to display on the edge}
 

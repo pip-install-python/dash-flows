@@ -1,6 +1,6 @@
 {
     "name": "dash_flows",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "React Flow for the Plotly Dash framework with edittable handles.",
     "repository": {
         "type": "git",
@@ -24,11 +24,11 @@
     "author": "Pip Install Python <pipinstallpython@gmail.com>",
     "license": "MIT",
     "dependencies": {
-        "@xyflow/react": "^12.3.5",
-        "elkjs": "^0.8.2",
+        "@xyflow/react": "^12.10.1",
+        "elkjs": "^0.9.3",
         "html-to-image": "^1.11.13",
         "ramda": "^0.26.1",
-        "zustand": "^4.4.7"
+        "zustand": "^4.5.5"
     },
     "devDependencies": {
         "@babel/core": "^7.22.1",

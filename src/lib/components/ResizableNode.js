@@ -253,6 +253,14 @@ const ResizableNode = memo(({ data, selected = false, width, height }) => {
                 isVisible={selected}
                 minWidth={data.minWidth || 100}
                 minHeight={data.minHeight || 50}
+                keepAspectRatio={data.keepAspectRatio || false}
+                maxWidth={data.maxWidth}
+                maxHeight={data.maxHeight}
+                shouldResize={(event, params) => {
+                    if (data.maxWidth && params.width > data.maxWidth) return false;
+                    if (data.maxHeight && params.height > data.maxHeight) return false;
+                    return true;
+                }}
                 handleStyle={{
                     width: 10,
                     height: 10,
@@ -339,6 +347,12 @@ ResizableNode.propTypes = {
         minWidth: PropTypes.number,
         /** Minimum height constraint for resizing */
         minHeight: PropTypes.number,
+        /** Maximum width constraint for resizing */
+        maxWidth: PropTypes.number,
+        /** Maximum height constraint for resizing */
+        maxHeight: PropTypes.number,
+        /** Maintain aspect ratio when resizing */
+        keepAspectRatio: PropTypes.bool,
         /** Padding inside the node content area */
         padding: PropTypes.number,
         /** Flexbox align-items value for content */

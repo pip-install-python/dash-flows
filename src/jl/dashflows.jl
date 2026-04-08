@@ -12,8 +12,16 @@ custom node types, edge types, glass morphism styling, and extensive
 callback integration for Python-based interactivity.
 Keyword arguments:
 - `id` (String; optional): The ID used to identify this component in Dash callbacks.
+- `addNodeOnEdgeDrop` (Bool; optional): When true, dragging a connection from a handle and dropping on empty canvas
+creates a new default node at that position and connects it.
+- `animateLayout` (Bool; optional): Enable smooth animated transitions when applying ELK layout.
+Nodes interpolate from current to target positions with an ease-out curve.
+- `animateLayoutDuration` (Real; optional): Duration of layout animation in milliseconds (default: 300)
+- `ariaLabelConfig` (Dict; optional): ARIA label configuration for accessibility. Customize labels for screen readers.
+Keys: nodes, edges, controls, minimap. Values are label strings.
 - `autoPanOnConnect` (Bool; optional): Auto-pan viewport when making a new connection near edges
 - `autoPanOnNodeDrag` (Bool; optional): Auto-pan viewport when dragging a node near edges
+- `autoPanOnNodeFocus` (Bool; optional): Auto-pan the viewport when focusing a node via keyboard (Tab key).
 - `autoPanSpeed` (Real; optional): Speed of auto-panning (default: 15)
 - `backgroundColor` (String; optional): Color of the background pattern
 - `backgroundGap` (Real | Array of Reals; optional): Gap between background pattern elements
@@ -36,6 +44,7 @@ Those elements have the following types:
   - `nodes` (Array; optional)
   - `edges` (Array; optional)
   - `timestamp` (Real; optional)
+- `collapsedGroups` (Array of Strings; optional): List of currently collapsed group node IDs (read-only output).
 - `colorMode` (a value equal to: 'light', 'dark', 'system'; optional): Color mode: 'light', 'dark', or 'system'
 - `colorScheme` (a value equal to: 'default', 'ocean', 'forest', 'sunset', 'midnight', 'rose'; optional): Color scheme preset for node and edge colors.
 Works in combination with themePreset for full customization.
@@ -46,7 +55,22 @@ Each scheme includes light and dark mode variants.
 - sunset: Oranges and reds
 - midnight: Deep blues and purples
 - rose: Pinks and reds
+- `computeAction` (optional): Trigger a graph computation. Set to { action: 'compute' } to perform
+topological sort and emit traversal order with input mappings.
+Will be reset to null after execution.. computeAction has the following type: lists containing elements 'action', 'nodeId', 'inputData'.
+Those elements have the following types:
+  - `action` (a value equal to: 'compute', 'computeNode'; optional)
+  - `nodeId` (String; optional)
+  - `inputData` (Dict; optional)
+- `computeResult` (optional): Result of the last computation. Contains traversalOrder (array of node IDs
+in topological order) and nodeInputs (map of nodeId to input details).. computeResult has the following type: lists containing elements 'traversalOrder', 'nodeInputs', 'timestamp'.
+Those elements have the following types:
+  - `traversalOrder` (Array of Strings; optional)
+  - `nodeInputs` (Dict; optional)
+  - `timestamp` (Real; optional)
 - `connectOnClick` (Bool; optional): Enable click-based connection mode (click source then target)
+- `connectionDragThreshold` (Real; optional): Minimum drag distance in pixels before a connection line appears.
+Useful to prevent accidental connections. Default is 0 (immediate).
 - `connectionLineStyle` (Dict; optional): Style for the connection line while dragging
 - `connectionLineType` (a value equal to: 'bezier', 'straight', 'step', 'smoothstep', 'simplebezier'; optional): Type of connection line: 'bezier', 'straight', 'step', 'smoothstep', 'simplebezier'
 - `connectionMode` (a value equal to: 'strict', 'loose'; optional): Connection mode: 'strict' (same handle type) or 'loose' (any handle)
@@ -96,6 +120,12 @@ Those elements have the following types:
   - `x` (Real; optional)
   - `y` (Real; optional)
   - `zoom` (Real; optional)
+- `deleteElementsAction` (optional): Delete specific nodes and/or edges by ID. Routes through
+reactFlowInstance.deleteElements() so undo/redo middleware can capture
+the change. Set to { nodeIds: [...], edgeIds: [...] }; auto-resets to null.. deleteElementsAction has the following type: lists containing elements 'nodeIds', 'edgeIds'.
+Those elements have the following types:
+  - `nodeIds` (Array of Strings; optional): IDs of nodes to delete (connected edges are also removed)
+  - `edgeIds` (Array of Strings; optional): IDs of edges to delete
 - `deleteKeyCode` (String; optional): Key code for deleting selected elements (default: 'Backspace', null to disable)
 - `deletedEdges` (Array of Strings; optional): IDs of recently deleted edges
 - `deletedNodes` (Array of Strings; optional): IDs of recently deleted nodes
@@ -144,6 +174,18 @@ Those elements have the following types:
   - `data` (Dict; optional)
   - `clientX` (Real; optional)
   - `clientY` (Real; optional)
+  - `timestamp` (Real; optional)
+- `edgeDroppedNode` (optional): Info about the node created by dropping an edge on empty canvas.
+Contains nodeId, position, sourceNodeId, sourceHandleId, handleType, timestamp.. edgeDroppedNode has the following type: lists containing elements 'nodeId', 'position', 'sourceNodeId', 'sourceHandleId', 'handleType', 'timestamp'.
+Those elements have the following types:
+  - `nodeId` (String; optional)
+  - `position` (optional): . position has the following type: lists containing elements 'x', 'y'.
+Those elements have the following types:
+  - `x` (Real; optional)
+  - `y` (Real; optional)
+  - `sourceNodeId` (String; optional)
+  - `sourceHandleId` (String; optional)
+  - `handleType` (String; optional)
   - `timestamp` (Real; optional)
 - `edges` (optional): Array of edges defining connections between nodes. edges has the following type: Array of lists containing elements 'id', 'source', 'target', 'sourceHandle', 'targetHandle', 'type', 'data', 'style', 'className', 'hidden', 'selected', 'animated', 'deletable', 'selectable', 'focusable', 'zIndex', 'ariaLabel', 'interactionWidth', 'label', 'labelStyle', 'labelShowBg', 'labelBgStyle', 'labelBgPadding', 'labelBgBorderRadius', 'markerStart', 'markerEnd'.
 Those elements have the following types:
@@ -194,6 +236,8 @@ Those elements have the following types:
 - `elementsSelectable` (Bool; optional): Enable/disable the ability to select elements
 - `elevateEdgesOnSelect` (Bool; optional): Raise z-index of selected edges
 - `elevateNodesOnSelect` (Bool; optional): Raise z-index of selected nodes
+- `enableUndoRedo` (Bool; optional): Enable the undo/redo history system. When enabled, node and edge changes
+(add, remove, position drag-stop) are recorded to a history stack.
 - `exportFlowState` (Bool; optional): Trigger to export the current flow state. Set to true to export.
 After export, this will be reset to false and flowState will be populated.
 - `fitView` (Bool; optional): Automatically fit all nodes in view on initialization
@@ -217,6 +261,9 @@ Those elements have the following types:
   - `x` (Real; optional)
   - `y` (Real; optional)
   - `zoom` (Real; optional)
+- `helperLineThreshold` (Real; optional): Distance in pixels within which helper lines snap and appear (default: 5)
+- `helperLines` (Bool; optional): Enable visual alignment guides (helper lines) when dragging nodes.
+Lines appear when a node aligns with another node's top/center/bottom or left/center/right.
 - `hoveredEdge` (optional): The edge being hovered. hoveredEdge has the following type: lists containing elements 'id', 'source', 'target'.
 Those elements have the following types:
   - `id` (String; optional)
@@ -259,6 +306,8 @@ Those elements have the following types:
 - `noDragClassName` (String; optional): CSS class name that prevents dragging when applied to elements
 - `noPanClassName` (String; optional): CSS class name that prevents panning when applied to elements
 - `noWheelClassName` (String; optional): CSS class name that prevents wheel zoom when applied to elements
+- `nodeConnections` (Dict; optional): Map of nodeId to connection metadata. Each entry has 'incoming' and 'outgoing' arrays
+with edge/node details. Updated automatically when edges change.
 - `nodeExtent` (Array of Array of Realss; optional): Limit where nodes can be placed [[minX, minY], [maxX, maxY]]
 - `nodes` (optional): Array of nodes to display in the flow. nodes has the following type: Array of lists containing elements 'id', 'type', 'data', 'position', 'style', 'className', 'hidden', 'selected', 'draggable', 'selectable', 'connectable', 'deletable', 'dragHandle', 'width', 'height', 'parentId', 'zIndex', 'extent', 'expandParent', 'positionAbsolute', 'ariaLabel', 'focusable', 'resizing'.
 Those elements have the following types:
@@ -351,6 +400,9 @@ Those elements have the following types:
 - `showControls` (Bool; optional): Show/hide the control panel
 - `showDevTools` (Bool; optional): Show/hide the developer tools panel
 - `showMiniMap` (Bool; optional): Show/hide the minimap navigation component
+- `smartHandles` (Bool; optional): Enable smart handle positioning. When true, nodes render handles on all 4 sides
+and edges automatically connect to the closest handle pair based on relative node
+positions. This prevents edges from wrapping around nodes unnecessarily.
 - `snapGrid` (Array of Reals; optional): The grid size for snapping [x, y] (default: [15, 15])
 - `snapToGrid` (Bool; optional): Whether to snap nodes to a grid when dragging
 - `style` (Dict; optional): Custom CSS styles for the container div
@@ -385,9 +437,24 @@ Those elements have the following types:
 - glass: Glassmorphism with blur and transparency
 - solid: Opaque nodes with subtle shadows (better for complex backgrounds)
 - minimal: Clean lines with minimal styling
+- `toggleCollapseNode` (String; optional): Set to a group node ID to toggle its collapsed/expanded state.
+When collapsed, child nodes are hidden and boundary edges remap to the group.
+Will be reset to null after processing.
 - `trackNodeDrag` (Bool; optional): Track node position during drag (can be expensive)
 - `trackViewport` (Bool; optional): Track viewport changes during pan/zoom
 - `translateExtent` (Array of Array of Realss; optional): Limit the viewport panning extent [[minX, minY], [maxX, maxY]]
+- `undoRedoAction` (optional): Trigger an undo or redo action. Set to { action: 'undo' } or { action: 'redo' }.
+Will be reset to null after execution.. undoRedoAction has the following type: lists containing elements 'action'.
+Those elements have the following types:
+  - `action` (a value equal to: 'undo', 'redo'; optional)
+- `undoRedoMaxHistory` (Real; optional): Maximum number of history snapshots to keep (default: 50)
+- `undoRedoState` (optional): Current undo/redo state. Contains canUndo, canRedo, undoCount, redoCount.
+Updated automatically when history changes.. undoRedoState has the following type: lists containing elements 'canUndo', 'canRedo', 'undoCount', 'redoCount'.
+Those elements have the following types:
+  - `canUndo` (Bool; optional)
+  - `canRedo` (Bool; optional)
+  - `undoCount` (Real; optional)
+  - `redoCount` (Real; optional)
 - `viewport` (optional): Current viewport state (read-only, updated by callbacks). viewport has the following type: lists containing elements 'x', 'y', 'zoom'.
 Those elements have the following types:
   - `x` (Real; optional)
@@ -418,13 +485,22 @@ Those elements have the following types:
   - `zoom` (Real; optional)
   - `options` (Dict; optional)
 - `viewportMoving` (Bool; optional): Whether viewport is currently moving (panning/zooming)
+- `viewportOverlays` (optional): Array of overlay elements rendered in flow coordinates via ViewportPortal.
+Each overlay moves with the viewport (pan/zoom) and is positioned at (x, y) in flow space.. viewportOverlays has the following type: Array of lists containing elements 'x', 'y', 'content', 'style'.
+Those elements have the following types:
+  - `x` (Real; optional): X position in flow coordinates
+  - `y` (Real; optional): Y position in flow coordinates
+  - `content` (String; optional): Text content to display
+  - `style` (Dict; optional): Custom CSS styles for the overlay divs
+- `zIndexMode` (a value equal to: 'default', 'elevate'; optional): Z-index calculation mode. 'default' uses standard stacking. 'elevate' raises
+selected nodes and connected edges above all other elements.
 - `zoomActivationKeyCode` (String; optional): Key code to activate zoom mode
 - `zoomOnDoubleClick` (Bool; optional): Enable zooming by double-clicking
 - `zoomOnPinch` (Bool; optional): Enable zooming by pinching on touch devices
 - `zoomOnScroll` (Bool; optional): Enable zooming by scrolling
 """
 function dashflows(; kwargs...)
-        available_props = Symbol[:id, :autoPanOnConnect, :autoPanOnNodeDrag, :autoPanSpeed, :backgroundColor, :backgroundGap, :backgroundSize, :backgroundVariant, :className, :clickedEdge, :clickedNode, :clipboard, :colorMode, :colorScheme, :connectOnClick, :connectionLineStyle, :connectionLineType, :connectionMode, :connectionRadius, :connectionRules, :connectionStartHandle, :contextMenuEdge, :contextMenuNode, :controlsPosition, :controlsShowFitView, :controlsShowInteractive, :controlsShowZoom, :copyAction, :defaultEdgeOptions, :defaultMarkerColor, :defaultViewport, :deleteKeyCode, :deletedEdges, :deletedNodes, :disableKeyboardA11y, :doubleClickedEdge, :doubleClickedNode, :downloadImage, :draggedNode, :droppedNode, :edges, :edgesFocusable, :edgesReconnectable, :elementsSelectable, :elevateEdgesOnSelect, :elevateNodesOnSelect, :exportFlowState, :fitView, :fitViewOptions, :flowState, :hoveredEdge, :hoveredNode, :imageDownloaded, :initialized, :lastConnection, :lastError, :layoutOptions, :maxZoom, :minZoom, :miniMapMaskColor, :miniMapNodeBorderRadius, :miniMapNodeColor, :miniMapNodeStrokeColor, :miniMapPannable, :miniMapPosition, :miniMapZoomable, :multiSelectionKeyCode, :noDragClassName, :noPanClassName, :noWheelClassName, :nodeExtent, :nodes, :nodesConnectable, :nodesDraggable, :nodesFocusable, :onlyRenderVisibleElements, :panActivationKeyCode, :panOnDrag, :panOnScroll, :panOnScrollMode, :panOnScrollSpeed, :paneClickPosition, :paneContextMenu, :panels, :pasteAction, :pastedElements, :preventDelete, :preventDeleteEdges, :preventDeleteNodes, :preventScrolling, :reconnectRadius, :restoreFlowState, :selectNodesOnDrag, :selectedEdges, :selectedNodes, :selectionKeyCode, :selectionMode, :selectionOnDrag, :showBackground, :showControls, :showDevTools, :showMiniMap, :snapGrid, :snapToGrid, :style, :theme, :themePreset, :trackNodeDrag, :trackViewport, :translateExtent, :viewport, :viewportAction, :viewportMoving, :zoomActivationKeyCode, :zoomOnDoubleClick, :zoomOnPinch, :zoomOnScroll]
+        available_props = Symbol[:id, :addNodeOnEdgeDrop, :animateLayout, :animateLayoutDuration, :ariaLabelConfig, :autoPanOnConnect, :autoPanOnNodeDrag, :autoPanOnNodeFocus, :autoPanSpeed, :backgroundColor, :backgroundGap, :backgroundSize, :backgroundVariant, :className, :clickedEdge, :clickedNode, :clipboard, :collapsedGroups, :colorMode, :colorScheme, :computeAction, :computeResult, :connectOnClick, :connectionDragThreshold, :connectionLineStyle, :connectionLineType, :connectionMode, :connectionRadius, :connectionRules, :connectionStartHandle, :contextMenuEdge, :contextMenuNode, :controlsPosition, :controlsShowFitView, :controlsShowInteractive, :controlsShowZoom, :copyAction, :defaultEdgeOptions, :defaultMarkerColor, :defaultViewport, :deleteElementsAction, :deleteKeyCode, :deletedEdges, :deletedNodes, :disableKeyboardA11y, :doubleClickedEdge, :doubleClickedNode, :downloadImage, :draggedNode, :droppedNode, :edgeDroppedNode, :edges, :edgesFocusable, :edgesReconnectable, :elementsSelectable, :elevateEdgesOnSelect, :elevateNodesOnSelect, :enableUndoRedo, :exportFlowState, :fitView, :fitViewOptions, :flowState, :helperLineThreshold, :helperLines, :hoveredEdge, :hoveredNode, :imageDownloaded, :initialized, :lastConnection, :lastError, :layoutOptions, :maxZoom, :minZoom, :miniMapMaskColor, :miniMapNodeBorderRadius, :miniMapNodeColor, :miniMapNodeStrokeColor, :miniMapPannable, :miniMapPosition, :miniMapZoomable, :multiSelectionKeyCode, :noDragClassName, :noPanClassName, :noWheelClassName, :nodeConnections, :nodeExtent, :nodes, :nodesConnectable, :nodesDraggable, :nodesFocusable, :onlyRenderVisibleElements, :panActivationKeyCode, :panOnDrag, :panOnScroll, :panOnScrollMode, :panOnScrollSpeed, :paneClickPosition, :paneContextMenu, :panels, :pasteAction, :pastedElements, :preventDelete, :preventDeleteEdges, :preventDeleteNodes, :preventScrolling, :reconnectRadius, :restoreFlowState, :selectNodesOnDrag, :selectedEdges, :selectedNodes, :selectionKeyCode, :selectionMode, :selectionOnDrag, :showBackground, :showControls, :showDevTools, :showMiniMap, :smartHandles, :snapGrid, :snapToGrid, :style, :theme, :themePreset, :toggleCollapseNode, :trackNodeDrag, :trackViewport, :translateExtent, :undoRedoAction, :undoRedoMaxHistory, :undoRedoState, :viewport, :viewportAction, :viewportMoving, :viewportOverlays, :zIndexMode, :zoomActivationKeyCode, :zoomOnDoubleClick, :zoomOnPinch, :zoomOnScroll]
         wild_props = Symbol[]
         return Component("dashflows", "DashFlows", "dash_flows", available_props, wild_props; kwargs...)
 end

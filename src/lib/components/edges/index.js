@@ -6,3 +6,4 @@ export { default as SimpleBezierEdge } from './SimpleBezierEdge';
 export { default as ButtonEdge } from './ButtonEdge';
 export { default as DataEdge } from './DataEdge';
 export { default as AnimatedSvgEdge } from './AnimatedSvgEdge';
+export { default as FloatingEdge } from './FloatingEdge';

@@ -6,6 +6,7 @@ from .ResizableNode import ResizableNode
 from .AnimatedSvgEdge import AnimatedSvgEdge
 from .ButtonEdge import ButtonEdge
 from .DataEdge import DataEdge
+from .FloatingEdge import FloatingEdge
 from .SimpleBezierEdge import SimpleBezierEdge
 from .SmoothStepEdge import SmoothStepEdge
 from .StepEdge import StepEdge
@@ -29,6 +30,7 @@ __all__ = [
     "AnimatedSvgEdge",
     "ButtonEdge",
     "DataEdge",
+    "FloatingEdge",
     "SimpleBezierEdge",
     "SmoothStepEdge",
     "StepEdge",

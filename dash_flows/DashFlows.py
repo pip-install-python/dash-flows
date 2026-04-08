@@ -30,11 +30,32 @@ Keyword arguments:
 - id (string; optional):
     The ID used to identify this component in Dash callbacks.
 
+- addNodeOnEdgeDrop (boolean; optional):
+    When True, dragging a connection from a handle and dropping on
+    empty canvas creates a new default node at that position and
+    connects it.
+
+- animateLayout (boolean; default False):
+    Enable smooth animated transitions when applying ELK layout. Nodes
+    interpolate from current to target positions with an ease-out
+    curve.
+
+- animateLayoutDuration (number; default 300):
+    Duration of layout animation in milliseconds (default: 300).
+
+- ariaLabelConfig (dict; optional):
+    ARIA label configuration for accessibility. Customize labels for
+    screen readers. Keys: nodes, edges, controls, minimap. Values are
+    label strings.
+
 - autoPanOnConnect (boolean; default True):
     Auto-pan viewport when making a new connection near edges.
 
 - autoPanOnNodeDrag (boolean; default True):
     Auto-pan viewport when dragging a node near edges.
+
+- autoPanOnNodeFocus (boolean; default True):
+    Auto-pan the viewport when focusing a node via keyboard (Tab key).
 
 - autoPanSpeed (number; default 15):
     Speed of auto-panning (default: 15).
@@ -88,6 +109,9 @@ Keyword arguments:
 
     - timestamp (number; optional)
 
+- collapsedGroups (list of strings; optional):
+    List of currently collapsed group node IDs (read-only output).
+
 - colorMode (a value equal to: 'light', 'dark', 'system'; default 'light'):
     Color mode: 'light', 'dark', or 'system'.
 
@@ -99,8 +123,39 @@ Keyword arguments:
     sunset: Oranges and reds - midnight: Deep blues and purples -
     rose: Pinks and reds.
 
+- computeAction (dict; optional):
+    Trigger a graph computation. Set to { action: 'compute' } to
+    perform topological sort and emit traversal order with input
+    mappings. Will be reset to None after execution.
+
+    `computeAction` is a dict with keys:
+
+    - action (a value equal to: 'compute', 'computeNode'; optional)
+
+    - nodeId (string; optional)
+
+    - inputData (dict; optional)
+
+- computeResult (dict; optional):
+    Result of the last computation. Contains traversalOrder (array of
+    node IDs in topological order) and nodeInputs (map of nodeId to
+    input details).
+
+    `computeResult` is a dict with keys:
+
+    - traversalOrder (list of strings; optional)
+
+    - nodeInputs (dict; optional)
+
+    - timestamp (number; optional)
+
 - connectOnClick (boolean; default True):
     Enable click-based connection mode (click source then target).
+
+- connectionDragThreshold (number; default 0):
+    Minimum drag distance in pixels before a connection line appears.
+    Useful to prevent accidental connections. Default is 0
+    (immediate).
 
 - connectionLineStyle (dict; optional):
     Style for the connection line while dragging.
@@ -216,6 +271,20 @@ Keyword arguments:
 
     - zoom (number; optional)
 
+- deleteElementsAction (dict; optional):
+    Delete specific nodes and/or edges by ID. Routes through
+    reactFlowInstance.deleteElements() so undo/redo middleware can
+    capture the change. Set to { nodeIds: [...], edgeIds: [...] };
+    auto-resets to None.
+
+    `deleteElementsAction` is a dict with keys:
+
+    - nodeIds (list of strings; optional):
+        IDs of nodes to delete (connected edges are also removed).
+
+    - edgeIds (list of strings; optional):
+        IDs of edges to delete.
+
 - deleteKeyCode (string; default 'Backspace'):
     Key code for deleting selected elements (default: 'Backspace',
     None to disable).
@@ -309,6 +378,31 @@ Keyword arguments:
     - clientX (number; optional)
 
     - clientY (number; optional)
+
+    - timestamp (number; optional)
+
+- edgeDroppedNode (dict; optional):
+    Info about the node created by dropping an edge on empty canvas.
+    Contains nodeId, position, sourceNodeId, sourceHandleId,
+    handleType, timestamp.
+
+    `edgeDroppedNode` is a dict with keys:
+
+    - nodeId (string; optional)
+
+    - position (dict; optional)
+
+        `position` is a dict with keys:
+
+        - x (number; optional)
+
+        - y (number; optional)
+
+    - sourceNodeId (string; optional)
+
+    - sourceHandleId (string; optional)
+
+    - handleType (string; optional)
 
     - timestamp (number; optional)
 
@@ -418,6 +512,11 @@ Keyword arguments:
 - elevateNodesOnSelect (boolean; default True):
     Raise z-index of selected nodes.
 
+- enableUndoRedo (boolean; default False):
+    Enable the undo/redo history system. When enabled, node and edge
+    changes (add, remove, position drag-stop) are recorded to a
+    history stack.
+
 - exportFlowState (boolean; optional):
     Trigger to export the current flow state. Set to True to export.
     After export, this will be reset to False and flowState will be
@@ -467,6 +566,15 @@ Keyword arguments:
         - y (number; optional)
 
         - zoom (number; optional)
+
+- helperLineThreshold (number; optional):
+    Distance in pixels within which helper lines snap and appear
+    (default: 5).
+
+- helperLines (boolean; optional):
+    Enable visual alignment guides (helper lines) when dragging nodes.
+    Lines appear when a node aligns with another node's
+    top/center/bottom or left/center/right.
 
 - hoveredEdge (dict; optional):
     The edge being hovered.
@@ -571,6 +679,11 @@ Keyword arguments:
 
 - noWheelClassName (string; default 'nowheel'):
     CSS class name that prevents wheel zoom when applied to elements.
+
+- nodeConnections (dict; optional):
+    Map of nodeId to connection metadata. Each entry has 'incoming'
+    and 'outgoing' arrays with edge/node details. Updated
+    automatically when edges change.
 
 - nodeExtent (list of list of numberss; optional):
     Limit where nodes can be placed [[minX, minY], [maxX, maxY]].
@@ -786,6 +899,12 @@ Keyword arguments:
 - showMiniMap (boolean; default True):
     Show/hide the minimap navigation component.
 
+- smartHandles (boolean; optional):
+    Enable smart handle positioning. When True, nodes render handles
+    on all 4 sides and edges automatically connect to the closest
+    handle pair based on relative node positions. This prevents edges
+    from wrapping around nodes unnecessarily.
+
 - snapGrid (list of numbers; default [15, 15]):
     The grid size for snapping [x, y] (default: [15, 15]).
 
@@ -877,6 +996,11 @@ Keyword arguments:
     with subtle shadows (better for complex backgrounds) - minimal:
     Clean lines with minimal styling.
 
+- toggleCollapseNode (string; optional):
+    Set to a group node ID to toggle its collapsed/expanded state.
+    When collapsed, child nodes are hidden and boundary edges remap to
+    the group. Will be reset to None after processing.
+
 - trackNodeDrag (boolean; default False):
     Track node position during drag (can be expensive).
 
@@ -885,6 +1009,31 @@ Keyword arguments:
 
 - translateExtent (list of list of numberss; optional):
     Limit the viewport panning extent [[minX, minY], [maxX, maxY]].
+
+- undoRedoAction (dict; optional):
+    Trigger an undo or redo action. Set to { action: 'undo' } or {
+    action: 'redo' }. Will be reset to None after execution.
+
+    `undoRedoAction` is a dict with keys:
+
+    - action (a value equal to: 'undo', 'redo'; optional)
+
+- undoRedoMaxHistory (number; default 50):
+    Maximum number of history snapshots to keep (default: 50).
+
+- undoRedoState (dict; optional):
+    Current undo/redo state. Contains canUndo, canRedo, undoCount,
+    redoCount. Updated automatically when history changes.
+
+    `undoRedoState` is a dict with keys:
+
+    - canUndo (boolean; optional)
+
+    - canRedo (boolean; optional)
+
+    - undoCount (number; optional)
+
+    - redoCount (number; optional)
 
 - viewport (dict; optional):
     Current viewport state (read-only, updated by callbacks).
@@ -935,6 +1084,30 @@ Keyword arguments:
 
 - viewportMoving (boolean; optional):
     Whether viewport is currently moving (panning/zooming).
+
+- viewportOverlays (list of dicts; optional):
+    Array of overlay elements rendered in flow coordinates via
+    ViewportPortal. Each overlay moves with the viewport (pan/zoom)
+    and is positioned at (x, y) in flow space.
+
+    `viewportOverlays` is a list of dicts with keys:
+
+    - x (number; optional):
+        X position in flow coordinates.
+
+    - y (number; optional):
+        Y position in flow coordinates.
+
+    - content (string; optional):
+        Text content to display.
+
+    - style (dict; optional):
+        Custom CSS styles for the overlay div.
+
+- zIndexMode (a value equal to: 'default', 'elevate'; optional):
+    Z-index calculation mode. 'default' uses standard stacking.
+    'elevate' raises selected nodes and connected edges above all
+    other elements.
 
 - zoomActivationKeyCode (string; optional):
     Key code to activate zoom mode.
@@ -1413,6 +1586,79 @@ Keyword arguments:
         }
     )
 
+    EdgeDroppedNodePosition = TypedDict(
+        "EdgeDroppedNodePosition",
+            {
+            "x": NotRequired[NumberType],
+            "y": NotRequired[NumberType]
+        }
+    )
+
+    EdgeDroppedNode = TypedDict(
+        "EdgeDroppedNode",
+            {
+            "nodeId": NotRequired[str],
+            "position": NotRequired["EdgeDroppedNodePosition"],
+            "sourceNodeId": NotRequired[str],
+            "sourceHandleId": NotRequired[str],
+            "handleType": NotRequired[str],
+            "timestamp": NotRequired[NumberType]
+        }
+    )
+
+    UndoRedoAction = TypedDict(
+        "UndoRedoAction",
+            {
+            "action": NotRequired[Literal["undo", "redo"]]
+        }
+    )
+
+    UndoRedoState = TypedDict(
+        "UndoRedoState",
+            {
+            "canUndo": NotRequired[bool],
+            "canRedo": NotRequired[bool],
+            "undoCount": NotRequired[NumberType],
+            "redoCount": NotRequired[NumberType]
+        }
+    )
+
+    ComputeAction = TypedDict(
+        "ComputeAction",
+            {
+            "action": NotRequired[Literal["compute", "computeNode"]],
+            "nodeId": NotRequired[str],
+            "inputData": NotRequired[dict]
+        }
+    )
+
+    ComputeResult = TypedDict(
+        "ComputeResult",
+            {
+            "traversalOrder": NotRequired[typing.Sequence[str]],
+            "nodeInputs": NotRequired[dict],
+            "timestamp": NotRequired[NumberType]
+        }
+    )
+
+    ViewportOverlays = TypedDict(
+        "ViewportOverlays",
+            {
+            "x": NotRequired[NumberType],
+            "y": NotRequired[NumberType],
+            "content": NotRequired[str],
+            "style": NotRequired[dict]
+        }
+    )
+
+    DeleteElementsAction = TypedDict(
+        "DeleteElementsAction",
+            {
+            "nodeIds": NotRequired[typing.Sequence[str]],
+            "edgeIds": NotRequired[typing.Sequence[str]]
+        }
+    )
+
 
     def __init__(
         self,
@@ -1454,6 +1700,8 @@ Keyword arguments:
         connectionMode: typing.Optional[Literal["strict", "loose"]] = None,
         elevateNodesOnSelect: typing.Optional[bool] = None,
         elevateEdgesOnSelect: typing.Optional[bool] = None,
+        zIndexMode: typing.Optional[Literal["default", "elevate"]] = None,
+        autoPanOnNodeFocus: typing.Optional[bool] = None,
         defaultEdgeOptions: typing.Optional["DefaultEdgeOptions"] = None,
         defaultMarkerColor: typing.Optional[str] = None,
         edgesReconnectable: typing.Optional[bool] = None,
@@ -1461,7 +1709,9 @@ Keyword arguments:
         connectionLineStyle: typing.Optional[dict] = None,
         connectionLineType: typing.Optional[Literal["bezier", "straight", "step", "smoothstep", "simplebezier"]] = None,
         connectionRadius: typing.Optional[NumberType] = None,
+        connectionDragThreshold: typing.Optional[NumberType] = None,
         connectionRules: typing.Optional["ConnectionRules"] = None,
+        smartHandles: typing.Optional[bool] = None,
         deleteKeyCode: typing.Optional[str] = None,
         selectionKeyCode: typing.Optional[str] = None,
         multiSelectionKeyCode: typing.Optional[str] = None,
@@ -1533,11 +1783,29 @@ Keyword arguments:
         paneContextMenu: typing.Optional["PaneContextMenu"] = None,
         deletedNodes: typing.Optional[typing.Sequence[str]] = None,
         deletedEdges: typing.Optional[typing.Sequence[str]] = None,
+        helperLines: typing.Optional[bool] = None,
+        helperLineThreshold: typing.Optional[NumberType] = None,
+        addNodeOnEdgeDrop: typing.Optional[bool] = None,
+        edgeDroppedNode: typing.Optional["EdgeDroppedNode"] = None,
+        nodeConnections: typing.Optional[dict] = None,
+        ariaLabelConfig: typing.Optional[dict] = None,
+        animateLayout: typing.Optional[bool] = None,
+        animateLayoutDuration: typing.Optional[NumberType] = None,
+        enableUndoRedo: typing.Optional[bool] = None,
+        undoRedoMaxHistory: typing.Optional[NumberType] = None,
+        undoRedoAction: typing.Optional["UndoRedoAction"] = None,
+        undoRedoState: typing.Optional["UndoRedoState"] = None,
+        computeAction: typing.Optional["ComputeAction"] = None,
+        computeResult: typing.Optional["ComputeResult"] = None,
+        viewportOverlays: typing.Optional[typing.Sequence["ViewportOverlays"]] = None,
+        toggleCollapseNode: typing.Optional[str] = None,
+        collapsedGroups: typing.Optional[typing.Sequence[str]] = None,
+        deleteElementsAction: typing.Optional["DeleteElementsAction"] = None,
         **kwargs
     ):
-        self._prop_names = ['id', 'autoPanOnConnect', 'autoPanOnNodeDrag', 'autoPanSpeed', 'backgroundColor', 'backgroundGap', 'backgroundSize', 'backgroundVariant', 'className', 'clickedEdge', 'clickedNode', 'clipboard', 'colorMode', 'colorScheme', 'connectOnClick', 'connectionLineStyle', 'connectionLineType', 'connectionMode', 'connectionRadius', 'connectionRules', 'connectionStartHandle', 'contextMenuEdge', 'contextMenuNode', 'controlsPosition', 'controlsShowFitView', 'controlsShowInteractive', 'controlsShowZoom', 'copyAction', 'defaultEdgeOptions', 'defaultMarkerColor', 'defaultViewport', 'deleteKeyCode', 'deletedEdges', 'deletedNodes', 'disableKeyboardA11y', 'doubleClickedEdge', 'doubleClickedNode', 'downloadImage', 'draggedNode', 'droppedNode', 'edges', 'edgesFocusable', 'edgesReconnectable', 'elementsSelectable', 'elevateEdgesOnSelect', 'elevateNodesOnSelect', 'exportFlowState', 'fitView', 'fitViewOptions', 'flowState', 'hoveredEdge', 'hoveredNode', 'imageDownloaded', 'initialized', 'lastConnection', 'lastError', 'layoutOptions', 'maxZoom', 'minZoom', 'miniMapMaskColor', 'miniMapNodeBorderRadius', 'miniMapNodeColor', 'miniMapNodeStrokeColor', 'miniMapPannable', 'miniMapPosition', 'miniMapZoomable', 'multiSelectionKeyCode', 'noDragClassName', 'noPanClassName', 'noWheelClassName', 'nodeExtent', 'nodes', 'nodesConnectable', 'nodesDraggable', 'nodesFocusable', 'onlyRenderVisibleElements', 'panActivationKeyCode', 'panOnDrag', 'panOnScroll', 'panOnScrollMode', 'panOnScrollSpeed', 'paneClickPosition', 'paneContextMenu', 'panels', 'pasteAction', 'pastedElements', 'preventDelete', 'preventDeleteEdges', 'preventDeleteNodes', 'preventScrolling', 'reconnectRadius', 'restoreFlowState', 'selectNodesOnDrag', 'selectedEdges', 'selectedNodes', 'selectionKeyCode', 'selectionMode', 'selectionOnDrag', 'showBackground', 'showControls', 'showDevTools', 'showMiniMap', 'snapGrid', 'snapToGrid', 'style', 'theme', 'themePreset', 'trackNodeDrag', 'trackViewport', 'translateExtent', 'viewport', 'viewportAction', 'viewportMoving', 'zoomActivationKeyCode', 'zoomOnDoubleClick', 'zoomOnPinch', 'zoomOnScroll']
+        self._prop_names = ['id', 'addNodeOnEdgeDrop', 'animateLayout', 'animateLayoutDuration', 'ariaLabelConfig', 'autoPanOnConnect', 'autoPanOnNodeDrag', 'autoPanOnNodeFocus', 'autoPanSpeed', 'backgroundColor', 'backgroundGap', 'backgroundSize', 'backgroundVariant', 'className', 'clickedEdge', 'clickedNode', 'clipboard', 'collapsedGroups', 'colorMode', 'colorScheme', 'computeAction', 'computeResult', 'connectOnClick', 'connectionDragThreshold', 'connectionLineStyle', 'connectionLineType', 'connectionMode', 'connectionRadius', 'connectionRules', 'connectionStartHandle', 'contextMenuEdge', 'contextMenuNode', 'controlsPosition', 'controlsShowFitView', 'controlsShowInteractive', 'controlsShowZoom', 'copyAction', 'defaultEdgeOptions', 'defaultMarkerColor', 'defaultViewport', 'deleteElementsAction', 'deleteKeyCode', 'deletedEdges', 'deletedNodes', 'disableKeyboardA11y', 'doubleClickedEdge', 'doubleClickedNode', 'downloadImage', 'draggedNode', 'droppedNode', 'edgeDroppedNode', 'edges', 'edgesFocusable', 'edgesReconnectable', 'elementsSelectable', 'elevateEdgesOnSelect', 'elevateNodesOnSelect', 'enableUndoRedo', 'exportFlowState', 'fitView', 'fitViewOptions', 'flowState', 'helperLineThreshold', 'helperLines', 'hoveredEdge', 'hoveredNode', 'imageDownloaded', 'initialized', 'lastConnection', 'lastError', 'layoutOptions', 'maxZoom', 'minZoom', 'miniMapMaskColor', 'miniMapNodeBorderRadius', 'miniMapNodeColor', 'miniMapNodeStrokeColor', 'miniMapPannable', 'miniMapPosition', 'miniMapZoomable', 'multiSelectionKeyCode', 'noDragClassName', 'noPanClassName', 'noWheelClassName', 'nodeConnections', 'nodeExtent', 'nodes', 'nodesConnectable', 'nodesDraggable', 'nodesFocusable', 'onlyRenderVisibleElements', 'panActivationKeyCode', 'panOnDrag', 'panOnScroll', 'panOnScrollMode', 'panOnScrollSpeed', 'paneClickPosition', 'paneContextMenu', 'panels', 'pasteAction', 'pastedElements', 'preventDelete', 'preventDeleteEdges', 'preventDeleteNodes', 'preventScrolling', 'reconnectRadius', 'restoreFlowState', 'selectNodesOnDrag', 'selectedEdges', 'selectedNodes', 'selectionKeyCode', 'selectionMode', 'selectionOnDrag', 'showBackground', 'showControls', 'showDevTools', 'showMiniMap', 'smartHandles', 'snapGrid', 'snapToGrid', 'style', 'theme', 'themePreset', 'toggleCollapseNode', 'trackNodeDrag', 'trackViewport', 'translateExtent', 'undoRedoAction', 'undoRedoMaxHistory', 'undoRedoState', 'viewport', 'viewportAction', 'viewportMoving', 'viewportOverlays', 'zIndexMode', 'zoomActivationKeyCode', 'zoomOnDoubleClick', 'zoomOnPinch', 'zoomOnScroll']
         self._valid_wildcard_attributes =            []
-        self.available_properties = ['id', 'autoPanOnConnect', 'autoPanOnNodeDrag', 'autoPanSpeed', 'backgroundColor', 'backgroundGap', 'backgroundSize', 'backgroundVariant', 'className', 'clickedEdge', 'clickedNode', 'clipboard', 'colorMode', 'colorScheme', 'connectOnClick', 'connectionLineStyle', 'connectionLineType', 'connectionMode', 'connectionRadius', 'connectionRules', 'connectionStartHandle', 'contextMenuEdge', 'contextMenuNode', 'controlsPosition', 'controlsShowFitView', 'controlsShowInteractive', 'controlsShowZoom', 'copyAction', 'defaultEdgeOptions', 'defaultMarkerColor', 'defaultViewport', 'deleteKeyCode', 'deletedEdges', 'deletedNodes', 'disableKeyboardA11y', 'doubleClickedEdge', 'doubleClickedNode', 'downloadImage', 'draggedNode', 'droppedNode', 'edges', 'edgesFocusable', 'edgesReconnectable', 'elementsSelectable', 'elevateEdgesOnSelect', 'elevateNodesOnSelect', 'exportFlowState', 'fitView', 'fitViewOptions', 'flowState', 'hoveredEdge', 'hoveredNode', 'imageDownloaded', 'initialized', 'lastConnection', 'lastError', 'layoutOptions', 'maxZoom', 'minZoom', 'miniMapMaskColor', 'miniMapNodeBorderRadius', 'miniMapNodeColor', 'miniMapNodeStrokeColor', 'miniMapPannable', 'miniMapPosition', 'miniMapZoomable', 'multiSelectionKeyCode', 'noDragClassName', 'noPanClassName', 'noWheelClassName', 'nodeExtent', 'nodes', 'nodesConnectable', 'nodesDraggable', 'nodesFocusable', 'onlyRenderVisibleElements', 'panActivationKeyCode', 'panOnDrag', 'panOnScroll', 'panOnScrollMode', 'panOnScrollSpeed', 'paneClickPosition', 'paneContextMenu', 'panels', 'pasteAction', 'pastedElements', 'preventDelete', 'preventDeleteEdges', 'preventDeleteNodes', 'preventScrolling', 'reconnectRadius', 'restoreFlowState', 'selectNodesOnDrag', 'selectedEdges', 'selectedNodes', 'selectionKeyCode', 'selectionMode', 'selectionOnDrag', 'showBackground', 'showControls', 'showDevTools', 'showMiniMap', 'snapGrid', 'snapToGrid', 'style', 'theme', 'themePreset', 'trackNodeDrag', 'trackViewport', 'translateExtent', 'viewport', 'viewportAction', 'viewportMoving', 'zoomActivationKeyCode', 'zoomOnDoubleClick', 'zoomOnPinch', 'zoomOnScroll']
+        self.available_properties = ['id', 'addNodeOnEdgeDrop', 'animateLayout', 'animateLayoutDuration', 'ariaLabelConfig', 'autoPanOnConnect', 'autoPanOnNodeDrag', 'autoPanOnNodeFocus', 'autoPanSpeed', 'backgroundColor', 'backgroundGap', 'backgroundSize', 'backgroundVariant', 'className', 'clickedEdge', 'clickedNode', 'clipboard', 'collapsedGroups', 'colorMode', 'colorScheme', 'computeAction', 'computeResult', 'connectOnClick', 'connectionDragThreshold', 'connectionLineStyle', 'connectionLineType', 'connectionMode', 'connectionRadius', 'connectionRules', 'connectionStartHandle', 'contextMenuEdge', 'contextMenuNode', 'controlsPosition', 'controlsShowFitView', 'controlsShowInteractive', 'controlsShowZoom', 'copyAction', 'defaultEdgeOptions', 'defaultMarkerColor', 'defaultViewport', 'deleteElementsAction', 'deleteKeyCode', 'deletedEdges', 'deletedNodes', 'disableKeyboardA11y', 'doubleClickedEdge', 'doubleClickedNode', 'downloadImage', 'draggedNode', 'droppedNode', 'edgeDroppedNode', 'edges', 'edgesFocusable', 'edgesReconnectable', 'elementsSelectable', 'elevateEdgesOnSelect', 'elevateNodesOnSelect', 'enableUndoRedo', 'exportFlowState', 'fitView', 'fitViewOptions', 'flowState', 'helperLineThreshold', 'helperLines', 'hoveredEdge', 'hoveredNode', 'imageDownloaded', 'initialized', 'lastConnection', 'lastError', 'layoutOptions', 'maxZoom', 'minZoom', 'miniMapMaskColor', 'miniMapNodeBorderRadius', 'miniMapNodeColor', 'miniMapNodeStrokeColor', 'miniMapPannable', 'miniMapPosition', 'miniMapZoomable', 'multiSelectionKeyCode', 'noDragClassName', 'noPanClassName', 'noWheelClassName', 'nodeConnections', 'nodeExtent', 'nodes', 'nodesConnectable', 'nodesDraggable', 'nodesFocusable', 'onlyRenderVisibleElements', 'panActivationKeyCode', 'panOnDrag', 'panOnScroll', 'panOnScrollMode', 'panOnScrollSpeed', 'paneClickPosition', 'paneContextMenu', 'panels', 'pasteAction', 'pastedElements', 'preventDelete', 'preventDeleteEdges', 'preventDeleteNodes', 'preventScrolling', 'reconnectRadius', 'restoreFlowState', 'selectNodesOnDrag', 'selectedEdges', 'selectedNodes', 'selectionKeyCode', 'selectionMode', 'selectionOnDrag', 'showBackground', 'showControls', 'showDevTools', 'showMiniMap', 'smartHandles', 'snapGrid', 'snapToGrid', 'style', 'theme', 'themePreset', 'toggleCollapseNode', 'trackNodeDrag', 'trackViewport', 'translateExtent', 'undoRedoAction', 'undoRedoMaxHistory', 'undoRedoState', 'viewport', 'viewportAction', 'viewportMoving', 'viewportOverlays', 'zIndexMode', 'zoomActivationKeyCode', 'zoomOnDoubleClick', 'zoomOnPinch', 'zoomOnScroll']
         self.available_wildcard_properties =            []
         _explicit_args = kwargs.pop('_explicit_args')
         _locals = locals()

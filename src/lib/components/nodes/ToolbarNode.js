@@ -163,12 +163,28 @@ const ToolbarNode = memo(({ data, selected, isConnectable }) => {
             </NodeToolbar>
             <div className={`df-glass-node df-toolbar-node ${selected ? 'selected' : ''}`} style={glassStyle}>
                 {data.showTargetHandle !== false && (
-                    <Handle
-                        type="target"
-                        position={getPosition(data.targetPosition) || Position.Top}
-                        isConnectable={isConnectable}
-                        style={handleStyle}
-                    />
+                    data.smartHandles ? (
+                        [Position.Top, Position.Bottom, Position.Left, Position.Right].map((pos, i) => {
+                            const names = ['top', 'bottom', 'left', 'right'];
+                            return (
+                                <Handle
+                                    key={`target-${names[i]}`}
+                                    id={`target-${names[i]}`}
+                                    type="target"
+                                    position={pos}
+                                    isConnectable={isConnectable}
+                                    style={handleStyle}
+                                />
+                            );
+                        })
+                    ) : (
+                        <Handle
+                            type="target"
+                            position={getPosition(data.targetPosition) || Position.Top}
+                            isConnectable={isConnectable}
+                            style={handleStyle}
+                        />
+                    )
                 )}
                 <div className="df-node-label" style={{ fontSize: '13px', fontWeight: 500 }}>
                     {labelContent}
@@ -183,12 +199,28 @@ const ToolbarNode = memo(({ data, selected, isConnectable }) => {
                     </div>
                 )}
                 {data.showSourceHandle !== false && (
-                    <Handle
-                        type="source"
-                        position={getPosition(data.sourcePosition) || Position.Bottom}
-                        isConnectable={isConnectable}
-                        style={handleStyle}
-                    />
+                    data.smartHandles ? (
+                        [Position.Top, Position.Bottom, Position.Left, Position.Right].map((pos, i) => {
+                            const names = ['top', 'bottom', 'left', 'right'];
+                            return (
+                                <Handle
+                                    key={`source-${names[i]}`}
+                                    id={`source-${names[i]}`}
+                                    type="source"
+                                    position={pos}
+                                    isConnectable={isConnectable}
+                                    style={handleStyle}
+                                />
+                            );
+                        })
+                    ) : (
+                        <Handle
+                            type="source"
+                            position={getPosition(data.sourcePosition) || Position.Bottom}
+                            isConnectable={isConnectable}
+                            style={handleStyle}
+                        />
+                    )
                 )}
             </div>
         </>

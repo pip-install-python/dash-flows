@@ -14,7 +14,7 @@ outputNode(data=NULL, isConnectable=NULL, selected=NULL)
 }
 
 \arguments{
-\item{data}{Lists containing elements 'label', 'title', 'sublabel', 'body', 'icon', 'iconcolor', 'showicon', 'layout', 'multiline', 'style', 'classname', 'handlestyle', 'targetposition', 'status', 'loadingvariant'.
+\item{data}{Lists containing elements 'label', 'title', 'sublabel', 'body', 'icon', 'iconcolor', 'showicon', 'layout', 'multiline', 'style', 'classname', 'handlestyle', 'targetposition', 'status', 'loadingvariant', 'smarthandles'.
 those elements have the following types:
   - label (logical | numeric | character | named list | unnamed list; optional): primary content to display in the node (string or dash component)
   - title (logical | numeric | character | named list | unnamed list; optional): alias for label - use for clarity when also using body text
@@ -30,7 +30,8 @@ those elements have the following types:
   - handlestyle (named list; optional): custom css styles for connection handles
   - targetposition (character; optional): position for the target (input) handle
   - status (a value equal to: 'initial', 'loading', 'success', 'error'; optional): node status: 'initial', 'loading', 'success', 'error'
-  - loadingvariant (a value equal to: 'border', 'overlay'; optional): loading animation variant: 'border' or 'overlay'. Node data configuration object containing display and behavior settings}
+  - loadingvariant (a value equal to: 'border', 'overlay'; optional): loading animation variant: 'border' or 'overlay'
+  - smarthandles (logical; optional): enable smart handles mode - renders target handles on all 4 sides for optimal edge routing. Node data configuration object containing display and behavior settings}
 
 \item{isConnectable}{Logical. Whether connections can be made to this node}
 

@@ -1,9 +1,9 @@
 # AUTO GENERATED FILE - DO NOT EDIT
 
 #' @export
-groupNode <- function(data=NULL, selected=NULL) {
+groupNode <- function(id=NULL, data=NULL, selected=NULL) {
     
-    props <- list(data=data, selected=selected)
+    props <- list(id=id, data=data, selected=selected)
     if (length(props) > 0) {
         props <- props[!vapply(props, is.null, logical(1))]
     }
@@ -11,7 +11,7 @@ groupNode <- function(data=NULL, selected=NULL) {
         props = props,
         type = 'GroupNode',
         namespace = 'dash_flows',
-        propNames = c('data', 'selected'),
+        propNames = c('id', 'data', 'selected'),
         package = 'dashFlows'
         )
 

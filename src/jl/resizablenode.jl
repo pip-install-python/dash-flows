@@ -12,7 +12,7 @@ This node supports embedding Dash components that will resize
 along with the node container. The node receives width/height
 from React Flow when resized.
 Keyword arguments:
-- `data` (required): Node data object containing label, handles, and styling options. data has the following type: lists containing elements 'label', 'handles', 'style', 'initialWidth', 'initialHeight', 'minWidth', 'minHeight', 'padding', 'alignItems', 'justifyContent', 'flexDirection'.
+- `data` (required): Node data object containing label, handles, and styling options. data has the following type: lists containing elements 'label', 'handles', 'style', 'initialWidth', 'initialHeight', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight', 'keepAspectRatio', 'padding', 'alignItems', 'justifyContent', 'flexDirection'.
 Those elements have the following types:
   - `label` (Bool | Real | String | Dict | Array; optional): Content to render inside the node - can be string, React element, or Dash component
   - `handles` (required): Array of connection handles for this node. handles has the following type: Array of lists containing elements 'id', 'type', 'position', 'style', 'isConnectable', 'isConnectableStart', 'isConnectableEnd', 'onConnect', 'isValidConnection'.
@@ -31,6 +31,9 @@ Those elements have the following types:
   - `initialHeight` (Real; optional): Initial height of the node before resize
   - `minWidth` (Real; optional): Minimum width constraint for resizing
   - `minHeight` (Real; optional): Minimum height constraint for resizing
+  - `maxWidth` (Real; optional): Maximum width constraint for resizing
+  - `maxHeight` (Real; optional): Maximum height constraint for resizing
+  - `keepAspectRatio` (Bool; optional): Maintain aspect ratio when resizing
   - `padding` (Real; optional): Padding inside the node content area
   - `alignItems` (String; optional): Flexbox align-items value for content
   - `justifyContent` (String; optional): Flexbox justify-content value for content

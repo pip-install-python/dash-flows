@@ -14,7 +14,7 @@ resizableNode(data=NULL, height=NULL, selected=NULL, width=NULL)
 }
 
 \arguments{
-\item{data}{Lists containing elements 'label', 'handles', 'style', 'initialwidth', 'initialheight', 'minwidth', 'minheight', 'padding', 'alignitems', 'justifycontent', 'flexdirection'.
+\item{data}{Lists containing elements 'label', 'handles', 'style', 'initialwidth', 'initialheight', 'minwidth', 'minheight', 'maxwidth', 'maxheight', 'keepaspectratio', 'padding', 'alignitems', 'justifycontent', 'flexdirection'.
 those elements have the following types:
   - label (logical | numeric | character | named list | unnamed list; optional): content to render inside the node - can be string, react element, or dash component
   - handles (required): array of connection handles for this node. handles has the following type: list of lists containing elements 'id', 'type', 'position', 'style', 'isconnectable', 'isconnectablestart', 'isconnectableend', 'onconnect', 'isvalidconnection'.
@@ -33,6 +33,9 @@ those elements have the following types:
   - initialheight (numeric; optional): initial height of the node before resize
   - minwidth (numeric; optional): minimum width constraint for resizing
   - minheight (numeric; optional): minimum height constraint for resizing
+  - maxwidth (numeric; optional): maximum width constraint for resizing
+  - maxheight (numeric; optional): maximum height constraint for resizing
+  - keepaspectratio (logical; optional): maintain aspect ratio when resizing
   - padding (numeric; optional): padding inside the node content area
   - alignitems (character; optional): flexbox align-items value for content
   - justifycontent (character; optional): flexbox justify-content value for content

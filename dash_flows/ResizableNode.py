@@ -93,6 +93,15 @@ Keyword arguments:
     - minHeight (number; optional):
         Minimum height constraint for resizing.
 
+    - maxWidth (number; optional):
+        Maximum width constraint for resizing.
+
+    - maxHeight (number; optional):
+        Maximum height constraint for resizing.
+
+    - keepAspectRatio (boolean; optional):
+        Maintain aspect ratio when resizing.
+
     - padding (number; optional):
         Padding inside the node content area.
 
@@ -142,6 +151,9 @@ Keyword arguments:
             "initialHeight": NotRequired[NumberType],
             "minWidth": NotRequired[NumberType],
             "minHeight": NotRequired[NumberType],
+            "maxWidth": NotRequired[NumberType],
+            "maxHeight": NotRequired[NumberType],
+            "keepAspectRatio": NotRequired[bool],
             "padding": NotRequired[NumberType],
             "alignItems": NotRequired[str],
             "justifyContent": NotRequired[str],

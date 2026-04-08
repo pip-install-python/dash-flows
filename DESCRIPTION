@@ -1,6 +1,6 @@
 Package: dashFlows
 Title: React Flow for the Plotly Dash framework with edittable handles.
-Version: 1.1.0
+Version: 1.2.0
 Description: React Flow for the Plotly Dash framework with edittable handles.
 Depends: R (>= 3.0.2)
 Imports: 

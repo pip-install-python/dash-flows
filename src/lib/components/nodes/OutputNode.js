@@ -181,16 +181,40 @@ const OutputNode = memo(({ data, selected, isConnectable }) => {
         data.multiline ? 'multiline' : '',
     ].filter(Boolean).join(' ');
 
+    // Helper to render target handles on all 4 sides for smart routing
+    const renderSmartTargetHandles = () => {
+        const positions = [
+            { pos: Position.Top, name: 'top' },
+            { pos: Position.Bottom, name: 'bottom' },
+            { pos: Position.Left, name: 'left' },
+            { pos: Position.Right, name: 'right' },
+        ];
+        return positions.map(({ pos, name }) => (
+            <Handle
+                key={`target-${name}`}
+                id={`target-${name}`}
+                type="target"
+                position={pos}
+                isConnectable={isConnectable}
+                style={data.handleStyle}
+            />
+        ));
+    };
+
     // Render horizontal layout
     if (layout === 'horizontal' && hasIcon && hasText) {
         return (
             <div className={nodeClasses} style={data.style}>
-                <Handle
-                    type="target"
-                    position={data.targetPosition || Position.Top}
-                    isConnectable={isConnectable}
-                    style={data.handleStyle}
-                />
+                {data.smartHandles ? (
+                    renderSmartTargetHandles()
+                ) : (
+                    <Handle
+                        type="target"
+                        position={data.targetPosition || Position.Top}
+                        isConnectable={isConnectable}
+                        style={data.handleStyle}
+                    />
+                )}
                 <div className="df-node-icon-column">
                     <div className={iconClasses} style={iconStyle}>
                         {renderIcon()}
@@ -226,12 +250,16 @@ const OutputNode = memo(({ data, selected, isConnectable }) => {
     // Default stacked layout
     return (
         <div className={nodeClasses} style={data.style}>
-            <Handle
-                type="target"
-                position={data.targetPosition || Position.Top}
-                isConnectable={isConnectable}
-                style={data.handleStyle}
-            />
+            {data.smartHandles ? (
+                renderSmartTargetHandles()
+            ) : (
+                <Handle
+                    type="target"
+                    position={data.targetPosition || Position.Top}
+                    isConnectable={isConnectable}
+                    style={data.handleStyle}
+                />
+            )}
             {hasIcon && (
                 <div className={iconClasses} style={iconStyle}>
                     {renderIcon()}
@@ -302,6 +330,8 @@ OutputNode.propTypes = {
         status: PropTypes.oneOf(['initial', 'loading', 'success', 'error']),
         /** Loading animation variant: 'border' or 'overlay' */
         loadingVariant: PropTypes.oneOf(['border', 'overlay']),
+        /** Enable smart handles mode - renders target handles on all 4 sides for optimal edge routing */
+        smartHandles: PropTypes.bool,
     }).isRequired,
     /** Whether the node is currently selected */
     selected: PropTypes.bool,

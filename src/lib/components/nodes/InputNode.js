@@ -181,6 +181,26 @@ const InputNode = memo(({ data, selected, isConnectable }) => {
         data.multiline ? 'multiline' : '',
     ].filter(Boolean).join(' ');
 
+    // Helper to render source handles on all 4 sides for smart routing
+    const renderSmartSourceHandles = () => {
+        const positions = [
+            { pos: Position.Top, name: 'top' },
+            { pos: Position.Bottom, name: 'bottom' },
+            { pos: Position.Left, name: 'left' },
+            { pos: Position.Right, name: 'right' },
+        ];
+        return positions.map(({ pos, name }) => (
+            <Handle
+                key={`source-${name}`}
+                id={`source-${name}`}
+                type="source"
+                position={pos}
+                isConnectable={isConnectable}
+                style={data.handleStyle}
+            />
+        ));
+    };
+
     // Render horizontal layout
     if (layout === 'horizontal' && hasIcon && hasText) {
         return (
@@ -208,12 +228,16 @@ const InputNode = memo(({ data, selected, isConnectable }) => {
                         </div>
                     )}
                 </div>
-                <Handle
-                    type="source"
-                    position={data.sourcePosition || Position.Bottom}
-                    isConnectable={isConnectable}
-                    style={data.handleStyle}
-                />
+                {data.smartHandles ? (
+                    renderSmartSourceHandles()
+                ) : (
+                    <Handle
+                        type="source"
+                        position={data.sourcePosition || Position.Bottom}
+                        isConnectable={isConnectable}
+                        style={data.handleStyle}
+                    />
+                )}
                 {data.status === 'loading' && data.loadingVariant === 'overlay' && (
                     <div className="df-status-overlay">
                         <div className="df-status-spinner" />
@@ -251,12 +275,16 @@ const InputNode = memo(({ data, selected, isConnectable }) => {
                     )}
                 </div>
             )}
-            <Handle
-                type="source"
-                position={data.sourcePosition || Position.Bottom}
-                isConnectable={isConnectable}
-                style={data.handleStyle}
-            />
+            {data.smartHandles ? (
+                renderSmartSourceHandles()
+            ) : (
+                <Handle
+                    type="source"
+                    position={data.sourcePosition || Position.Bottom}
+                    isConnectable={isConnectable}
+                    style={data.handleStyle}
+                />
+            )}
             {/* Loading overlay spinner */}
             {data.status === 'loading' && data.loadingVariant === 'overlay' && (
                 <div className="df-status-overlay">
@@ -302,6 +330,8 @@ InputNode.propTypes = {
         status: PropTypes.oneOf(['initial', 'loading', 'success', 'error']),
         /** Loading animation variant: 'border' or 'overlay' */
         loadingVariant: PropTypes.oneOf(['border', 'overlay']),
+        /** Enable smart handles mode - renders source handles on all 4 sides for optimal edge routing */
+        smartHandles: PropTypes.bool,
     }).isRequired,
     /** Whether the node is currently selected */
     selected: PropTypes.bool,

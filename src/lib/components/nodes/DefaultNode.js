@@ -183,16 +183,40 @@ const DefaultNode = memo(({ data, selected, isConnectable }) => {
         data.multiline ? 'multiline' : '',
     ].filter(Boolean).join(' ');
 
+    // Helper to render handles on all 4 sides for smart routing
+    const renderSmartHandles = (type) => {
+        const positions = [
+            { pos: Position.Top, name: 'top' },
+            { pos: Position.Bottom, name: 'bottom' },
+            { pos: Position.Left, name: 'left' },
+            { pos: Position.Right, name: 'right' },
+        ];
+        return positions.map(({ pos, name }) => (
+            <Handle
+                key={`${type}-${name}`}
+                id={`${type}-${name}`}
+                type={type}
+                position={pos}
+                isConnectable={isConnectable}
+                style={data.handleStyle}
+            />
+        ));
+    };
+
     // Render horizontal layout
     if (layout === 'horizontal' && hasIcon && hasText) {
         return (
             <div className={nodeClasses} style={data.style}>
-                <Handle
-                    type="target"
-                    position={data.targetPosition || Position.Top}
-                    isConnectable={isConnectable}
-                    style={data.handleStyle}
-                />
+                {data.smartHandles ? (
+                    renderSmartHandles('target')
+                ) : (
+                    <Handle
+                        type="target"
+                        position={data.targetPosition || Position.Top}
+                        isConnectable={isConnectable}
+                        style={data.handleStyle}
+                    />
+                )}
                 <div className="df-node-icon-column">
                     <div className={iconClasses} style={iconStyle}>
                         {renderIcon()}
@@ -215,12 +239,16 @@ const DefaultNode = memo(({ data, selected, isConnectable }) => {
                         </div>
                     )}
                 </div>
-                <Handle
-                    type="source"
-                    position={data.sourcePosition || Position.Bottom}
-                    isConnectable={isConnectable}
-                    style={data.handleStyle}
-                />
+                {data.smartHandles ? (
+                    renderSmartHandles('source')
+                ) : (
+                    <Handle
+                        type="source"
+                        position={data.sourcePosition || Position.Bottom}
+                        isConnectable={isConnectable}
+                        style={data.handleStyle}
+                    />
+                )}
                 {data.status === 'loading' && data.loadingVariant === 'overlay' && (
                     <div className="df-status-overlay">
                         <div className="df-status-spinner" />
@@ -233,12 +261,16 @@ const DefaultNode = memo(({ data, selected, isConnectable }) => {
     // Default stacked layout
     return (
         <div className={nodeClasses} style={data.style}>
-            <Handle
-                type="target"
-                position={data.targetPosition || Position.Top}
-                isConnectable={isConnectable}
-                style={data.handleStyle}
-            />
+            {data.smartHandles ? (
+                renderSmartHandles('target')
+            ) : (
+                <Handle
+                    type="target"
+                    position={data.targetPosition || Position.Top}
+                    isConnectable={isConnectable}
+                    style={data.handleStyle}
+                />
+            )}
             {hasIcon && (
                 <div className={iconClasses} style={iconStyle}>
                     {renderIcon()}
@@ -263,12 +295,16 @@ const DefaultNode = memo(({ data, selected, isConnectable }) => {
                     )}
                 </div>
             )}
-            <Handle
-                type="source"
-                position={data.sourcePosition || Position.Bottom}
-                isConnectable={isConnectable}
-                style={data.handleStyle}
-            />
+            {data.smartHandles ? (
+                renderSmartHandles('source')
+            ) : (
+                <Handle
+                    type="source"
+                    position={data.sourcePosition || Position.Bottom}
+                    isConnectable={isConnectable}
+                    style={data.handleStyle}
+                />
+            )}
             {/* Loading overlay spinner */}
             {data.status === 'loading' && data.loadingVariant === 'overlay' && (
                 <div className="df-status-overlay">
@@ -318,6 +354,8 @@ DefaultNode.propTypes = {
         status: PropTypes.oneOf(['initial', 'loading', 'success', 'error']),
         /** Loading animation variant: 'border' or 'overlay' */
         loadingVariant: PropTypes.oneOf(['border', 'overlay']),
+        /** Enable smart handles mode - renders handles on all 4 sides for optimal edge routing */
+        smartHandles: PropTypes.bool,
     }).isRequired,
     /** Whether the node is currently selected */
     selected: PropTypes.bool,

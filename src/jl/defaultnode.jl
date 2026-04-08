@@ -16,7 +16,7 @@ Uses CSS classes from glass-theme.css for styling, supporting:
 - Status indicators (initial, loading, success, error)
 - Custom icons via DashIconify or any Dash component
 Keyword arguments:
-- `data` (required): Node data object containing label, styling, and handle configuration. data has the following type: lists containing elements 'label', 'title', 'sublabel', 'body', 'icon', 'iconColor', 'showIcon', 'layout', 'multiline', 'style', 'className', 'handleStyle', 'targetPosition', 'sourcePosition', 'status', 'loadingVariant'.
+- `data` (required): Node data object containing label, styling, and handle configuration. data has the following type: lists containing elements 'label', 'title', 'sublabel', 'body', 'icon', 'iconColor', 'showIcon', 'layout', 'multiline', 'style', 'className', 'handleStyle', 'targetPosition', 'sourcePosition', 'status', 'loadingVariant', 'smartHandles'.
 Those elements have the following types:
   - `label` (Bool | Real | String | Dict | Array; optional): Primary content to display in the node - string or Dash component
   - `title` (Bool | Real | String | Dict | Array; optional): Alias for label - use for clarity when also using body text
@@ -34,6 +34,7 @@ Those elements have the following types:
   - `sourcePosition` (String; optional): Position for the source (output) handle: 'top', 'bottom', 'left', 'right'
   - `status` (a value equal to: 'initial', 'loading', 'success', 'error'; optional): Node status: 'initial', 'loading', 'success', 'error'
   - `loadingVariant` (a value equal to: 'border', 'overlay'; optional): Loading animation variant: 'border' or 'overlay'
+  - `smartHandles` (Bool; optional): Enable smart handles mode - renders handles on all 4 sides for optimal edge routing
 - `isConnectable` (Bool; optional): Whether connections can be made to/from this node
 - `selected` (Bool; optional): Whether the node is currently selected
 """

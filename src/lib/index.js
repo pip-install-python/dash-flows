@@ -26,6 +26,7 @@ import SimpleBezierEdge from './components/edges/SimpleBezierEdge';
 import ButtonEdge from './components/edges/ButtonEdge';
 import DataEdge from './components/edges/DataEdge';
 import AnimatedSvgEdge from './components/edges/AnimatedSvgEdge';
+import FloatingEdge from './components/edges/FloatingEdge';
 
 export {
     // Main component
@@ -59,6 +60,7 @@ export {
     ButtonEdge,
     DataEdge,
     AnimatedSvgEdge,
+    FloatingEdge,
 
     // Utilities
     DevTools,

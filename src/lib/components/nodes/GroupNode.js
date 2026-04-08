@@ -1,7 +1,7 @@
 // src/lib/components/nodes/GroupNode.js
 import React, { memo } from 'react';
 import PropTypes from 'prop-types';
-import { NodeResizer } from '@xyflow/react';
+import { NodeResizer, Handle, Position } from '@xyflow/react';
 
 /**
  * GroupNode - A simple labeled group container for child nodes
@@ -10,11 +10,12 @@ import { NodeResizer } from '@xyflow/react';
  * - The node's width/height is controlled via the style prop on the node definition
  * - Child nodes use parentId to reference this node
  * - Child nodes can use extent: 'parent' to stay within bounds
+ * - Supports collapse/expand via data.collapsed (managed by DashFlows toggleCollapseNode prop)
  *
  * Unlike standard nodes, group nodes are rendered as simple containers
  * that React Flow manages for parent-child relationships.
  */
-const GroupNode = memo(({ data, selected }) => {
+const GroupNode = memo(({ id, data, selected }) => {
     const renderDashComponent = (component) => {
         if (!component) return null;
         if (typeof component === 'string') return component;
@@ -54,13 +55,77 @@ const GroupNode = memo(({ data, selected }) => {
         ? (typeof data.label === 'string' ? data.label : renderDashComponent(data.label))
         : null;
 
+    const isCollapsed = data?.collapsed === true;
+
+    // Collapsed view: compact rendering
+    if (isCollapsed) {
+        return (
+            <div style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                background: 'var(--df-toolbar-bg, rgba(255, 255, 255, 0.95))',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                borderRadius: 'var(--df-radius-sm, 6px)',
+                border: selected
+                    ? '2px solid var(--df-selection-border, rgba(59, 130, 246, 0.8))'
+                    : '1px solid var(--df-node-border, rgba(200, 200, 200, 0.3))',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--df-node-text-secondary, #6b7280)',
+                cursor: 'pointer',
+                padding: '0 12px',
+                ...data?.labelStyle,
+            }}>
+                {/* Handles so edges can connect */}
+                <Handle type="target" position={Position.Left} style={{ background: '#6b7280' }} />
+                <Handle type="source" position={Position.Right} style={{ background: '#6b7280' }} />
+                <span style={{ fontSize: '14px' }}>▶</span>
+                {data?.icon && (
+                    <span style={{ display: 'flex', alignItems: 'center' }}>{data.icon}</span>
+                )}
+                {labelContent}
+                <span style={{ fontSize: '10px', opacity: 0.6, marginLeft: '4px' }}>
+                    ({data?._childCount || '...'})
+                </span>
+            </div>
+        );
+    }
+
     return (
         <>
+            {/* Invisible handles so edges can connect to/from this group node.
+                Default handles (no id) are used when edges have no explicit handleId.
+                Named handles are used by smartHandles for directional routing. */}
+            <Handle type="target" position={Position.Left}   style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="source" position={Position.Right}  style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="target" position={Position.Left}   id="target-left"   style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="target" position={Position.Right}  id="target-right"  style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="target" position={Position.Top}    id="target-top"    style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="target" position={Position.Bottom} id="target-bottom" style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="source" position={Position.Right}  id="source-right"  style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="source" position={Position.Left}   id="source-left"   style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="source" position={Position.Top}    id="source-top"    style={{ opacity: 0, pointerEvents: 'none' }} />
+            <Handle type="source" position={Position.Bottom} id="source-bottom" style={{ opacity: 0, pointerEvents: 'none' }} />
+
             {/* NodeResizer for interactive resizing */}
             <NodeResizer
                 isVisible={selected && data?.resizable !== false}
                 minWidth={data?.minWidth || 100}
                 minHeight={data?.minHeight || 50}
+                keepAspectRatio={data?.keepAspectRatio || false}
+                maxWidth={data?.maxWidth}
+                maxHeight={data?.maxHeight}
+                shouldResize={(event, params) => {
+                    if (data?.maxWidth && params.width > data.maxWidth) return false;
+                    if (data?.maxHeight && params.height > data.maxHeight) return false;
+                    return true;
+                }}
                 handleStyle={{
                     width: '8px',
                     height: '8px',
@@ -115,6 +180,8 @@ const GroupNode = memo(({ data, selected }) => {
 GroupNode.displayName = 'GroupNode';
 
 GroupNode.propTypes = {
+    /** Node ID */
+    id: PropTypes.string,
     /**
      * Node data object containing label, icon, and styling options
      */
@@ -131,6 +198,18 @@ GroupNode.propTypes = {
         minWidth: PropTypes.number,
         /** Minimum height constraint for resizing */
         minHeight: PropTypes.number,
+        /** Maximum width constraint for resizing */
+        maxWidth: PropTypes.number,
+        /** Maximum height constraint for resizing */
+        maxHeight: PropTypes.number,
+        /** Maintain aspect ratio when resizing */
+        keepAspectRatio: PropTypes.bool,
+        /** Whether the group is collapsed (managed by DashFlows toggleCollapseNode) */
+        collapsed: PropTypes.bool,
+        /** Width when collapsed (default: 150) */
+        collapsedWidth: PropTypes.number,
+        /** Height when collapsed (default: 50) */
+        collapsedHeight: PropTypes.number,
     }),
     /** Whether the group is currently selected */
     selected: PropTypes.bool,

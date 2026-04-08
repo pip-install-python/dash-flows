@@ -5,6 +5,133 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-03
+
+### Added
+
+#### React Flow 12.10.1 Pass-Through Props
+- **connectionDragThreshold** (number): Minimum drag distance in pixels before a connection line appears, preventing accidental connections
+- **zIndexMode** (`"default"` / `"elevate"`): Selected elements automatically elevate above others when set to `"elevate"`
+- **autoPanOnNodeFocus** (boolean): Viewport auto-pans when focusing nodes via Tab key for improved keyboard navigation
+
+#### Floating Edges
+- **FloatingEdge component**: New `floating` edge type that connects to the nearest point on each node's border instead of fixed handle positions
+- Uses `useInternalNode` hook for real-time border intersection calculation
+- Natural-looking connections for arbitrary node layouts
+
+#### Helper Lines (Alignment Guides)
+- **helperLines** (boolean): Visual alignment guides appear when dragging nodes near other nodes
+- **helperLineThreshold** (number, default 5): Snap distance in pixels for alignment detection
+- Automatic snapping to horizontal and vertical alignment
+
+#### Add Node on Edge Drop
+- **addNodeOnEdgeDrop** (boolean): Drag a connection from a handle and drop on empty canvas to create a new node
+- **edgeDroppedNode** (output): Callback data with `nodeId`, `position`, `source`, and `handleType` of the dropped connection
+
+#### Node Connections Tracking
+- **nodeConnections** (output): Real-time map of `nodeId` to `{incoming: [...], outgoing: [...]}` with edge/node details
+- Automatically updated when edges change
+
+#### Undo/Redo System
+- **enableUndoRedo** (boolean): Enable history tracking for node/edge changes
+- **undoRedoMaxHistory** (number, default 50): Maximum number of history snapshots
+- **undoRedoAction** (`{action: 'undo' | 'redo'}`): Trigger undo or redo from callbacks
+- **undoRedoState** (output): `{canUndo, canRedo, undoCount, redoCount}` for UI state
+- Tracks node position changes, additions, deletions, and edge connections
+- Uses React Flow's `experimental_useOnNodesChangeMiddleware` and `experimental_useOnEdgesChangeMiddleware`
+
+#### Computing Flows (Graph Traversal)
+- **computeAction** (`{action: 'compute' | 'computeNode', nodeId?, inputData?}`): Trigger topological sort computation
+- **computeResult** (output): `{traversalOrder, nodeInputs, timestamp}` with Kahn's algorithm results
+- JavaScript-side topological sort; Python handles all business logic and value propagation
+
+#### Sub-flows (Collapsible Group Nodes)
+- **toggleCollapseNode** (string): Set to a group node ID to toggle its collapse/expand state
+- **collapsedGroups** (output): Array of currently collapsed group node IDs
+- Double-click a group node to toggle collapse
+- Child nodes and internal edges hidden when collapsed; group shrinks to compact view
+- External edges remain connected at the group level
+- GroupNode supports `data.collapsedWidth` and `data.collapsedHeight` for compact dimensions
+
+#### ViewportPortal (Floating Annotations)
+- **viewportOverlays** (array): Floating overlays anchored to flow coordinates that move with pan/zoom
+- Each overlay: `{x, y, content, style}` — positioned in flow space, not screen space
+- Add, remove, and edit annotations dynamically via callbacks
+
+#### Animated Layout Transitions
+- **animateLayout** (boolean): Smooth animated transitions when applying ELK layouts
+- **animateLayoutDuration** (number, default 300): Animation duration in milliseconds
+- Ease-out cubic interpolation from current to target positions
+
+#### Accessibility (ARIA Support)
+- **ariaLabelConfig** (object): Custom ARIA labels for `nodes`, `edges`, `controls`, `minimap` regions
+- Per-node/edge `ariaLabel` in data for screen reader support
+- **nodesFocusable** / **edgesFocusable** (boolean): Enable Tab key navigation through nodes and edges
+- **disableKeyboardA11y** (boolean): Disable keyboard shortcuts when needed
+
+#### Resize Constraints
+- ResizableNode and GroupNode now support constraint props in `data`:
+  - `keepAspectRatio` (boolean): Lock aspect ratio during resize
+  - `minWidth` / `minHeight` (number): Minimum dimensions in pixels
+  - `maxWidth` / `maxHeight` (number): Maximum dimensions in pixels
+
+#### Glass Connection Line
+- Custom glass morphism styled connection line preview while dragging new edges
+- Blue dashed line with glow and drop shadow effect
+
+#### Type-Colored MiniMap
+- Custom MiniMap node rendering with colors based on node type (green=input, blue=default, purple=output, amber=toolbar)
+
+#### EdgeToolbar on ButtonEdge
+- ButtonEdge now supports `data.showToolbar` (boolean) to display an EdgeToolbar on selection
+- Toolbar includes edit (inline label editing) and delete actions
+- Custom styling via `data.toolbarStyle`
+
+#### Smart Handle Positioning
+- **smartHandles** (boolean): Automatically routes edges to the closest side of each node
+- Renders handles on all 4 sides and selects optimal connection points
+- Alternative manual control via `data.sourcePosition` / `data.targetPosition` per node
+
+#### Delete Elements Action
+- **deleteElementsAction** (`{nodeIds: [...], edgeIds: [...]}`): Programmatic deletion routed through `reactFlowInstance.deleteElements()` for undo/redo compatibility
+
+#### New Examples
+- **Example 24**: `24_smart_handles.py` — Smart handle auto-routing demo
+- **Example 25**: `25_phase1_features.py` — Phase 1 feature showcase (drag threshold, zIndex, auto-pan, EdgeToolbar)
+- **Example 26**: `26_floating_edges.py` — Floating edge border intersection demo
+- **Example 27**: `27_helper_lines.py` — Alignment guide and snap demo
+- **Example 28**: `28_add_node_on_drop.py` — Add node on edge drop with connection tracking
+- **Example 29**: `29_accessibility.py` — ARIA labels and keyboard navigation
+- **Example 30**: `30_resize_constraints.py` — Aspect ratio and min/max resize limits
+- **Example 31**: `31_animated_layout.py` — Smooth layout transitions with ELK
+- **Example 32**: `32_undo_redo.py` — Full undo/redo system demo
+- **Example 33**: `33_computing_flows.py` — Topological sort and data flow computation
+- **Example 34**: `34_viewport_portal.py` — Floating viewport annotations
+- **Example 35**: `35_subflows.py` — Collapsible group nodes with boundary edge remapping
+
+#### New Python Wrapper Components (auto-generated)
+- `AnimatedSvgEdge`, `ButtonEdge`, `ButtonHandle`, `DataEdge`, `DefaultNode`
+- `FloatingEdge`, `GroupNode`, `InputNode`, `NodeSearch`, `NodeStatusIndicator`
+- `NodeTooltip`, `OutputNode`, `SimpleBezierEdge`, `SmoothStepEdge`
+- `StepEdge`, `StraightEdge`, `ToolbarNode`
+
+### Changed
+
+- **@xyflow/react** upgraded from 12.3.5 to 12.10.1 (7 minor versions, 33 releases, no breaking changes)
+- **elkjs** upgraded from 0.8.2 to 0.9.3
+- **zustand** upgraded from 4.4.7 to 4.5.5 (stays on 4.x — React Flow requires ^4.4.0)
+- **React 18+ Compatibility**: Converted `DashFlows.defaultProps` to JavaScript default parameters to eliminate deprecation warnings
+- **GroupNode Refactoring**: Simplified to React Fragment; styling applied directly to `.react-flow__node-group`
+- **Node Base Styling**: Changed from fixed `width` to `max-width` for better layout flexibility
+
+### Fixed
+
+- **React defaultProps Warning**: Eliminated React 18+ deprecation warning across all components
+- **GroupNode Nested Container**: Fixed nested wrapper div rendering issue
+- CSS `!important` rules added to ensure layout class overrides apply correctly
+
+---
+
 ## [1.1.0] - 2025-12-15
 
 ### Added

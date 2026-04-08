@@ -6,10 +6,10 @@ export buttonedge
     buttonedge(;kwargs...)
 
 A ButtonEdge component.
-ButtonEdge - Glass morphism styled edge with an interactive button
+ButtonEdge - Glass morphism styled edge with an interactive button and optional toolbar
 Keyword arguments:
 - `id` (String; required): Unique identifier for the edge
-- `data` (optional): Configuration data for the button edge. data has the following type: lists containing elements 'label', 'showButton', 'buttonLabel', 'buttonStyle', 'buttonTitle', 'onButtonClick'.
+- `data` (optional): Configuration data for the button edge. data has the following type: lists containing elements 'label', 'showButton', 'buttonLabel', 'buttonStyle', 'buttonTitle', 'onButtonClick', 'showToolbar', 'toolbarStyle'.
 Those elements have the following types:
   - `label` (Bool | Real | String | Dict | Array; optional): Label text to display next to the button
   - `showButton` (Bool; optional): Whether to show the button (default: true)
@@ -17,6 +17,8 @@ Those elements have the following types:
   - `buttonStyle` (Dict; optional): Custom CSS styles for the button
   - `buttonTitle` (String; optional): Tooltip title for the button
   - `onButtonClick` (optional): Callback function when button is clicked
+  - `showToolbar` (Bool; optional): Show glass morphism toolbar when edge is selected
+  - `toolbarStyle` (Dict; optional): Custom CSS styles for the toolbar container
 - `label` (Bool | Real | String | Dict | Array; optional): Label text to display on the edge
 - `labelStyle` (Dict; optional): Custom CSS styles for the label
 - `markerEnd` (Bool | Real | String | Dict | Array; optional): Marker configuration for the edge end
