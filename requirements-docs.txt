@@ -1,0 +1,22 @@
+# Requirements for the dash-flows documentation site (python run.py).
+# The component library itself only needs `dash` (see requirements.txt / setup.py);
+# these are the extra packages the markdown-driven docs app depends on.
+
+dash[dev]>=4.2.0
+dash-mantine-components>=2.8.0
+dash-iconify>=0.1.2
+
+# Markdown -> Dash rendering + custom directives (.. exec:: / .. source:: / .. kwargs:: / .. toc::)
+markdown2dash>=0.1.0
+python-frontmatter>=1.0.0
+pydantic>=2.3.0
+
+# Optional niceties
+python-dotenv>=1.0.0          # DASH_BACKEND / .env support in lib/backend.py
+
+# Optional: AI/LLM SEO endpoints (/llms.txt, /robots.txt, /sitemap.xml).
+# The site boots fine without it (run.py degrades gracefully).
+# dash-improve-my-llms[flask]>=2.0.0
+
+# The component library under test (installed from this repo).
+# Run `pip install -e .` from the repo root, or rely on the local ./dash_flows package.

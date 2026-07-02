@@ -207,7 +207,16 @@ const ResizableNode = memo(({ data, selected = false, width, height }) => {
         return processedHandles;
     };
 
-    const processedHandles = processHandleProps(data.handles || []);
+    // When no handles are configured, fall back to a default target (top) +
+    // source (bottom) pair so the node behaves like DefaultNode and edges can
+    // bind to it. Otherwise an edge referencing this node with no explicit
+    // handle id fails with React Flow error 008 ("null source/target handle").
+    const processedHandles = (data.handles && data.handles.length)
+        ? processHandleProps(data.handles)
+        : [
+            { id: null, type: 'target', position: Position.Top },
+            { id: null, type: 'source', position: Position.Bottom },
+        ];
 
     // Glass morphism styling for the resizable node
     const nodeStyle = {
@@ -316,7 +325,8 @@ ResizableNode.propTypes = {
     data: PropTypes.shape({
         /** Content to render inside the node - can be string, React element, or Dash component */
         label: PropTypes.any,
-        /** Array of connection handles for this node */
+        /** Array of connection handles for this node. Optional: when omitted or
+         * empty, a default target (top) + source (bottom) handle pair is rendered. */
         handles: PropTypes.arrayOf(PropTypes.shape({
             /** Unique identifier for the handle */
             id: PropTypes.string.isRequired,
@@ -336,7 +346,7 @@ ResizableNode.propTypes = {
             onConnect: PropTypes.func,
             /** Validation function for connections */
             isValidConnection: PropTypes.func
-        })).isRequired,
+        })),
         /** Custom CSS styles for the node container */
         style: PropTypes.object,
         /** Initial width of the node before resize */

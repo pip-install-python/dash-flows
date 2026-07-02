@@ -12,7 +12,7 @@ This example showcases all available edge types in DashFlows:
 """
 
 import dash
-from dash import html, Input, Output, State
+from dash import html, callback, Input, Output, State
 import dash_flows
 
 app = dash.Dash(__name__)
@@ -121,7 +121,7 @@ app.layout = html.Div([
 ])
 
 # Track edge deletions
-@app.callback(
+@callback(
     Output("edge-deleted-info", "children"),
     Input("edge-types-flow", "edges"),
     prevent_initial_call=True,

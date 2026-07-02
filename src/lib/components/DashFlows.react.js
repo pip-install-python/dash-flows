@@ -340,6 +340,13 @@ const FlowWithProvider = (props) => {
     // Track previous nodeConnections for deep compare
     const prevNodeConnectionsRef = useRef(null);
 
+    // Track previously-emitted nodes/edges so the outbound setProps effects only
+    // fire on a real change. Without this guard React Flow's asynchronous node
+    // measurement (e.g. content-sized nodes) can push a setProps->setNodes->
+    // re-measure cycle into a "Maximum update depth exceeded" render loop.
+    const prevNodesRef = useRef(null);
+    const prevEdgesRef = useRef(null);
+
     // Track initialization
     const initialized = useRef(false);
 
@@ -758,17 +765,26 @@ const FlowWithProvider = (props) => {
         }
     }, [props.edges]);
 
-    // Update props when nodes change
+    // Update props when nodes change (guarded: only emit on an actual change so
+    // React Flow's re-measurement churn can't drive a setProps<->setNodes loop)
     useEffect(() => {
         if (nodes && nodes.length > 0) {
-            props.setProps({ nodes });
+            const serialized = JSON.stringify(nodes);
+            if (serialized !== prevNodesRef.current) {
+                prevNodesRef.current = serialized;
+                props.setProps({ nodes });
+            }
         }
     }, [nodes]);
 
-    // Update props when edges change
+    // Update props when edges change (same serialized-diff guard as nodes)
     useEffect(() => {
         if (edges) {
-            props.setProps({ edges });
+            const serialized = JSON.stringify(edges);
+            if (serialized !== prevEdgesRef.current) {
+                prevEdgesRef.current = serialized;
+                props.setProps({ edges });
+            }
         }
     }, [edges]);
 
@@ -1840,13 +1856,16 @@ const FlowWithProvider = (props) => {
                         }}
                         nodeComponent={MiniMapNode}
                         nodeBorderRadius={props.miniMapNodeBorderRadius || 4}
-                        maskColor={props.miniMapMaskColor || 'rgba(59, 130, 246, 0.2)'}
+                        // Background and mask follow the theme via the --df-minimap-*
+                        // CSS variables (glass-theme.css), which key off both React
+                        // Flow's .dark class and Mantine's data-mantine-color-scheme.
+                        // Do NOT set an inline backgroundColor here: an inline style
+                        // overrides the themed CSS and breaks dark mode when
+                        // colorMode='system' (OS scheme differs from the page scheme).
+                        maskColor={props.miniMapMaskColor || undefined}
                         position={props.miniMapPosition}
                         pannable={props.miniMapPannable}
                         zoomable={props.miniMapZoomable}
-                        style={{
-                            backgroundColor: props.colorMode === 'dark' ? 'rgba(26, 27, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-                        }}
                     />
                 )}
 

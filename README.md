@@ -319,8 +319,9 @@ pip install -r requirements.txt
 # Build components
 npm run build
 
-# Run development server
-python usage.py
+# Run the documentation site (live demos for every example)
+pip install -r requirements-docs.txt
+python run.py   # http://localhost:8560
 ```
 
 ### Building
@@ -333,11 +334,28 @@ npm run build
 python setup.py sdist bdist_wheel
 ```
 
+## Documentation site
+
+The full documentation is a markdown-driven Dash app (in `docs/`, served by
+`run.py`). Every page renders live `DashFlows` demos alongside the source of the
+matching app in `examples/`, plus an auto-generated prop table.
+
+```bash
+pip install -r requirements-docs.txt
+python run.py            # open http://localhost:8560
+```
+
+Add a page by dropping a `docs/<topic>/<topic>.md` file with frontmatter — it is
+auto-discovered. Use `.. exec::` for a live demo, `.. source::` to show code, and
+`.. kwargs::dash_flows.DashFlows` for a generated prop table. The app supports
+Dash 4.1+ pluggable backends via `DASH_BACKEND=flask|fastapi|quart`.
+
 ## Requirements
 
-- Python >= 3.8
-- Dash >= 3.0.0
-- Node.js >= 8.11.0 (for development)
+- Python >= 3.9
+- Dash >= 4.0.0 (developed against Dash 4.2; still React 18)
+- dash-mantine-components >= 2.8.0 (for the examples and docs site)
+- Node.js >= 16 (for development / rebuilding the JS bundle)
 
 ## License
 

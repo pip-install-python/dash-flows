@@ -3,18 +3,20 @@
 import typing  # noqa: F401
 from typing_extensions import TypedDict, NotRequired, Literal # noqa: F401
 from dash.development.base_component import Component, _explicitize_args
+try:
+    from dash.types import NumberType  # noqa: F401
+except ImportError:
+    # Backwards compatibility for dash<=4.1.0
+    if typing.TYPE_CHECKING:
+        raise
+    NumberType = typing.Union[  # noqa: F401
+        typing.SupportsFloat, typing.SupportsInt, typing.SupportsComplex
+    ]
 
+ComponentSingleType = typing.Union[str, int, float, Component, None]
 ComponentType = typing.Union[
-    str,
-    int,
-    float,
-    Component,
-    None,
-    typing.Sequence[typing.Union[str, int, float, Component, None]],
-]
-
-NumberType = typing.Union[
-    typing.SupportsFloat, typing.SupportsInt, typing.SupportsComplex
+    ComponentSingleType,
+    typing.Sequence[ComponentSingleType],
 ]
 
 
@@ -37,8 +39,10 @@ Keyword arguments:
         Content to render inside the node - can be string, React
         element, or Dash component.
 
-    - handles (list of dicts; required):
-        Array of connection handles for this node.
+    - handles (list of dicts; optional):
+        Array of connection handles for this node. Optional: when
+        omitted or empty, a default target (top) + source (bottom)
+        handle pair is rendered.
 
         `handles` is a list of dicts with keys:
 
@@ -145,7 +149,7 @@ Keyword arguments:
         "Data",
             {
             "label": NotRequired[typing.Any],
-            "handles": typing.Sequence["DataHandles"],
+            "handles": NotRequired[typing.Sequence["DataHandles"]],
             "style": NotRequired[dict],
             "initialWidth": NotRequired[NumberType],
             "initialHeight": NotRequired[NumberType],

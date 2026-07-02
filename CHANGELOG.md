@@ -5,6 +5,74 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - Unreleased
+
+### Changed
+- **Dash 4.2+ support**: minimum `dash>=4.0.0` (dev pin `dash[dev]>=4.2.0`). Dash 4 keeps
+  React 18, so no component-side React migration was required. Multi-backend
+  (Flask/FastAPI/Quart) and websocket callbacks are available to consuming apps.
+- **dash-mantine-components** pinned to `>=2.8.0` for examples and the docs app.
+- **@xyflow/react** bumped to `^12.11.1` (latest 12.x). `zustand` remains pinned to `4.x`
+  (React Flow requires `^4.4.0`).
+
+### Added
+- **Markdown-driven documentation app** at the repo root (`run.py`, `pages/`, `docs/`,
+  `components/`, `lib/`) seeded from the Dash Documentation Boilerplate. Each component
+  is documented in `docs/<topic>/<topic>.md` with live `.. exec::` demos, `.. source::`
+  code, and `.. kwargs::` prop tables generated from the existing `examples/`.
+- **Every example runnable inline in the docs**: 34 of the 35 `examples/` apps now have
+  an embeddable twin (`docs/<topic>/exNN.py`, ids namespaced `exNN-`) rendered live via
+  `.. exec::`, plus the full source and a "How it works" breakdown on its category page.
+  `23_callback_stress_test` is intentionally source-only (performance harness).
+- **Validation harnesses** committed under `scripts/`: `smoke_examples.py` (import gate),
+  `smoke_runtime.py` (WSGI runtime gate: `/`, `/_dash-layout`, `/_dash-dependencies`),
+  and `validate_docs.py` (docs render gate). Results matrix in `SMOKE_RESULTS.md`
+  (35/35 import + runtime). Browser-fidelity test in `tests/test_examples_render.py`.
+
+### Removed
+- **R and Julia language bindings** dropped — the project targets Python/Dash only.
+  Removed `R/`, `man/`, `src/jl/`, `src/DashFlows.jl`, `NAMESPACE`, `DESCRIPTION`,
+  `Project.toml`, `.Rbuildignore`, and the duplicate JS bundle copies under `deps/` and
+  `inst/`. `build:backends` no longer generates R/Julia (`--r-prefix`/`--jl-prefix` removed).
+- Repo clutter removed from version control: `SKILLS.md`, `dash_flows_SKILLS.md`,
+  `review_checklist.md`, `REACT_FLOW_COMPARISON.md`, and the tracked `.idea/` IDE config.
+- **Pre-migration remnants** removed: `usage.py` (superseded by the docs app — use
+  `python run.py`), the old JS dev demo (`src/demo/`, root `index.html`,
+  `webpack.serve.config.js`, the `npm start` script, `webpack-dev-server`), the stale
+  boilerplate tests `tests/test_usage.py`/`tests/test_handle.py` (replaced by
+  `tests/test_examples_render.py`), unreferenced `assets/logo.svg`/`assets/group-node.png`,
+  the unused `webpack` require in `webpack.config.js`, and the deprecated `babel-eslint`
+  parser (now `@babel/eslint-parser`; run `npm install` once to refresh the lockfile).
+
+### Fixed
+- Populated the previously empty `LICENSE` file with the MIT license text.
+- **"Maximum update depth exceeded" render loop**: the outbound `nodes`/`edges`
+  `setProps` effects in `DashFlows.react.js` now guard on a serialized diff
+  (mirroring the `nodeConnections` effect), so React Flow's asynchronous node
+  re-measurement can no longer drive a `setProps`↔`setNodes` loop.
+- **React Flow error 008 ("null source/target handle") on resizable nodes**:
+  `ResizableNode` now renders a default target (top) + source (bottom) handle
+  pair when `data.handles` is omitted or empty (matching `DefaultNode`), so edges
+  bind to it instead of failing. The `data.handles` prop is now optional.
+- **MiniMap ignored the light/dark preference**: removed the inline
+  `colorMode`-based background override so the MiniMap follows the `--df-minimap-*`
+  CSS variables, which track both React Flow's `.dark` class and Mantine's
+  `data-mantine-color-scheme` (correct even for `colorMode="system"`).
+- **Dark-mode fidelity across the docs example twins**: replaced hardcoded light
+  colors on cards/panels/buttons with Mantine CSS variables; converted native
+  `html.Button`s to `dmc.Button` (`ex15`/`ex18`/`ex19`); synced the `ex20`/`ex21`
+  canvases' `colorMode` to the page theme via `color-scheme-storage`; and themed
+  the `ex14` metric-card node text so it stays legible on dark canvases.
+
+### Roadmap (carried over from REACT_FLOW_COMPARISON.md)
+- Refactor `DashFlows.react.js` (~2500 lines) into focused hooks
+  (`useSmartHandles`, `useFlowState`, `useConnectionValidation`, `useViewportActions`,
+  `useImageExport`, `useCopyPaste`, `useElkLayout`).
+- Lazy-load `elkjs` (~1.45 MB, ~77% of the bundle) via dynamic import on first
+  `layoutOptions` use.
+- Remove the `ramda` dependency in favor of native JS.
+- Memoize smart-handle edge computation; document `onlyRenderVisibleElements` for large flows.
+
 ## [1.2.0] - 2026-04-03
 
 ### Added

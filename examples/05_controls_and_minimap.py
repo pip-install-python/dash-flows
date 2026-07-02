@@ -8,7 +8,7 @@ This example demonstrates:
 """
 
 import dash
-from dash import html, Input, Output, State
+from dash import html, Input, Output, State, callback
 import dash_flows
 import dash_mantine_components as dmc
 
@@ -84,7 +84,7 @@ app.layout = dmc.MantineProvider([
     html.Div(id="controls-flow-container"),
 ])
 
-@app.callback(
+@callback(
     Output("controls-flow-container", "children"),
     Input("show-controls", "checked"),
     Input("show-minimap", "checked"),

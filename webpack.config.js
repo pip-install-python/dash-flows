@@ -1,5 +1,4 @@
 const path = require('path');
-const webpack = require('webpack');
 const WebpackDashDynamicImport = require('@plotly/webpack-dash-dynamic-import');
 const packagejson = require('./package.json');
 
@@ -103,11 +102,12 @@ module.exports = (env, argv) => {
             }
         },
         plugins: [
+            // Rewrites async chunk public paths so Dash can lazy-load them.
             new WebpackDashDynamicImport(),
-            new webpack.SourceMapDevToolPlugin({
-                filename: '[file].map',
-                exclude: ['async-plotlyjs']
-            })
+            // NOTE: source maps are produced by `devtool: 'source-map'` above.
+            // Do NOT also add webpack.SourceMapDevToolPlugin here — running both
+            // makes two assets emit `dash_flows.min.js.map`, which webpack 5.108+
+            // treats as a hard error ("Multiple assets emit different content...").
         ]
     }
 };
