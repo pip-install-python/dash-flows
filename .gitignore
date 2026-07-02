@@ -278,3 +278,11 @@ GitHub.sublime-settings
 # Julia manifest file names
 Manifest.toml
 JuliaManifest.toml
+
+# JetBrains IDE config (untracked as of v1.3.0)
+.idea/
+
+# Python build artifacts
+/dist/
+*.egg-info/
+__pycache__/

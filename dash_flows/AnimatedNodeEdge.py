@@ -1,13 +1,23 @@
 # AUTO GENERATED FILE - DO NOT EDIT
 
 import typing  # noqa: F401
-import numbers # noqa: F401
 from typing_extensions import TypedDict, NotRequired, Literal # noqa: F401
 from dash.development.base_component import Component, _explicitize_args
 try:
-    from dash.development.base_component import ComponentType # noqa: F401
+    from dash.types import NumberType  # noqa: F401
 except ImportError:
-    ComponentType = typing.TypeVar("ComponentType", bound=Component)
+    # Backwards compatibility for dash<=4.1.0
+    if typing.TYPE_CHECKING:
+        raise
+    NumberType = typing.Union[  # noqa: F401
+        typing.SupportsFloat, typing.SupportsInt, typing.SupportsComplex
+    ]
+
+ComponentSingleType = typing.Union[str, int, float, Component, None]
+ComponentType = typing.Union[
+    ComponentSingleType,
+    typing.Sequence[ComponentSingleType],
+]
 
 
 class AnimatedNodeEdge(Component):
@@ -44,7 +54,7 @@ Keyword arguments:
 
 - targetY (number; optional):
     Y coordinate of the target node."""
-    _children_props = []
+    _children_props: typing.List[str] = []
     _base_nodes = ['children']
     _namespace = 'dash_flows'
     _type = 'AnimatedNodeEdge'
@@ -55,15 +65,15 @@ Keyword arguments:
         }
     )
 
-    @_explicitize_args
+
     def __init__(
         self,
         id: typing.Optional[typing.Union[str, dict]] = None,
         data: typing.Optional["Data"] = None,
-        sourceX: typing.Optional[typing.Union[int, float, numbers.Number]] = None,
-        sourceY: typing.Optional[typing.Union[int, float, numbers.Number]] = None,
-        targetX: typing.Optional[typing.Union[int, float, numbers.Number]] = None,
-        targetY: typing.Optional[typing.Union[int, float, numbers.Number]] = None,
+        sourceX: typing.Optional[NumberType] = None,
+        sourceY: typing.Optional[NumberType] = None,
+        targetX: typing.Optional[NumberType] = None,
+        targetY: typing.Optional[NumberType] = None,
         sourcePosition: typing.Optional[str] = None,
         targetPosition: typing.Optional[str] = None,
         **kwargs
@@ -78,3 +88,5 @@ Keyword arguments:
         args = {k: _locals[k] for k in _explicit_args}
 
         super(AnimatedNodeEdge, self).__init__(**args)
+
+setattr(AnimatedNodeEdge, "__init__", _explicitize_args(AnimatedNodeEdge.__init__))

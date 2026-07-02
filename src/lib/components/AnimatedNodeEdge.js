@@ -16,6 +16,7 @@ const AnimatedNodeEdge = ({
     targetY,
     sourcePosition,
     targetPosition,
+    ...rest
 }) => {
     const { getNode, updateNode } = useReactFlow();
     const [edgePath] = getBezierPath({
@@ -128,10 +129,6 @@ AnimatedNodeEdge.propTypes = {
      * Position of the target handle
      */
     targetPosition: PropTypes.string
-};
-
-AnimatedNodeEdge.defaultProps = {
-    data: { animatedNode: '' }
 };
 
 export default AnimatedNodeEdge;

@@ -1,65 +1,67 @@
 {
     "name": "dash_flows",
-    "version": "0.0.4",
-    "description": "React Flow for the Plotly Dash framework with edittable handles.",
-  "repository": {
-      "type": "git",
-      "url": "git://github.com/pip-install-python/dash-flows.git"
+    "version": "1.3.0",
+    "description": "React Flow for the Plotly Dash framework with editable handles.",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/pip-install-python/dash-flows.git"
     },
     "bugs": {
-      "url": "https://github.com/pip-install-python/dash-flows/issues"
+        "url": "https://github.com/pip-install-python/dash-flows/issues"
     },
     "homepage": "https://github.com/pip-install-python/dash-flows",
     "main": "build/index.js",
     "scripts": {
-      "start": "webpack serve --config ./webpack.serve.config.js --open",
-      "validate-init": "python _validate_init.py",
-      "prepublishOnly": "npm run validate-init",
-      "build:js": "webpack --mode production",
-      "build:backends": "dash-generate-components ./src/lib/components dash_flows -p package-info.json --r-prefix '' --jl-prefix '' --ignore \\.test\\.",
-      "build:backends-activated": "(. venv/bin/activate || venv\\scripts\\activate && npm run build:backends)",
-      "build": "npm run build:js && npm run build:backends",
-      "build:activated": "npm run build:js && npm run build:backends-activated"
+        "validate-init": "python _validate_init.py",
+        "prepublishOnly": "npm run validate-init",
+        "build:js": "webpack --mode production",
+        "build:backends": "dash-generate-components ./src/lib/components dash_flows -p package-info.json --ignore \\.test\\.",
+        "build:backends-activated": "(. venv/bin/activate || venv\\scripts\\activate && npm run build:backends)",
+        "build": "npm run build:js && npm run build:backends",
+        "build:activated": "npm run build:js && npm run build:backends-activated"
     },
     "author": "Pip Install Python <pipinstallpython@gmail.com>",
     "license": "MIT",
     "dependencies": {
-      "@xyflow/react": "^12.3.5",
-      "elkjs": "^0.8.2",
-      "ramda": "^0.26.1",
-      "zustand": "^4.4.7"
+        "@xyflow/react": "^12.11.1",
+        "elkjs": "^0.9.3",
+        "html-to-image": "^1.11.13",
+        "ramda": "^0.26.1",
+        "zustand": "^4.5.5"
     },
     "devDependencies": {
-      "@babel/core": "^7.22.1",
-      "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
-      "@babel/preset-env": "^7.22.2",
-      "@babel/preset-react": "^7.22.3",
-      "@plotly/dash-component-plugins": "^1.2.3",
-      "@plotly/webpack-dash-dynamic-import": "^1.2.0",
-      "ajv": "^8.12.0",
-      "ajv-keywords": "^5.1.0",
-      "babel-eslint": "^10.1.0",
-      "babel-loader": "^9.1.2",
-      "copyfiles": "^2.1.1",
-      "css-loader": "^6.8.1",
-      "eslint": "^9.15.0",
-      "eslint-config-prettier": "^6.0.0",
-      "eslint-plugin-import": "^2.18.0",
-      "eslint-plugin-react": "^7.14.2",
-      "prop-types": "^15.8.1",
-      "react": "^18.2.0",
-      "react-docgen": "^5.4.3",
-      "react-dom": "^18.2.0",
-      "schema-utils": "^4.2.0",
-      "style-loader": "^3.3.3",
-      "styled-jsx": "^5.1.6",
-      "webpack": "^5.84.1",
-      "webpack-cli": "^5.1.1",
-      "webpack-dev-server": "^4.15.0"
+        "@babel/core": "^7.22.1",
+        "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+        "@babel/preset-env": "^7.22.2",
+        "@babel/preset-react": "^7.22.3",
+        "@plotly/dash-component-plugins": "^1.2.3",
+        "@plotly/webpack-dash-dynamic-import": "^1.2.0",
+        "ajv": "^8.12.0",
+        "ajv-keywords": "^5.1.0",
+        "@babel/eslint-parser": "^7.25.0",
+        "babel-loader": "^9.1.2",
+        "copyfiles": "^2.1.1",
+        "css-loader": "^6.8.1",
+        "eslint": "^9.15.0",
+        "eslint-config-prettier": "^6.0.0",
+        "eslint-plugin-import": "^2.18.0",
+        "eslint-plugin-react": "^7.14.2",
+        "prop-types": "^15.8.1",
+        "react": "^18.2.0",
+        "react-docgen": "^5.4.3",
+        "react-dom": "^18.2.0",
+        "schema-utils": "^4.2.0",
+        "style-loader": "^3.3.3",
+        "styled-jsx": "^5.1.6",
+        "webpack": "^5.84.1",
+        "webpack-cli": "^5.1.1"
+    },
+    "overrides": {
+        "brace-expansion": "^1.1.12",
+        "on-headers": "^1.1.0"
     },
     "engines": {
-      "node": ">=8.11.0",
-      "npm": ">=6.1.0"
+        "node": ">=8.11.0",
+        "npm": ">=6.1.0"
     }
-  }
-  
+}

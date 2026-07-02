@@ -1,0 +1,46 @@
+# render.yaml — Render Blueprint for the dash-flows documentation site.
+# Deploys run.py (the markdown-driven docs app) as a Docker web service.
+# Blueprint spec: https://render.com/docs/blueprint-spec
+#
+# How to deploy:
+#   1. Make sure this repo (with Dockerfile + render.yaml) is pushed to GitHub
+#      on the branch you want to deploy (see `branch:` note below).
+#   2. In the Render dashboard: New > Blueprint, and select this repo.
+#   3. Render reads this file, builds the Dockerfile, and serves run:server.
+#
+# Local equivalent (no Render needed):
+#   docker build -t dash-flows-docs .
+#   docker run --rm -p 8560:8560 -e PORT=8560 dash-flows-docs
+#   open http://localhost:8560
+services:
+  - type: web
+    name: dash-flows-docs
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Free tier is fine for a docs site, but it sleeps after ~15 min idle and
+    # cold-starts on the next request. Use "starter" (or higher) for always-on.
+    plan: free
+    # Render serves the container on the port it injects via $PORT; the
+    # Dockerfile binds gunicorn to it. Nothing to configure here.
+    healthCheckPath: /
+    autoDeploy: true
+    # Which branch Render deploys. Omit to use the repo's default branch.
+    # This 1.3.0 work currently lives on feature/1.3.0 — set this (or merge to
+    # main) so Render deploys the branch that actually has the code.
+    # branch: main
+    envVars:
+      # Flask (WSGI) backend, served by gunicorn. Do NOT set fastapi/quart here:
+      # those are ASGI and would need uvicorn instead of gunicorn.
+      - key: DASH_BACKEND
+        value: flask
+      # gunicorn worker processes. 2 is a reasonable default; drop to 1 if the
+      # free tier's 512 MB feels tight, raise on larger plans. The Dockerfile
+      # also runs 4 threads per worker for callback concurrency.
+      - key: WEB_CONCURRENCY
+        value: "2"
+      # Optional: public base URL used only for canonical/SEO metadata. Set it
+      # to your Render URL after the first deploy, e.g.
+      # https://dash-flows-docs.onrender.com  (run.py defaults to localhost).
+      - key: DASH_FLOWS_BASE_URL
+        sync: false

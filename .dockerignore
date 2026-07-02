@@ -1,0 +1,45 @@
+# Keep the Docker build context lean — exclude everything the docs app does not
+# need at runtime. The committed dash_flows/ bundle is what gets served, so the
+# JS toolchain (node_modules/, src/) is not required in the image.
+.git
+.gitignore
+.gitattributes
+
+# JS build toolchain (the built bundle in dash_flows/ is committed)
+node_modules
+src
+webpack.config.js
+.babelrc
+.eslintrc
+package-lock.json
+
+# Python caches / build artifacts
+**/__pycache__
+*.py[cod]
+*.egg-info
+.eggs
+dist
+build
+
+# Virtualenvs / local env
+.venv
+venv
+env
+.env
+
+# Editors / tooling / project meta
+.idea
+.vscode
+.claude
+.pytest_cache
+.mypy_cache
+.eslintcache
+
+# Tests (not served)
+tests
+
+# Misc
+*.log
+.DS_Store
+Dockerfile
+.dockerignore

@@ -1,98 +1,340 @@
+<div align="center">
+
 # Dash Flows
 
-Dash Flows is a Dash component library.
+**React Flow ([@xyflow/react](https://reactflow.dev)) node-graph components for [Plotly Dash](https://dash.plotly.com).**
 
-React Flow for the Plotly Dash framework.
+Glass-morphism theming · ELK layouts · DashIconify icons · full Dash callback interoperability.
 
-Get started with:
-1. Install Dash and its dependencies: https://dash.plotly.com/installation
-2. Run `python usage.py`
-3. Visit http://localhost:8050 in your web browser
+[![PyPI version](https://img.shields.io/pypi/v/dash-flows?color=blue)](https://pypi.org/project/dash-flows/)
+[![Python](https://img.shields.io/pypi/pyversions/dash-flows)](https://pypi.org/project/dash-flows/)
+[![Dash 4.2+](https://img.shields.io/badge/Dash-4.2%2B-1a1a2e?logo=plotly&logoColor=white)](https://dash.plotly.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/WEnZR35mrK)
+[![YouTube](https://img.shields.io/badge/YouTube-%402plotai-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/channel/UC6Bmo0t0ZUpU_xKBYW0bJuQ)
 
-## Contributing
+**[Documentation](https://pip-install-python.com)** · [Discord](https://discord.gg/WEnZR35mrK) · [YouTube](https://www.youtube.com/channel/UC6Bmo0t0ZUpU_xKBYW0bJuQ) · [GitHub](https://github.com/pip-install-python/dash-flows)
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md)
+<br/>
 
-### Install dependencies
+<img src="assets/current_project.png" alt="dash-flows" width="820">
 
-If you have selected install_dependencies during the prompt, you can skip this part.
+<br/>
 
-1. Install npm packages
-    ```
-    $ npm install
-    ```
-2. Create a virtual env and activate.
-    ```
-    $ virtualenv venv
-    $ . venv/bin/activate
-    ```
-    _Note: venv\Scripts\activate for windows_
+_Maintained by **[Pip Install Python LLC](https://pip-install-python.com)**._
 
-3. Install python packages required to build components.
-    ```
-    $ pip install -r requirements.txt
-    ```
-4. Install the python packages for testing (optional)
-    ```
-    $ pip install -r tests/requirements.txt
-    ```
+</div>
 
-### Write your component code in `src/lib/components/DashFlows.react.js`.
+---
 
-- The demo app is in `src/demo` and you will import your example component code into your demo app.
-- Test your code in a Python environment:
-    1. Build your code
-        ```
-        $ npm run build
-        ```
-    2. Run and modify the `usage.py` sample dash app:
-        ```
-        $ python usage.py
-        ```
-- Write tests for your component.
-    - A sample test is available in `tests/test_usage.py`, it will load `usage.py` and you can then automate interactions with selenium.
-    - Run the tests with `$ pytest tests`.
-    - The Dash team uses these types of integration tests extensively. Browse the Dash component code on GitHub for more examples of testing (e.g. https://github.com/plotly/dash-core-components)
-- Add custom styles to your component by putting your custom CSS files into your distribution folder (`dash_flows`).
-    - Make sure that they are referenced in `MANIFEST.in` so that they get properly included when you're ready to publish your component.
-    - Make sure the stylesheets are added to the `_css_dist` dict in `dash_flows/__init__.py` so dash will serve them automatically when the component suite is requested.
-- [Review your code](./review_checklist.md)
+## Overview
 
-### Create a production build and publish:
+**dash-flows** wraps [React Flow 12](https://reactflow.dev) (`@xyflow/react`) as a Plotly Dash
+component library. Build interactive, node-based diagrams — workflows, data pipelines, org charts,
+state machines — that talk to your Python callbacks like any other Dash component.
 
-1. Build your code:
-    ```
-    $ npm run build
-    ```
-2. Create a Python distribution
-    ```
-    $ python setup.py sdist bdist_wheel
-    ```
-    This will create source and wheel distribution in the generated the `dist/` folder.
-    See [PyPA](https://packaging.python.org/guides/distributing-packages-using-setuptools/#packaging-your-project)
-    for more information.
+- **React Flow 12.11** under the hood — nodes, edges, handles, minimap, controls, background
+- **Glass-morphism theme** with light / dark / system color modes and 6 color schemes
+- **ELK layouts** for automatic graph arrangement
+- **Rich node & edge types** — default, input, output, group, resizable, circle, toolbar; straight,
+  step, smoothstep, bezier, button, data, animated, floating
+- **Deep Dash integration** — clicks, selection, connections, drag/drop, context menus, undo/redo,
+  copy/paste, save/restore, image export — all as callback props
+- **DashIconify icons** and embedded Dash components inside nodes
+- **Dash 4.2+** compatible (React 18)
 
-3. Test your tarball by copying it into a new environment and installing it locally:
-    ```
-    $ pip install dash_flows-0.0.3.tar.gz
-    ```
+## Installation
 
-4. If it works, then you can publish the component to NPM and PyPI:
-    1. Publish on PyPI
-        ```
-        $ twine upload dist/*
-        ```
-    2. Cleanup the dist folder (optional)
-        ```
-        $ rm -rf dist
-        ```
-    3. Publish on NPM (Optional if chosen False in `publish_on_npm`)
-        ```
-        $ npm publish
-        ```
-        _Publishing your component to NPM will make the JavaScript bundles available on the unpkg CDN. By default, Dash serves the component library's CSS and JS locally, but if you choose to publish the package to NPM you can set `serve_locally` to `False` and you may see faster load times._
+```bash
+pip install dash-flows
+```
 
-5. Share your component with the community! https://community.plotly.com/c/dash
-    1. Publish this repository to GitHub
-    2. Tag your GitHub repository with the plotly-dash tag so that it appears here: https://github.com/topics/plotly-dash
-    3. Create a post in the Dash community forum: https://community.plotly.com/c/dash
+## Quick Start
+
+```python
+import dash
+from dash import html
+from dash_flows import DashFlows
+
+app = dash.Dash(__name__)
+
+nodes = [
+    {"id": "1", "type": "input",   "data": {"label": "Start"},   "position": {"x": 250, "y": 0}},
+    {"id": "2", "type": "default", "data": {"label": "Process"}, "position": {"x": 250, "y": 100}},
+    {"id": "3", "type": "output",  "data": {"label": "End"},     "position": {"x": 250, "y": 200}},
+]
+
+edges = [
+    {"id": "e1-2", "source": "1", "target": "2", "animated": True},
+    {"id": "e2-3", "source": "2", "target": "3"},
+]
+
+app.layout = html.Div(
+    DashFlows(
+        id="flow",
+        nodes=nodes,
+        edges=edges,
+        fitView=True,
+        showControls=True,
+        showMiniMap=True,
+        style={"width": "100%", "height": "600px"},
+    )
+)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+## Documentation
+
+Full documentation, with a **live, runnable demo and source for every example**, lives at the
+open-source documentation index maintained by Pip Install Python LLC:
+
+### 📚 **[pip-install-python.com](https://pip-install-python.com)**
+
+You can also run the docs site locally — it is a markdown-driven Dash app served by `run.py`:
+
+```bash
+pip install -r requirements-docs.txt
+python run.py            # open http://localhost:8560
+```
+
+Each page renders live `DashFlows` demos alongside the matching source in `examples/`, plus an
+auto-generated prop table. Add a page by dropping a `docs/<topic>/<topic>.md` file with frontmatter
+(auto-discovered): `.. exec::` for a live demo, `.. source::` for code, and
+`.. kwargs::dash_flows.DashFlows` for a generated prop table. The app supports Dash 4.1+ pluggable
+backends via `DASH_BACKEND=flask|fastapi|quart`.
+
+## Components
+
+### Node types
+
+| Component | Description |
+|-----------|-------------|
+| `DefaultNode` | Standard node with configurable handles |
+| `InputNode` | Source node with green accent (output handles only) |
+| `OutputNode` | Sink node with purple accent (input handles only) |
+| `GroupNode` | Container node for grouping other nodes |
+| `ToolbarNode` | Node with floating toolbar on selection |
+| `ResizableNode` | Node that can be resized by the user |
+
+### Edge types
+
+| Component | Description |
+|-----------|-------------|
+| `SimpleBezierEdge` | Smooth curved connection |
+| `SmoothStepEdge` | Rounded right-angle connections |
+| `StepEdge` | Sharp right-angle connections |
+| `StraightEdge` | Direct line connection |
+| `AnimatedSvgEdge` | Edge with animated flowing dots |
+| `ButtonEdge` | Edge with delete button |
+| `DataEdge` | Edge displaying data labels |
+| `FloatingEdge` | Connects to the nearest point on each node's border |
+
+### UI components
+
+| Component | Description |
+|-----------|-------------|
+| `NodeStatusIndicator` | Loading / success / error states for nodes |
+| `NodeTooltip` | Hover tooltips for nodes |
+| `NodeSearch` | Search and filter nodes |
+| `ButtonHandle` | Interactive handle with button styling |
+| `DevTools` | Debug panel for development |
+
+## Theming
+
+Dash Flows ships a comprehensive theming system driven by CSS custom properties.
+
+**Theme presets** — apply as a class on the component:
+
+- `.df-theme-glass` (default) — glass morphism with blur effects
+- `.df-theme-solid` — opaque cards with shadows
+- `.df-theme-minimal` — clean, border-focused design
+
+**Color schemes** — `.df-scheme-default`, `.df-scheme-ocean`, `.df-scheme-forest`,
+`.df-scheme-sunset`, `.df-scheme-midnight`, `.df-scheme-rose`.
+
+**Dark mode** is automatic via React Flow's `colorMode="dark"` prop, Mantine's
+`data-mantine-color-scheme="dark"` attribute, or a custom `.dark-mode` class.
+
+## Node status indicators
+
+```python
+node = {
+    "id": "1",
+    "data": {
+        "label": "Processing...",
+        "status": "loading",  # 'initial' | 'loading' | 'success' | 'error'
+    },
+    "position": {"x": 100, "y": 100},
+}
+```
+
+- `initial` — no indicator · `loading` — blue pulsing glow · `success` — green border + checkmark ·
+  `error` — red border + X badge with shake animation
+
+## Custom icons with DashIconify
+
+```python
+from dash_iconify import DashIconify
+
+node = {
+    "id": "1",
+    "type": "input",
+    "data": {
+        "label": "Data Source",
+        "icon": DashIconify(icon="mdi:database", width=20, color="white"),
+        "iconColor": "#10b981",          # icon background color
+        "body": "PostgreSQL Database",   # optional description text
+    },
+    "position": {"x": 100, "y": 100},
+}
+```
+
+## Handle configuration
+
+```python
+node = {
+    "id": "1",
+    "data": {
+        "label": "Custom Handles",
+        "handles": [
+            {"type": "target", "position": "top",    "id": "input-1"},
+            {"type": "target", "position": "left",   "id": "input-2"},
+            {"type": "source", "position": "bottom", "id": "output-1"},
+            {"type": "source", "position": "right",  "id": "output-2"},
+        ],
+    },
+    "position": {"x": 100, "y": 100},
+}
+```
+
+## Examples
+
+The `examples/` directory contains **35 runnable apps** — every one is also embedded live (with its
+source) in the [documentation](https://pip-install-python.com). A few highlights:
+
+| Example | Description |
+|---------|-------------|
+| `01_basic_nodes_and_edges.py` | Getting started with nodes and edges |
+| `02_all_node_types.py` | Showcase of all node types |
+| `03_all_edge_types.py` | Showcase of all edge types |
+| `12_elk_layouts.py` | Automatic ELK layouts |
+| `14_dash_components_in_nodes.py` | Embed Dash components in nodes |
+| `20_context_menu.py` | Right-click context menus |
+| `26_floating_edges.py` | Floating edges (nearest-border routing) |
+| `32_undo_redo.py` | Full undo / redo system |
+| `33_computing_flows.py` | Topological sort & data-flow computation |
+| `35_subflows.py` | Collapsible group nodes |
+
+Run any of them directly, e.g. `python examples/01_basic_nodes_and_edges.py`.
+
+## API reference
+
+### `DashFlows` props (selected)
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `id` | string | Component ID for callbacks |
+| `nodes` | list | Array of node objects |
+| `edges` | list | Array of edge objects |
+| `fitView` | bool | Auto-fit view to content |
+| `colorMode` | string | `'light'`, `'dark'`, or `'system'` |
+| `themePreset` | string | `'glass'`, `'solid'`, `'minimal'` |
+| `colorScheme` | string | `'default'`, `'ocean'`, `'forest'`, `'sunset'`, `'midnight'`, `'rose'` |
+| `showControls` / `showMiniMap` / `showBackground` | bool | Toggle canvas overlays |
+| `clickedNode` / `selectedNodes` / `lastConnection` | output | Interaction outputs read in callbacks |
+| `style` | dict | Container style (must include a height) |
+
+The full, auto-generated prop table (140+ props) is on the
+[API Reference](https://pip-install-python.com) page.
+
+### Node object
+
+```python
+{
+    "id": "unique-id",
+    "type": "default",  # 'input', 'output', 'group', 'resizable', ...
+    "data": {
+        "label": "Node Label",        # primary text
+        "sublabel": "Secondary text", # below label
+        "body": "Description",        # below sublabel
+        "icon": DashIconify(...),     # custom icon
+        "iconColor": "#3b82f6",       # icon background
+        "layout": "stacked",          # 'stacked' or 'horizontal'
+        "handles": [...],             # optional handle config
+        "status": "initial",          # 'initial' | 'loading' | 'success' | 'error'
+    },
+    "position": {"x": 0, "y": 0},
+    "style": {},       # optional CSS
+    "className": "",   # optional CSS class
+}
+```
+
+### Edge object
+
+```python
+{
+    "id": "unique-id",
+    "source": "source-node-id",
+    "target": "target-node-id",
+    "sourceHandle": "handle-id",  # optional
+    "targetHandle": "handle-id",  # optional
+    "type": "default",            # edge type
+    "animated": False,
+    "label": "Edge Label",        # optional
+    "style": {},
+}
+```
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+pip install -r requirements.txt
+
+# Build the JS bundle + regenerate the Python wrappers
+npm run build
+
+# Run the documentation site (live demos for every example)
+pip install -r requirements-docs.txt
+python run.py            # http://localhost:8560
+
+# Build a distribution
+python -m build
+```
+
+The React components in `src/lib/` are the source of truth; the Python package in `dash_flows/` is
+auto-generated from their PropTypes by `dash-generate-components`. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and validation gates.
+
+## Requirements
+
+- Python >= 3.9
+- Dash >= 4.0.0 (developed against Dash 4.2; still React 18)
+- dash-mantine-components >= 2.8.0 (for the examples and docs site)
+- Node.js >= 16 (for development / rebuilding the JS bundle)
+
+## Community & support
+
+Come build with us:
+
+- 💬 **Discord** — [discord.gg/WEnZR35mrK](https://discord.gg/WEnZR35mrK)
+- ▶️ **YouTube** — [@2plotai](https://www.youtube.com/channel/UC6Bmo0t0ZUpU_xKBYW0bJuQ)
+- 🐛 **Issues** — [github.com/pip-install-python/dash-flows/issues](https://github.com/pip-install-python/dash-flows/issues)
+
+## More from Pip Install Python LLC
+
+dash-flows is one of several tools built and maintained by **Pip Install Python LLC**:
+
+| Project | What it is |
+|---------|------------|
+| 📚 **[Pip Install Python](https://pip-install-python.com)** | Open-source documentation index for the Python & Dash ecosystem |
+| 🧠 **[ai-agent.buzz](https://ai-agent.buzz)** | Infinite AI canvas |
+| 🎬 **[2plot.media](https://2plot.media)** | Videography application |
+| 🛒 **[piraresbargain.com](https://piraresbargain.com)** | Online shop with a tileset & sprite generator |
+
+## License
+
+MIT — see [LICENSE](LICENSE). Built by **[Pip Install Python LLC](https://pip-install-python.com)**.

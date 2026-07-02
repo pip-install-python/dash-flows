@@ -1,0 +1,1789 @@
+/*
+ * Dash Flows Enhanced Theme System
+ *
+ * A comprehensive theming stylesheet with:
+ * - React Flow colorMode integration (.dark/.light classes)
+ * - Mantine color scheme support (data-mantine-color-scheme)
+ * - CSS custom properties for programmatic theming
+ * - Glass morphism effects with accessibility fallbacks
+ * - Theme presets (glass, solid, minimal)
+ * - Color schemes (default, ocean, forest, sunset, midnight, rose)
+ *
+ * Compatible with dash-mantine-components and React Flow 12+
+ */
+
+/* =============================================================================
+   SECTION 1: CSS CUSTOM PROPERTIES (Theme Variables)
+   ============================================================================= */
+
+:root {
+    /* ------------------------------------------------------------------
+       Glass Effect Properties
+       ------------------------------------------------------------------ */
+    --df-glass-blur: 12px;
+    --df-glass-blur-light: 8px;
+    --df-glass-blur-heavy: 20px;
+    --df-glass-saturate: 180%;
+
+    /* ------------------------------------------------------------------
+       Theme Colors - Light Mode (Default)
+       ------------------------------------------------------------------ */
+
+    /* Base glass appearance */
+    --df-glass-bg: rgba(255, 255, 255, 0.72);
+    --df-glass-bg-hover: rgba(255, 255, 255, 0.85);
+    --df-glass-border: rgba(255, 255, 255, 0.5);
+    --df-glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    --df-glass-shadow-hover: 0 8px 32px rgba(31, 38, 135, 0.25);
+    --df-glass-inset: inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+    --df-glass-inset-bottom: inset 0 -1px 0 0 rgba(0, 0, 0, 0.02);
+
+    /* Node base colors */
+    --df-node-bg: var(--df-glass-bg);
+    --df-node-bg-hover: var(--df-glass-bg-hover);
+    --df-node-border: var(--df-glass-border);
+    --df-node-text: #1a1b1e;
+    --df-node-text-secondary: #495057;
+    --df-node-shadow: var(--df-glass-shadow);
+
+    /* Input node - Green tint */
+    --df-input-node-bg: rgba(209, 250, 229, 0.65);
+    --df-input-node-bg-hover: rgba(209, 250, 229, 0.8);
+    --df-input-node-border: rgba(16, 185, 129, 0.3);
+    --df-input-node-accent: #10b981;
+
+    /* Output node - Purple tint */
+    --df-output-node-bg: rgba(237, 233, 254, 0.65);
+    --df-output-node-bg-hover: rgba(237, 233, 254, 0.8);
+    --df-output-node-border: rgba(139, 92, 246, 0.3);
+    --df-output-node-accent: #8b5cf6;
+
+    /* Default node - Neutral */
+    --df-default-node-bg: var(--df-glass-bg);
+    --df-default-node-border: var(--df-glass-border);
+    --df-default-node-accent: #3b82f6;
+
+    /* Group node */
+    --df-group-node-bg: rgba(243, 244, 246, 0.5);
+    --df-group-node-border: rgba(156, 163, 175, 0.4);
+
+    /* Toolbar & panels */
+    --df-toolbar-bg: rgba(255, 255, 255, 0.95);
+    --df-toolbar-border: rgba(0, 0, 0, 0.1);
+    --df-toolbar-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    /* Edge colors */
+    --df-edge-stroke: #64748b;
+    --df-edge-stroke-width: 2;
+    --df-edge-stroke-selected: #3b82f6;
+    --df-edge-stroke-animated: #8b5cf6;
+
+    /* Edge label */
+    --df-edge-label-bg: rgba(255, 255, 255, 0.85);
+    --df-edge-label-border: rgba(255, 255, 255, 0.6);
+    --df-edge-label-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    /* Handle colors */
+    --df-handle-bg: #fff;
+    --df-handle-border: #64748b;
+    --df-handle-bg-connected: #3b82f6;
+    --df-handle-bg-valid: #10b981;
+    --df-handle-size: 14px;
+    --df-handle-size-hover: 18px;
+
+    /* Background */
+    --df-background-color: #fafafa;
+    --df-background-pattern: #e5e7eb;
+
+    /* Controls & MiniMap */
+    --df-controls-bg: var(--df-glass-bg);
+    --df-controls-border: var(--df-glass-border);
+    --df-minimap-bg: rgba(255, 255, 255, 0.85);
+    --df-minimap-mask: rgba(59, 130, 246, 0.15);
+    --df-minimap-node-fill: #64748b;
+    --df-minimap-node-stroke: #475569;
+
+    /* Selection */
+    --df-selection-bg: rgba(59, 130, 246, 0.08);
+    --df-selection-border: rgba(59, 130, 246, 0.4);
+    --df-selection-ring: 0 0 0 2px var(--df-selection-border);
+
+    /* Connection line */
+    --df-connection-line-stroke: var(--df-edge-stroke-selected);
+    --df-connection-line-width: 2;
+
+    /* ------------------------------------------------------------------
+       Spacing & Sizing
+       ------------------------------------------------------------------ */
+    --df-spacing-xs: 4px;
+    --df-spacing-sm: 8px;
+    --df-spacing-md: 12px;
+    --df-spacing-lg: 16px;
+    --df-spacing-xl: 24px;
+
+    /* Border radius */
+    --df-radius-xs: 4px;
+    --df-radius-sm: 6px;
+    --df-radius-md: 10px;
+    --df-radius-lg: 14px;
+    --df-radius-xl: 20px;
+
+    /* Transitions */
+    --df-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --df-transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --df-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Node sizing */
+    --df-node-min-width: 150px;
+    --df-node-default-width: clamp(160px, 18vw, 300px);
+    --df-group-node-min-width: clamp(220px, 22vw, 400px);
+    --df-group-node-min-height: clamp(180px, 25vh, 400px);
+
+    /* ------------------------------------------------------------------
+       Map to React Flow CSS Variables
+       ------------------------------------------------------------------ */
+    --xy-edge-stroke-default: var(--df-edge-stroke);
+    --xy-edge-stroke-width-default: var(--df-edge-stroke-width);
+    --xy-edge-stroke-selected-default: var(--df-edge-stroke-selected);
+    --xy-connectionline-stroke-default: var(--df-connection-line-stroke);
+    --xy-connectionline-stroke-width-default: var(--df-connection-line-width);
+    --xy-node-background-color-default: var(--df-node-bg);
+    --xy-node-border-default: 1px solid var(--df-node-border);
+    --xy-node-color-default: var(--df-node-text);
+    --xy-handle-background-color-default: var(--df-handle-bg);
+    --xy-handle-border-color-default: var(--df-handle-border);
+    --xy-background-pattern-dots-color-default: var(--df-background-pattern);
+    --xy-background-pattern-line-color-default: var(--df-background-pattern);
+    --xy-background-pattern-cross-color-default: var(--df-background-pattern);
+    --xy-minimap-background-color-default: var(--df-minimap-bg);
+    --xy-selection-background-color-default: var(--df-selection-bg);
+    --xy-selection-border-default: 1px dotted var(--df-selection-border);
+    --xy-controls-button-background-color-default: var(--df-controls-bg);
+    --xy-controls-button-border-color-default: var(--df-controls-border);
+}
+
+/* =============================================================================
+   SECTION 2: DARK MODE VARIABLES
+
+   Supports multiple dark mode detection methods:
+   - React Flow colorMode="dark" adds .dark class
+   - Mantine uses data-mantine-color-scheme="dark"
+   - Custom data-theme="dark" attribute
+   ============================================================================= */
+
+/* React Flow dark mode */
+.react-flow.dark,
+/* Mantine dark mode */
+:root[data-mantine-color-scheme="dark"],
+[data-mantine-color-scheme="dark"],
+/* Custom dark mode class */
+.dark-mode,
+[data-theme="dark"] {
+    /* Glass effect - Dark mode */
+    --df-glass-bg: rgba(26, 27, 30, 0.72);
+    --df-glass-bg-hover: rgba(37, 38, 43, 0.85);
+    --df-glass-border: rgba(255, 255, 255, 0.08);
+    --df-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    --df-glass-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --df-glass-inset: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    --df-glass-inset-bottom: inset 0 -1px 0 0 rgba(0, 0, 0, 0.1);
+
+    /* Node colors - Dark mode */
+    --df-node-bg: var(--df-glass-bg);
+    --df-node-bg-hover: var(--df-glass-bg-hover);
+    --df-node-border: var(--df-glass-border);
+    --df-node-text: #f1f3f5;
+    --df-node-text-secondary: #909296;
+    --df-node-shadow: var(--df-glass-shadow);
+
+    /* Input node - Green tint dark */
+    --df-input-node-bg: rgba(6, 78, 59, 0.45);
+    --df-input-node-bg-hover: rgba(6, 78, 59, 0.6);
+    --df-input-node-border: rgba(16, 185, 129, 0.25);
+    --df-input-node-accent: #34d399;
+
+    /* Output node - Purple tint dark */
+    --df-output-node-bg: rgba(76, 29, 149, 0.35);
+    --df-output-node-bg-hover: rgba(76, 29, 149, 0.5);
+    --df-output-node-border: rgba(139, 92, 246, 0.25);
+    --df-output-node-accent: #a78bfa;
+
+    /* Default node */
+    --df-default-node-bg: var(--df-glass-bg);
+    --df-default-node-border: var(--df-glass-border);
+    --df-default-node-accent: #60a5fa;
+
+    /* Group node dark */
+    --df-group-node-bg: rgba(55, 65, 81, 0.4);
+    --df-group-node-border: rgba(107, 114, 128, 0.4);
+
+    /* Toolbar dark */
+    --df-toolbar-bg: rgba(37, 38, 43, 0.95);
+    --df-toolbar-border: rgba(255, 255, 255, 0.1);
+    --df-toolbar-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+    /* Edge colors dark */
+    --df-edge-stroke: #94a3b8;
+    --df-edge-stroke-selected: #60a5fa;
+    --df-edge-stroke-animated: #a78bfa;
+
+    /* Edge label dark */
+    --df-edge-label-bg: rgba(37, 38, 43, 0.9);
+    --df-edge-label-border: rgba(255, 255, 255, 0.1);
+    --df-edge-label-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+    /* Handle colors dark */
+    --df-handle-bg: #25262b;
+    --df-handle-border: #94a3b8;
+    --df-handle-bg-connected: #60a5fa;
+    --df-handle-bg-valid: #34d399;
+
+    /* Background dark */
+    --df-background-color: #1a1b1e;
+    --df-background-pattern: #2c2e33;
+
+    /* Controls & MiniMap dark */
+    --df-controls-bg: var(--df-glass-bg);
+    --df-controls-border: var(--df-glass-border);
+    --df-minimap-bg: rgba(26, 27, 30, 0.85);
+    --df-minimap-mask: rgba(96, 165, 250, 0.2);
+    --df-minimap-node-fill: #94a3b8;
+    --df-minimap-node-stroke: #64748b;
+
+    /* Selection dark */
+    --df-selection-bg: rgba(96, 165, 250, 0.12);
+    --df-selection-border: rgba(96, 165, 250, 0.5);
+
+    /* Connection line dark */
+    --df-connection-line-stroke: var(--df-edge-stroke-selected);
+}
+
+/* =============================================================================
+   SECTION 3: THEME PRESETS
+
+   Apply these classes to the DashFlows container:
+   - .df-theme-glass (default)
+   - .df-theme-solid
+   - .df-theme-minimal
+   ============================================================================= */
+
+/* Glass Theme (Default) - Already defined above */
+.df-theme-glass {
+    /* Uses default glass variables */
+}
+
+/* Solid Theme - No transparency, opaque cards with shadows */
+.df-theme-solid,
+.df-theme-solid .react-flow {
+    --df-glass-blur: 0px;
+    --df-glass-saturate: 100%;
+    --df-glass-bg: #ffffff;
+    --df-glass-bg-hover: #f8fafc;
+    --df-glass-border: #e2e8f0;
+    --df-glass-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+    --df-glass-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --df-glass-inset: none;
+    --df-glass-inset-bottom: none;
+    --df-node-bg: #ffffff;
+    --df-node-bg-hover: #f8fafc;
+    --df-node-border: #e2e8f0;
+    --df-input-node-bg: #dcfce7;
+    --df-input-node-bg-hover: #bbf7d0;
+    --df-input-node-border: #86efac;
+    --df-output-node-bg: #f3e8ff;
+    --df-output-node-bg-hover: #e9d5ff;
+    --df-output-node-border: #c4b5fd;
+    --df-default-node-bg: #ffffff;
+    --df-default-node-border: #e2e8f0;
+    --df-controls-bg: #ffffff;
+    --df-minimap-bg: #ffffff;
+    --df-toolbar-bg: #ffffff;
+    --df-edge-label-bg: #ffffff;
+    --df-background-color: #f8fafc;
+}
+
+[data-mantine-color-scheme="dark"] .df-theme-solid,
+[data-mantine-color-scheme="dark"] .df-theme-solid .react-flow,
+.df-theme-solid .react-flow.dark {
+    --df-glass-bg: #1e1e1e;
+    --df-glass-bg-hover: #2d2d2d;
+    --df-glass-border: #404040;
+    --df-glass-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --df-glass-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --df-node-bg: #1e1e1e;
+    --df-node-bg-hover: #2d2d2d;
+    --df-node-border: #404040;
+    --df-input-node-bg: #14532d;
+    --df-input-node-bg-hover: #166534;
+    --df-input-node-border: #22c55e;
+    --df-output-node-bg: #581c87;
+    --df-output-node-bg-hover: #6b21a8;
+    --df-output-node-border: #a855f7;
+    --df-default-node-bg: #1e1e1e;
+    --df-default-node-border: #404040;
+    --df-controls-bg: #1e1e1e;
+    --df-minimap-bg: #1e1e1e;
+    --df-toolbar-bg: #1e1e1e;
+    --df-edge-label-bg: #1e1e1e;
+    --df-background-color: #121212;
+    --df-background-pattern: #2a2a2a;
+}
+
+/* Minimal Theme - Clean lines, subtle styling, border-focused */
+.df-theme-minimal,
+.df-theme-minimal .react-flow {
+    --df-glass-blur: 0px;
+    --df-glass-saturate: 100%;
+    --df-glass-bg: transparent;
+    --df-glass-bg-hover: rgba(0, 0, 0, 0.03);
+    --df-glass-border: #d1d5db;
+    --df-glass-shadow: none;
+    --df-glass-shadow-hover: none;
+    --df-glass-inset: none;
+    --df-glass-inset-bottom: none;
+    --df-radius-lg: 6px;
+    --df-radius-xl: 8px;
+    --df-node-bg: transparent;
+    --df-node-bg-hover: rgba(0, 0, 0, 0.03);
+    --df-node-border: #d1d5db;
+    --df-node-shadow: none;
+    --df-input-node-bg: transparent;
+    --df-input-node-bg-hover: rgba(16, 185, 129, 0.05);
+    --df-input-node-border: #10b981;
+    --df-output-node-bg: transparent;
+    --df-output-node-bg-hover: rgba(139, 92, 246, 0.05);
+    --df-output-node-border: #8b5cf6;
+    --df-default-node-bg: transparent;
+    --df-default-node-border: #d1d5db;
+    --df-toolbar-shadow: none;
+    --df-edge-label-shadow: none;
+    --df-background-color: #ffffff;
+    --df-background-pattern: #f3f4f6;
+}
+
+[data-mantine-color-scheme="dark"] .df-theme-minimal,
+[data-mantine-color-scheme="dark"] .df-theme-minimal .react-flow,
+.df-theme-minimal .react-flow.dark {
+    --df-glass-bg-hover: rgba(255, 255, 255, 0.03);
+    --df-glass-border: #4b5563;
+    --df-node-bg: transparent;
+    --df-node-bg-hover: rgba(255, 255, 255, 0.03);
+    --df-node-border: #4b5563;
+    --df-input-node-bg: transparent;
+    --df-input-node-bg-hover: rgba(52, 211, 153, 0.08);
+    --df-input-node-border: #34d399;
+    --df-output-node-bg: transparent;
+    --df-output-node-bg-hover: rgba(167, 139, 250, 0.08);
+    --df-output-node-border: #a78bfa;
+    --df-default-node-bg: transparent;
+    --df-default-node-border: #4b5563;
+    --df-background-color: #111827;
+    --df-background-pattern: #1f2937;
+}
+
+/* =============================================================================
+   SECTION 3B: COLOR SCHEMES
+
+   Apply these classes to the DashFlows container:
+   - .df-scheme-default (neutral blue/purple)
+   - .df-scheme-ocean (blues and teals)
+   - .df-scheme-forest (greens and browns)
+   - .df-scheme-sunset (oranges and reds)
+   - .df-scheme-midnight (deep blues and purples)
+   - .df-scheme-rose (pinks and reds)
+   ============================================================================= */
+
+/* Default scheme - already defined in :root */
+.df-scheme-default {
+    /* Uses default colors */
+}
+
+/* Ocean - Blues and Teals */
+.df-scheme-ocean,
+.df-scheme-ocean .react-flow {
+    --df-input-node-bg: rgba(207, 250, 254, 0.65);
+    --df-input-node-bg-hover: rgba(207, 250, 254, 0.8);
+    --df-input-node-border: rgba(6, 182, 212, 0.3);
+    --df-input-node-accent: #06b6d4;
+    --df-output-node-bg: rgba(219, 234, 254, 0.65);
+    --df-output-node-bg-hover: rgba(219, 234, 254, 0.8);
+    --df-output-node-border: rgba(59, 130, 246, 0.3);
+    --df-output-node-accent: #3b82f6;
+    --df-default-node-accent: #0891b2;
+    --df-edge-stroke: #0891b2;
+    --df-edge-stroke-selected: #06b6d4;
+    --df-edge-stroke-animated: #0ea5e9;
+    --df-handle-bg-connected: #06b6d4;
+    --df-handle-bg-valid: #14b8a6;
+    --df-selection-bg: rgba(6, 182, 212, 0.08);
+    --df-selection-border: rgba(6, 182, 212, 0.4);
+    --df-minimap-mask: rgba(6, 182, 212, 0.15);
+    --df-background-color: #f0f9ff;
+    --df-background-pattern: #bae6fd;
+}
+
+[data-mantine-color-scheme="dark"] .df-scheme-ocean,
+[data-mantine-color-scheme="dark"] .df-scheme-ocean .react-flow,
+.df-scheme-ocean .react-flow.dark {
+    --df-input-node-bg: rgba(8, 145, 178, 0.35);
+    --df-input-node-bg-hover: rgba(8, 145, 178, 0.5);
+    --df-input-node-border: rgba(34, 211, 238, 0.25);
+    --df-input-node-accent: #22d3ee;
+    --df-output-node-bg: rgba(29, 78, 216, 0.35);
+    --df-output-node-bg-hover: rgba(29, 78, 216, 0.5);
+    --df-output-node-border: rgba(96, 165, 250, 0.25);
+    --df-output-node-accent: #60a5fa;
+    --df-default-node-accent: #22d3ee;
+    --df-edge-stroke: #67e8f9;
+    --df-edge-stroke-selected: #22d3ee;
+    --df-edge-stroke-animated: #38bdf8;
+    --df-handle-bg-connected: #22d3ee;
+    --df-handle-bg-valid: #2dd4bf;
+    --df-background-color: #0c1929;
+    --df-background-pattern: #164e63;
+}
+
+/* Forest - Greens and Browns */
+.df-scheme-forest,
+.df-scheme-forest .react-flow {
+    --df-input-node-bg: rgba(220, 252, 231, 0.65);
+    --df-input-node-bg-hover: rgba(220, 252, 231, 0.8);
+    --df-input-node-border: rgba(34, 197, 94, 0.3);
+    --df-input-node-accent: #22c55e;
+    --df-output-node-bg: rgba(254, 243, 199, 0.65);
+    --df-output-node-bg-hover: rgba(254, 243, 199, 0.8);
+    --df-output-node-border: rgba(161, 98, 7, 0.3);
+    --df-output-node-accent: #a16207;
+    --df-default-node-accent: #16a34a;
+    --df-edge-stroke: #65a30d;
+    --df-edge-stroke-selected: #22c55e;
+    --df-edge-stroke-animated: #84cc16;
+    --df-handle-bg-connected: #22c55e;
+    --df-handle-bg-valid: #4ade80;
+    --df-selection-bg: rgba(34, 197, 94, 0.08);
+    --df-selection-border: rgba(34, 197, 94, 0.4);
+    --df-minimap-mask: rgba(34, 197, 94, 0.15);
+    --df-background-color: #f0fdf4;
+    --df-background-pattern: #bbf7d0;
+}
+
+[data-mantine-color-scheme="dark"] .df-scheme-forest,
+[data-mantine-color-scheme="dark"] .df-scheme-forest .react-flow,
+.df-scheme-forest .react-flow.dark {
+    --df-input-node-bg: rgba(21, 128, 61, 0.35);
+    --df-input-node-bg-hover: rgba(21, 128, 61, 0.5);
+    --df-input-node-border: rgba(74, 222, 128, 0.25);
+    --df-input-node-accent: #4ade80;
+    --df-output-node-bg: rgba(120, 53, 15, 0.35);
+    --df-output-node-bg-hover: rgba(120, 53, 15, 0.5);
+    --df-output-node-border: rgba(251, 191, 36, 0.25);
+    --df-output-node-accent: #fbbf24;
+    --df-default-node-accent: #4ade80;
+    --df-edge-stroke: #a3e635;
+    --df-edge-stroke-selected: #4ade80;
+    --df-edge-stroke-animated: #bef264;
+    --df-handle-bg-connected: #4ade80;
+    --df-handle-bg-valid: #86efac;
+    --df-background-color: #052e16;
+    --df-background-pattern: #14532d;
+}
+
+/* Sunset - Oranges and Reds */
+.df-scheme-sunset,
+.df-scheme-sunset .react-flow {
+    --df-input-node-bg: rgba(255, 237, 213, 0.65);
+    --df-input-node-bg-hover: rgba(255, 237, 213, 0.8);
+    --df-input-node-border: rgba(249, 115, 22, 0.3);
+    --df-input-node-accent: #f97316;
+    --df-output-node-bg: rgba(254, 226, 226, 0.65);
+    --df-output-node-bg-hover: rgba(254, 226, 226, 0.8);
+    --df-output-node-border: rgba(239, 68, 68, 0.3);
+    --df-output-node-accent: #ef4444;
+    --df-default-node-accent: #ea580c;
+    --df-edge-stroke: #ea580c;
+    --df-edge-stroke-selected: #f97316;
+    --df-edge-stroke-animated: #fb923c;
+    --df-handle-bg-connected: #f97316;
+    --df-handle-bg-valid: #fb923c;
+    --df-selection-bg: rgba(249, 115, 22, 0.08);
+    --df-selection-border: rgba(249, 115, 22, 0.4);
+    --df-minimap-mask: rgba(249, 115, 22, 0.15);
+    --df-background-color: #fffbeb;
+    --df-background-pattern: #fed7aa;
+}
+
+[data-mantine-color-scheme="dark"] .df-scheme-sunset,
+[data-mantine-color-scheme="dark"] .df-scheme-sunset .react-flow,
+.df-scheme-sunset .react-flow.dark {
+    --df-input-node-bg: rgba(194, 65, 12, 0.35);
+    --df-input-node-bg-hover: rgba(194, 65, 12, 0.5);
+    --df-input-node-border: rgba(251, 146, 60, 0.25);
+    --df-input-node-accent: #fb923c;
+    --df-output-node-bg: rgba(185, 28, 28, 0.35);
+    --df-output-node-bg-hover: rgba(185, 28, 28, 0.5);
+    --df-output-node-border: rgba(248, 113, 113, 0.25);
+    --df-output-node-accent: #f87171;
+    --df-default-node-accent: #fb923c;
+    --df-edge-stroke: #fdba74;
+    --df-edge-stroke-selected: #fb923c;
+    --df-edge-stroke-animated: #fcd34d;
+    --df-handle-bg-connected: #fb923c;
+    --df-handle-bg-valid: #fdba74;
+    --df-background-color: #27150a;
+    --df-background-pattern: #431407;
+}
+
+/* Midnight - Deep Blues and Purples */
+.df-scheme-midnight,
+.df-scheme-midnight .react-flow {
+    --df-input-node-bg: rgba(224, 231, 255, 0.65);
+    --df-input-node-bg-hover: rgba(224, 231, 255, 0.8);
+    --df-input-node-border: rgba(99, 102, 241, 0.3);
+    --df-input-node-accent: #6366f1;
+    --df-output-node-bg: rgba(243, 232, 255, 0.65);
+    --df-output-node-bg-hover: rgba(243, 232, 255, 0.8);
+    --df-output-node-border: rgba(168, 85, 247, 0.3);
+    --df-output-node-accent: #a855f7;
+    --df-default-node-accent: #818cf8;
+    --df-edge-stroke: #6366f1;
+    --df-edge-stroke-selected: #818cf8;
+    --df-edge-stroke-animated: #a78bfa;
+    --df-handle-bg-connected: #818cf8;
+    --df-handle-bg-valid: #a78bfa;
+    --df-selection-bg: rgba(99, 102, 241, 0.08);
+    --df-selection-border: rgba(99, 102, 241, 0.4);
+    --df-minimap-mask: rgba(99, 102, 241, 0.15);
+    --df-background-color: #eef2ff;
+    --df-background-pattern: #c7d2fe;
+}
+
+[data-mantine-color-scheme="dark"] .df-scheme-midnight,
+[data-mantine-color-scheme="dark"] .df-scheme-midnight .react-flow,
+.df-scheme-midnight .react-flow.dark {
+    --df-input-node-bg: rgba(67, 56, 202, 0.35);
+    --df-input-node-bg-hover: rgba(67, 56, 202, 0.5);
+    --df-input-node-border: rgba(129, 140, 248, 0.25);
+    --df-input-node-accent: #818cf8;
+    --df-output-node-bg: rgba(126, 34, 206, 0.35);
+    --df-output-node-bg-hover: rgba(126, 34, 206, 0.5);
+    --df-output-node-border: rgba(192, 132, 252, 0.25);
+    --df-output-node-accent: #c084fc;
+    --df-default-node-accent: #a5b4fc;
+    --df-edge-stroke: #a5b4fc;
+    --df-edge-stroke-selected: #818cf8;
+    --df-edge-stroke-animated: #c4b5fd;
+    --df-handle-bg-connected: #818cf8;
+    --df-handle-bg-valid: #a78bfa;
+    --df-background-color: #0f0a29;
+    --df-background-pattern: #1e1b4b;
+}
+
+/* Rose - Pinks and Reds */
+.df-scheme-rose,
+.df-scheme-rose .react-flow {
+    --df-input-node-bg: rgba(255, 228, 230, 0.65);
+    --df-input-node-bg-hover: rgba(255, 228, 230, 0.8);
+    --df-input-node-border: rgba(244, 63, 94, 0.3);
+    --df-input-node-accent: #f43f5e;
+    --df-output-node-bg: rgba(252, 231, 243, 0.65);
+    --df-output-node-bg-hover: rgba(252, 231, 243, 0.8);
+    --df-output-node-border: rgba(236, 72, 153, 0.3);
+    --df-output-node-accent: #ec4899;
+    --df-default-node-accent: #fb7185;
+    --df-edge-stroke: #e11d48;
+    --df-edge-stroke-selected: #f43f5e;
+    --df-edge-stroke-animated: #fb7185;
+    --df-handle-bg-connected: #f43f5e;
+    --df-handle-bg-valid: #fb7185;
+    --df-selection-bg: rgba(244, 63, 94, 0.08);
+    --df-selection-border: rgba(244, 63, 94, 0.4);
+    --df-minimap-mask: rgba(244, 63, 94, 0.15);
+    --df-background-color: #fff1f2;
+    --df-background-pattern: #fecdd3;
+}
+
+[data-mantine-color-scheme="dark"] .df-scheme-rose,
+[data-mantine-color-scheme="dark"] .df-scheme-rose .react-flow,
+.df-scheme-rose .react-flow.dark {
+    --df-input-node-bg: rgba(190, 18, 60, 0.35);
+    --df-input-node-bg-hover: rgba(190, 18, 60, 0.5);
+    --df-input-node-border: rgba(251, 113, 133, 0.25);
+    --df-input-node-accent: #fb7185;
+    --df-output-node-bg: rgba(157, 23, 77, 0.35);
+    --df-output-node-bg-hover: rgba(157, 23, 77, 0.5);
+    --df-output-node-border: rgba(244, 114, 182, 0.25);
+    --df-output-node-accent: #f472b6;
+    --df-default-node-accent: #fda4af;
+    --df-edge-stroke: #fda4af;
+    --df-edge-stroke-selected: #fb7185;
+    --df-edge-stroke-animated: #f9a8d4;
+    --df-handle-bg-connected: #fb7185;
+    --df-handle-bg-valid: #fda4af;
+    --df-background-color: #1f0a14;
+    --df-background-pattern: #4c0519;
+}
+
+/* =============================================================================
+   SECTION 4: REACT FLOW CONTAINER
+   ============================================================================= */
+
+.react-flow {
+    background-color: var(--df-background-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.react-flow__background {
+    background-color: var(--df-background-color);
+}
+
+.react-flow__background pattern circle {
+    fill: var(--df-background-pattern);
+}
+
+.react-flow__background pattern line {
+    stroke: var(--df-background-pattern);
+}
+
+/* =============================================================================
+   SECTION 5: NODE BASE STYLES
+   ============================================================================= */
+
+/* Reset React Flow node defaults */
+.react-flow__node {
+    overflow: visible !important;
+}
+
+.react-flow__node.selected,
+.react-flow__node:focus,
+.react-flow__node:focus-visible {
+    outline: none !important;
+}
+
+/* Remove React Flow's default node container styling */
+.react-flow__node-input,
+.react-flow__node-default,
+.react-flow__node-output {
+    width: auto !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Also target when selected to prevent React Flow's selected styling */
+.react-flow__node-input.selected,
+.react-flow__node-default.selected,
+.react-flow__node-output.selected {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Glass Node Base */
+.df-glass-node {
+    position: relative;
+    backdrop-filter: blur(var(--df-glass-blur)) saturate(var(--df-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--df-glass-blur)) saturate(var(--df-glass-saturate));
+    background: var(--df-node-bg);
+    border: 1px solid var(--df-node-border);
+    border-radius: var(--df-radius-lg);
+    box-shadow: var(--df-node-shadow), var(--df-glass-inset), var(--df-glass-inset-bottom);
+    color: var(--df-node-text);
+    padding: var(--df-spacing-md) var(--df-spacing-lg);
+    min-width: var(--df-node-min-width);
+    /* Use max-width instead of width for flexibility with layout system */
+    max-width: var(--df-node-default-width);
+    box-sizing: border-box;
+    overflow: visible;
+    text-align: center;
+    transition:
+        background var(--df-transition-normal),
+        box-shadow var(--df-transition-normal),
+        transform var(--df-transition-normal),
+        border-color var(--df-transition-normal);
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.df-glass-node:hover {
+    background: var(--df-node-bg-hover);
+    box-shadow: var(--df-glass-shadow-hover), var(--df-glass-inset), var(--df-glass-inset-bottom);
+    transform: translateY(-1px) translateZ(0);
+}
+
+.df-glass-node.selected {
+    border-color: var(--df-edge-stroke-selected);
+    box-shadow:
+        var(--df-glass-shadow-hover),
+        var(--df-glass-inset),
+        var(--df-glass-inset-bottom),
+        var(--df-selection-ring);
+}
+
+/* Node content */
+.df-node-content {
+    overflow: hidden;
+}
+
+.df-node-label {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    /* Text shadow for readability over glass */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.df-node-label.multiline {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.df-node-sublabel {
+    font-size: 11px;
+    color: var(--df-node-text-secondary);
+    margin-top: var(--df-spacing-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Node icon container */
+.df-node-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    min-height: 24px;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--df-radius-sm);
+    margin-bottom: var(--df-spacing-sm);
+    color: white;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* Custom icon styling (for DashIconify or other Dash components) */
+.df-node-icon.df-icon-custom {
+    background: transparent;
+    color: var(--df-node-text-primary);
+    width: auto;
+    height: auto;
+    min-width: 20px;
+    min-height: 20px;
+}
+
+/* Ensure DashIconify icons inherit proper sizing */
+.df-node-icon.df-icon-custom svg {
+    display: block;
+}
+
+/* Node body text (additional description below label/sublabel) */
+.df-node-body {
+    font-size: 11px;
+    color: var(--df-node-text-secondary);
+    margin-top: var(--df-spacing-xs);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+}
+
+.df-node-body.multiline {
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: none;
+}
+
+/* =============================================================================
+   SECTION 5B: NODE LAYOUT SYSTEM
+   ============================================================================= */
+
+/* --- Base Layout Classes --- */
+
+/* Stacked layout (default) - vertical arrangement */
+.df-glass-node.df-layout-stacked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Horizontal layout - two column arrangement */
+.df-glass-node.df-layout-horizontal {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    min-width: auto !important;
+    width: auto !important;
+    text-align: left !important;
+}
+
+/* --- Icon Only Configuration --- */
+
+.df-glass-node.df-icon-only {
+    min-width: auto !important;
+    width: auto !important;
+    padding: var(--df-spacing-sm) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.df-glass-node.df-icon-only .df-node-icon {
+    margin: 0 !important;
+}
+
+.df-glass-node.df-icon-only .df-node-content {
+    display: none !important;
+}
+
+/* Icon only with accent bars - adjust padding */
+.df-glass-node.df-input-node.df-icon-only {
+    padding-top: calc(var(--df-spacing-sm) + 4px) !important;
+}
+
+.df-glass-node.df-output-node.df-icon-only {
+    padding-bottom: calc(var(--df-spacing-sm) + 4px) !important;
+}
+
+/* --- Text Only Configuration --- */
+
+.df-glass-node.df-text-only {
+    text-align: center;
+}
+
+.df-glass-node.df-text-only .df-node-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.df-glass-node.df-text-only .df-node-label,
+.df-glass-node.df-text-only .df-node-body {
+    text-align: center;
+}
+
+/* --- Full Content Configuration --- */
+
+/* Stacked full content - current default behavior */
+.df-glass-node.df-layout-stacked.df-full-content {
+    /* Uses existing styling */
+}
+
+/* Horizontal full content - two columns */
+.df-glass-node.df-layout-horizontal.df-full-content {
+    gap: var(--df-spacing-md);
+    padding: var(--df-spacing-sm) var(--df-spacing-md);
+}
+
+/* Icon column in horizontal layout */
+.df-node-icon-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.df-glass-node.df-layout-horizontal .df-node-icon-column .df-node-icon {
+    margin: 0;
+}
+
+/* Text column in horizontal layout */
+.df-node-text-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    flex: 1;
+    text-align: left;
+}
+
+.df-glass-node.df-layout-horizontal .df-node-text-column .df-node-label {
+    text-align: left;
+}
+
+.df-glass-node.df-layout-horizontal .df-node-text-column .df-node-sublabel {
+    text-align: left;
+}
+
+.df-glass-node.df-layout-horizontal .df-node-text-column .df-node-body {
+    text-align: left;
+    margin-top: var(--df-spacing-xs);
+}
+
+/* Horizontal layout with accent bars */
+.df-glass-node.df-input-node.df-layout-horizontal {
+    padding-top: calc(var(--df-spacing-sm) + 4px);
+}
+
+.df-glass-node.df-output-node.df-layout-horizontal {
+    padding-bottom: calc(var(--df-spacing-sm) + 4px);
+}
+
+/* =============================================================================
+   SECTION 6: SPECIFIC NODE TYPES
+   ============================================================================= */
+
+/* Input Node */
+.df-glass-node.df-input-node {
+    background: var(--df-input-node-bg);
+    border-color: var(--df-input-node-border);
+    padding-top: calc(var(--df-spacing-md) + 4px);
+}
+
+.df-glass-node.df-input-node:hover {
+    background: var(--df-input-node-bg-hover);
+}
+
+.df-glass-node.df-input-node .df-node-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--df-input-node-accent);
+    border-radius: var(--df-radius-lg) var(--df-radius-lg) 0 0;
+}
+
+.df-glass-node.df-input-node .df-node-icon {
+    background: var(--df-input-node-accent);
+}
+
+/* Output Node */
+.df-glass-node.df-output-node {
+    background: var(--df-output-node-bg);
+    border-color: var(--df-output-node-border);
+    padding-bottom: calc(var(--df-spacing-md) + 4px);
+}
+
+.df-glass-node.df-output-node:hover {
+    background: var(--df-output-node-bg-hover);
+}
+
+.df-glass-node.df-output-node .df-node-accent-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--df-output-node-accent);
+    border-radius: 0 0 var(--df-radius-lg) var(--df-radius-lg);
+}
+
+.df-glass-node.df-output-node .df-node-icon {
+    background: var(--df-output-node-accent);
+}
+
+/* Default Node */
+.df-glass-node.df-default-node {
+    background: var(--df-default-node-bg);
+    border-color: var(--df-default-node-border);
+}
+
+/* Group Node - Style the React Flow wrapper directly */
+.react-flow__node-group {
+    background: var(--df-group-node-bg) !important;
+    border: 2px dashed var(--df-group-node-border) !important;
+    border-radius: var(--df-radius-lg) !important;
+    padding: 0 !important;
+    z-index: 0 !important;
+}
+
+.react-flow__node-group.selected {
+    border: 2px solid var(--df-selection-border) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    z-index: 0 !important;
+}
+
+/* Group node label badge */
+.df-group-node-label {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--df-toolbar-bg);
+    padding: 4px 10px;
+    border-radius: var(--df-radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--df-node-text-secondary);
+    border: 1px solid var(--df-node-border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    z-index: 1;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Resize handles - only show on selection */
+.react-flow__node-group .react-flow__resize-control {
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.react-flow__node-group.selected .react-flow__resize-control {
+    opacity: 1;
+}
+
+/* =============================================================================
+   SECTION 7: HANDLES
+   ============================================================================= */
+
+.react-flow__handle {
+    width: var(--df-handle-size);
+    height: var(--df-handle-size);
+    background: var(--df-handle-bg);
+    border: 2px solid var(--df-handle-border);
+    border-radius: 50%;
+    z-index: 10;
+    transition:
+        width var(--df-transition-fast),
+        height var(--df-transition-fast),
+        border-color var(--df-transition-fast),
+        background var(--df-transition-fast),
+        box-shadow var(--df-transition-fast),
+        margin var(--df-transition-fast);
+    box-sizing: content-box;
+}
+
+/* Invisible hit area */
+.react-flow__handle::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+}
+
+.react-flow__handle:hover {
+    width: var(--df-handle-size-hover);
+    height: var(--df-handle-size-hover);
+    margin: -2px;
+    border-color: var(--df-edge-stroke-selected);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+    cursor: crosshair;
+}
+
+/* Position-specific hover adjustments */
+.react-flow__handle-top:hover { margin-top: -5px; }
+.react-flow__handle-bottom:hover { margin-bottom: -5px; }
+.react-flow__handle-left:hover { margin-left: -5px; }
+.react-flow__handle-right:hover { margin-right: -5px; }
+
+/* Handle positions */
+.react-flow__handle-top { top: -7px; }
+.react-flow__handle-bottom { bottom: -7px; }
+.react-flow__handle-left { left: -7px; }
+.react-flow__handle-right { right: -7px; }
+
+/* Active/connecting state */
+.react-flow__handle:active,
+.react-flow__handle.connectingfrom,
+.react-flow__handle.connectingto {
+    width: 20px;
+    height: 20px;
+    margin: -3px;
+    border-color: var(--df-edge-stroke-selected);
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.6);
+}
+
+.react-flow__handle.connecting {
+    animation: df-handle-pulse 1s ease-in-out infinite;
+}
+
+/* Valid connection indicator */
+.react-flow__handle.valid {
+    background: var(--df-handle-bg-valid);
+    border-color: var(--df-handle-bg-valid);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+
+/* Connected handle */
+.react-flow__handle.connected {
+    background: var(--df-handle-bg-connected);
+    border-color: var(--df-handle-bg-connected);
+}
+
+@keyframes df-handle-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+}
+
+/* =============================================================================
+   SECTION 8: EDGES
+   ============================================================================= */
+
+.react-flow__edge-path {
+    stroke: var(--df-edge-stroke);
+    stroke-width: var(--df-edge-stroke-width);
+    fill: none;
+    transition: stroke var(--df-transition-fast), stroke-width var(--df-transition-fast);
+}
+
+.react-flow__edge:hover .react-flow__edge-path,
+.react-flow__edge.selected .react-flow__edge-path {
+    stroke: var(--df-edge-stroke-selected);
+    stroke-width: 2.5;
+}
+
+/* Animated edge */
+.react-flow__edge.animated .react-flow__edge-path {
+    stroke: var(--df-edge-stroke-animated);
+    stroke-dasharray: 5;
+    animation: df-edge-flow 0.5s linear infinite;
+}
+
+@keyframes df-edge-flow {
+    from { stroke-dashoffset: 10; }
+    to { stroke-dashoffset: 0; }
+}
+
+/* Edge label */
+.df-edge-label {
+    display: flex;
+    align-items: center;
+    gap: var(--df-spacing-xs);
+    padding: var(--df-spacing-xs) var(--df-spacing-sm);
+    background: var(--df-edge-label-bg);
+    border: 1px solid var(--df-edge-label-border);
+    border-radius: var(--df-radius-sm);
+    font-size: 11px;
+    color: var(--df-node-text-secondary);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--df-edge-label-shadow);
+}
+
+/* Edge button */
+.df-edge-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: var(--df-toolbar-bg);
+    color: var(--df-node-text-secondary);
+    cursor: pointer;
+    transition: all var(--df-transition-fast);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.df-edge-button:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Connection line */
+.react-flow__connection-line {
+    stroke: var(--df-connection-line-stroke);
+    stroke-width: var(--df-connection-line-width);
+    stroke-dasharray: 5;
+    animation: df-edge-flow 0.5s linear infinite;
+}
+
+/* =============================================================================
+   SECTION 9: CONTROLS
+   ============================================================================= */
+
+.react-flow__controls {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--df-spacing-xs);
+    background: var(--df-controls-bg);
+    border: 1px solid var(--df-controls-border);
+    border-radius: var(--df-radius-md);
+    box-shadow: var(--df-glass-shadow);
+    backdrop-filter: blur(var(--df-glass-blur)) saturate(var(--df-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--df-glass-blur)) saturate(var(--df-glass-saturate));
+}
+
+.react-flow__controls-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--df-radius-sm);
+    background: transparent;
+    color: var(--df-node-text);
+    cursor: pointer;
+    transition: all var(--df-transition-fast);
+}
+
+.react-flow__controls-button:hover {
+    background: var(--df-selection-bg);
+}
+
+.react-flow__controls-button svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* =============================================================================
+   SECTION 10: MINIMAP
+   ============================================================================= */
+
+.react-flow__minimap {
+    background: var(--df-minimap-bg);
+    border: 1px solid var(--df-controls-border);
+    border-radius: var(--df-radius-md);
+    box-shadow: var(--df-glass-shadow);
+    backdrop-filter: blur(var(--df-glass-blur));
+    -webkit-backdrop-filter: blur(var(--df-glass-blur));
+    overflow: hidden;
+}
+
+.react-flow__minimap-mask {
+    fill: var(--df-minimap-mask);
+}
+
+.react-flow__minimap-node {
+    fill: var(--df-minimap-node-fill);
+    stroke: var(--df-minimap-node-stroke);
+    stroke-width: 1;
+    rx: 4;
+    ry: 4;
+}
+
+/* =============================================================================
+   SECTION 11: SELECTION
+   ============================================================================= */
+
+.react-flow__selection {
+    background: var(--df-selection-bg);
+    border: 1px solid var(--df-selection-border);
+    border-radius: var(--df-radius-sm);
+}
+
+.react-flow__nodesselection-rect {
+    background: var(--df-selection-bg);
+    border: 1px dashed var(--df-selection-border);
+}
+
+/* =============================================================================
+   SECTION 12: PANELS
+   ============================================================================= */
+
+.react-flow__panel {
+    margin: var(--df-spacing-md);
+}
+
+.df-panel {
+    padding: var(--df-spacing-md);
+    background: var(--df-glass-bg);
+    border: 1px solid var(--df-glass-border);
+    border-radius: var(--df-radius-md);
+    box-shadow: var(--df-glass-shadow);
+    backdrop-filter: blur(var(--df-glass-blur)) saturate(var(--df-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--df-glass-blur)) saturate(var(--df-glass-saturate));
+}
+
+/* =============================================================================
+   SECTION 13: TOOLBAR NODE
+   ============================================================================= */
+
+.df-node-toolbar {
+    display: flex;
+    gap: var(--df-spacing-xs);
+    padding: var(--df-spacing-xs) var(--df-spacing-sm);
+    background: var(--df-toolbar-bg);
+    border: 1px solid var(--df-toolbar-border);
+    border-radius: var(--df-radius-md);
+    box-shadow: var(--df-toolbar-shadow);
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
+}
+
+.df-toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: var(--df-radius-sm);
+    background: transparent;
+    color: var(--df-node-text-secondary);
+    cursor: pointer;
+    transition: all var(--df-transition-fast);
+}
+
+.df-toolbar-btn:hover {
+    background: var(--df-selection-bg);
+    color: var(--df-node-text);
+}
+
+.df-toolbar-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* =============================================================================
+   SECTION 14: RESIZABLE NODE
+   ============================================================================= */
+
+.df-resizable-node {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: auto;
+}
+
+.df-resizable-node-content {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.df-resizable-node-content > * {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    max-width: 100%;
+    max-height: 100%;
+    box-sizing: border-box;
+}
+
+/* Common Dash components */
+.df-resizable-node-content .js-plotly-plot,
+.df-resizable-node-content .plotly-graph-div {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.df-resizable-node-content .dash-table-container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+.react-flow__resize-control {
+    width: 10px;
+    height: 10px;
+    background: var(--df-handle-bg);
+    border: 2px solid var(--df-handle-border);
+    border-radius: 2px;
+}
+
+.react-flow__resize-control:hover {
+    border-color: var(--df-edge-stroke-selected);
+    background: var(--df-edge-stroke-selected);
+}
+
+.react-flow__resize-control.line {
+    width: 4px;
+    height: 4px;
+    border: none;
+    background: var(--df-handle-border);
+    border-radius: 1px;
+}
+
+/* =============================================================================
+   SECTION 15: DEVTOOLS
+   ============================================================================= */
+
+.df-devtools {
+    max-height: 400px;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 11px;
+}
+
+.df-devtools-section {
+    margin-bottom: var(--df-spacing-md);
+}
+
+.df-devtools-title {
+    font-weight: 600;
+    margin-bottom: var(--df-spacing-xs);
+    color: var(--df-node-text);
+}
+
+.df-devtools-item {
+    padding: var(--df-spacing-xs) 0;
+    border-bottom: 1px solid var(--df-glass-border);
+}
+
+.df-devtools-item:last-child {
+    border-bottom: none;
+}
+
+/* =============================================================================
+   SECTION 16: ATTRIBUTION
+   ============================================================================= */
+
+.react-flow__attribution {
+    background: transparent;
+    padding: var(--df-spacing-xs) var(--df-spacing-sm);
+    font-size: 10px;
+    color: var(--df-node-text-secondary);
+    opacity: 0.6;
+}
+
+.react-flow__attribution a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* =============================================================================
+   SECTION 17: ANIMATIONS & UTILITIES
+   ============================================================================= */
+
+@keyframes df-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes df-scale-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.df-animate-fade-in {
+    animation: df-fade-in var(--df-transition-normal) forwards;
+}
+
+.df-animate-scale-in {
+    animation: df-scale-in var(--df-transition-normal) forwards;
+}
+
+.df-no-select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.df-clickable {
+    cursor: pointer;
+}
+
+.df-draggable {
+    cursor: grab;
+}
+
+.df-draggable:active {
+    cursor: grabbing;
+}
+
+/* =============================================================================
+   SECTION 18: ACCESSIBILITY
+   ============================================================================= */
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .df-glass-node,
+    .react-flow__handle,
+    .react-flow__edge-path,
+    .react-flow__controls-button,
+    .df-edge-button,
+    .df-toolbar-btn {
+        transition: none !important;
+    }
+
+    .df-glass-node:hover {
+        transform: none;
+    }
+
+    .react-flow__handle:hover {
+        transform: none;
+    }
+
+    .react-flow__edge.animated .react-flow__edge-path,
+    .react-flow__connection-line,
+    .react-flow__handle.connecting {
+        animation: none;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    :root {
+        --df-glass-bg: rgba(255, 255, 255, 0.95);
+        --df-glass-blur: 4px;
+        --df-glass-border: #000;
+        --df-node-text: #000;
+        --df-edge-stroke: #000;
+    }
+
+    .df-node-label {
+        text-shadow: none;
+    }
+
+    .df-glass-node {
+        border-width: 2px;
+    }
+}
+
+/* Focus visible for keyboard navigation */
+.df-glass-node:focus-visible,
+.react-flow__handle:focus-visible,
+.react-flow__controls-button:focus-visible {
+    outline: 2px solid var(--df-edge-stroke-selected);
+    outline-offset: 2px;
+}
+
+/* =============================================================================
+   SECTION 19: FALLBACKS
+   ============================================================================= */
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(10px)) {
+    .df-glass-node,
+    .react-flow__controls,
+    .react-flow__minimap,
+    .df-panel,
+    .df-node-toolbar {
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .react-flow.dark .df-glass-node,
+    [data-mantine-color-scheme="dark"] .df-glass-node,
+    .react-flow.dark .react-flow__controls,
+    [data-mantine-color-scheme="dark"] .react-flow__controls,
+    .react-flow.dark .react-flow__minimap,
+    [data-mantine-color-scheme="dark"] .react-flow__minimap {
+        background: rgba(30, 30, 30, 0.95);
+    }
+}
+
+/* =============================================================================
+   SECTION 20: PRINT STYLES
+   ============================================================================= */
+
+@media print {
+    .react-flow__controls,
+    .react-flow__minimap,
+    .df-devtools {
+        display: none !important;
+    }
+
+    .df-glass-node {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: white;
+        border: 1px solid #ccc;
+        box-shadow: none;
+    }
+
+    .react-flow__edge-path {
+        stroke: #000;
+    }
+}
+
+/* =============================================================================
+   SECTION 21: NODE STATUS INDICATORS
+   ============================================================================= */
+
+/* Status indicator colors */
+:root {
+    --df-status-loading-color: #3b82f6;
+    --df-status-success-color: #10b981;
+    --df-status-error-color: #ef4444;
+    --df-status-border-width: 3px;
+}
+
+/* Base status indicator wrapper */
+.df-node-status-indicator {
+    position: relative;
+}
+
+/* Initial state - no special styling */
+.df-node-status-initial {
+    /* Default state, no additional styling */
+}
+
+/* Loading state - pulsing glow animation */
+.df-status-loading,
+.df-node-status-loading-border {
+    position: relative;
+    animation: df-loading-pulse 1.5s ease-in-out infinite;
+}
+
+/* Pulsing glow animation for loading - works with rounded corners */
+@keyframes df-loading-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4),
+                    0 0 0 0 rgba(59, 130, 246, 0.2),
+                    var(--df-glass-shadow);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.6),
+                    0 0 20px 2px rgba(59, 130, 246, 0.3),
+                    var(--df-glass-shadow);
+    }
+}
+
+/* Spinner rotation animation */
+@keyframes df-border-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Loading overlay variant */
+.df-status-loading-overlay,
+.df-node-status-loading-overlay {
+    position: relative;
+}
+
+.df-node-status-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    z-index: 10;
+}
+
+.df-node-status-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(59, 130, 246, 0.2);
+    border-top-color: var(--df-status-loading-color);
+    border-radius: 50%;
+    animation: df-border-spin 0.8s linear infinite;
+}
+
+/* Success state - green border with checkmark effect */
+.df-status-success,
+.df-node-status-success {
+    position: relative;
+    box-shadow: 0 0 0 var(--df-status-border-width) var(--df-status-success-color),
+                var(--df-glass-shadow);
+    animation: df-success-pulse 0.5s ease-out;
+}
+
+.df-status-success::after,
+.df-node-status-success::after {
+    content: '✓';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background: var(--df-status-success-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+@keyframes df-success-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5),
+                    var(--df-glass-shadow);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.2),
+                    var(--df-glass-shadow);
+    }
+    100% {
+        box-shadow: 0 0 0 var(--df-status-border-width) var(--df-status-success-color),
+                    var(--df-glass-shadow);
+    }
+}
+
+/* Error state - red border with X */
+.df-status-error,
+.df-node-status-error {
+    position: relative;
+    box-shadow: 0 0 0 var(--df-status-border-width) var(--df-status-error-color),
+                var(--df-glass-shadow);
+    animation: df-error-shake 0.4s ease-out;
+}
+
+.df-status-error::after,
+.df-node-status-error::after {
+    content: '✕';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background: var(--df-status-error-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+@keyframes df-error-shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    20%, 60% {
+        transform: translateX(-4px);
+    }
+    40%, 80% {
+        transform: translateX(4px);
+    }
+}
+
+/* Dark mode adjustments */
+.dark .df-node-status-overlay,
+[data-mantine-color-scheme="dark"] .df-node-status-overlay {
+    background: rgba(26, 27, 30, 0.8);
+}
+
+.dark .df-node-status-spinner,
+[data-mantine-color-scheme="dark"] .df-node-status-spinner {
+    border-color: rgba(59, 130, 246, 0.3);
+    border-top-color: var(--df-status-loading-color);
+}
+
+/* Node search highlight */
+.df-node-search-highlight {
+    animation: df-highlight-pulse 1s ease-out;
+}
+
+@keyframes df-highlight-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 15px rgba(59, 130, 246, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
