@@ -6,6 +6,10 @@ dash[dev]>=4.2.0
 dash-mantine-components>=2.8.0
 dash-iconify>=0.1.2
 
+# Charts in the "Dash components in nodes" demo (docs/nodes/ex14.py).
+# plotly is already pulled in by dash; pandas is needed for the DataFrame inputs.
+pandas>=2.0.0
+
 # Markdown -> Dash rendering + custom directives (.. exec:: / .. source:: / .. kwargs:: / .. toc::)
 markdown2dash>=0.1.0
 python-frontmatter>=1.0.0

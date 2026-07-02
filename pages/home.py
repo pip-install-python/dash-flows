@@ -31,6 +31,7 @@ layout = dmc.Container(
     children=[
         dcc.Markdown(
             content,
+            className="home-markdown",
             style={
                 "maxWidth": "none",  # Allow Container to control width
             }

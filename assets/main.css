@@ -235,6 +235,18 @@ div .m_46b77525 {
 
 img[alt=logo] { width: 100%; }
 
+/* Home hero screenshot — keep the (very large) source image contained and
+   responsive instead of rendering at its natural pixel width. */
+.home-markdown img {
+    display: block;
+    width: 100%;
+    max-width: 760px;
+    height: auto;
+    margin: 1.5rem auto;
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: 12px;
+}
+
 /* Theme-aware code blocks */
 :root[data-mantine-color-scheme="light"] pre,
 :root[data-mantine-color-scheme="light"] code {
