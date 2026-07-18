@@ -9,6 +9,7 @@ import frontmatter
 from markdown2dash import Admonition, BlockExec, Divider, Image, create_parser
 from pydantic import BaseModel
 
+from lib.ad_client import inject_ad_into_aside
 from lib.constants import PAGE_TITLE_PREFIX, NAME_CONTENT_MAP
 from lib.directives.kwargs import Kwargs
 from lib.directives.llms_copy import LlmsCopy
@@ -113,6 +114,10 @@ for file in files:
         dmc.Text(metadata.description, className="m2d-paragraph"),
     ]
     layout = section + layout
+
+    # 2plot.dev ad network: append the ad slot below the TOC links inside
+    # the page's aside (pages without `.. toc::` simply get no ad).
+    inject_ad_into_aside(layout, metadata.endpoint)
 
     # register with dash
     dash.register_page(
