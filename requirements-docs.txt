@@ -17,6 +17,7 @@ pydantic>=2.3.0
 
 # Optional niceties
 python-dotenv>=1.0.0          # DASH_BACKEND / .env support in lib/backend.py
+requests>=2.27.1              # 2plot.dev ad-network client (lib/ad_client.py)
 
 # Optional: AI/LLM SEO endpoints (/llms.txt, /robots.txt, /sitemap.xml).
 # The site boots fine without it (run.py degrades gracefully).
