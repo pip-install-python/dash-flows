@@ -23,7 +23,9 @@ services:
     plan: free
     # Render serves the container on the port it injects via $PORT; the
     # Dockerfile binds gunicorn to it. Nothing to configure here.
-    healthCheckPath: /
+    # /healthz is the 2plot network convention (lib/satellite_analytics.py) and
+    # is excluded from traffic counts, so it makes a cleaner health check than /.
+    healthCheckPath: /healthz
     autoDeploy: true
     # Which branch Render deploys. Omit to use the repo's default branch.
     # This 1.3.0 work currently lives on feature/1.3.0 — set this (or merge to
@@ -44,3 +46,23 @@ services:
       # https://dash-flows-docs.onrender.com  (run.py defaults to localhost).
       - key: DASH_FLOWS_BASE_URL
         sync: false
+      # ---------------------------------------------------------------------
+      # 2plot.ai satellite analytics (lib/satellite_analytics.py). Without the
+      # secret the app still serves /healthz but reports nothing.
+      #   Hub side, to also health-sweep this app hourly, add to 2plot.ai:
+      #   PULSE_POLL_TARGETS=...,dash-flows=https://<this-service>/healthz
+      # ---------------------------------------------------------------------
+      # The shared HMAC secret every satellite holds — set it in the Render
+      # dashboard (same value as on 2plot.ai), never in this file.
+      - key: CROSS_APP_WEBHOOK_SECRET
+        sync: false
+      # The series name this app reports under on /traffic. "flows" is this
+      # app's 2plot network-directory key — the hub health-sweeps it and
+      # labels/colors its series from the directory.
+      - key: SATELLITE_APP_ID
+        value: flows
+      # Minimum seconds between rollup POSTs (the contract asks for hourly).
+      # 1800 halves what a free-tier container eviction can swallow, and the
+      # reporter only POSTs when the day's numbers actually changed.
+      - key: SATELLITE_REPORT_INTERVAL_S
+        value: "1800"

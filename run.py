@@ -55,6 +55,15 @@ except TypeError:
 app._backend_info = BACKEND_INFO
 app._base_url = os.environ.get("DASH_FLOWS_BASE_URL", "http://localhost:8560")
 
+# 2plot.ai satellite analytics: /healthz for the hub's hourly health sweep,
+# per-request + SPA page-view tracking, and the signed hourly traffic rollup
+# POSTed to https://2plot.ai/api/satellite/traffic (contract:
+# 2plot.ai docs/satellite-analytics.md). Dormant without
+# CROSS_APP_WEBHOOK_SECRET — /healthz is still served.
+from lib import satellite_analytics  # noqa: E402  (import after app init)
+
+satellite_analytics.register(app, BACKEND)
+
 # Pages (home + every docs/*.md) are auto-discovered by Dash from the pages/
 # folder because use_pages=True; importing pages/markdown.py there registers
 # each markdown file as a page.

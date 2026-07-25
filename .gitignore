@@ -286,3 +286,9 @@ JuliaManifest.toml
 /dist/
 *.egg-info/
 __pycache__/
+
+# 2plot.ai satellite analytics ledger (lib/satellite_analytics.py) + its
+# per-interval reporter claim files — runtime state, never committed.
+/satellite_traffic.jsonl
+/satellite_traffic.jsonl.tmp
+/.satellite_traffic.jsonl.claim-*

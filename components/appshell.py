@@ -4,6 +4,7 @@ from dash import Output, Input, clientside_callback, dcc, page_container, State
 from components.header import create_header
 from components.navbar import create_navbar, create_navbar_drawer
 from lib.constants import PRIMARY_COLOR
+from lib.satellite_analytics import beacon_component
 
 
 def create_appshell(data):
@@ -169,6 +170,9 @@ def create_appshell(data):
         },
         children=[
             dcc.Location(id="url", refresh="callback-nav"),
+            # Sink for the 2plot.ai page-view beacon (SPA route changes never
+            # reach the server, so without it every session looks single-page).
+            beacon_component(),
             dcc.Store(id="color-scheme-storage", storage_type="local"),
             # Persists the desktop-navbar collapse state across reloads.
             # null/false = visible (default), true = collapsed.
