@@ -1,12 +1,16 @@
-# render.yaml — Render Blueprint for the dash-flows documentation site.
-# Deploys run.py (the markdown-driven docs app) as a Docker web service.
-# Blueprint spec: https://render.com/docs/blueprint-spec
+# render.yaml — Render Blueprint for the dash-flows documentation site
+# (flows.2plot.dev). Deploys run.py (the markdown-driven docs app) as a
+# Docker web service. Blueprint spec: https://render.com/docs/blueprint-spec
 #
-# How to deploy:
-#   1. Make sure this repo (with Dockerfile + render.yaml) is pushed to GitHub
-#      on the branch you want to deploy (see `branch:` note below).
-#   2. In the Render dashboard: New > Blueprint, and select this repo.
-#   3. Render reads this file, builds the Dockerfile, and serves run:server.
+# ---------------------------------------------------------------------------
+# BLUEPRINT vs LIVE SERVICE — read this before trusting envVars below.
+# Render applies Blueprint `envVars` on Blueprint SYNC only, never on ordinary
+# git-push autodeploys. The live service predates this file's current shape,
+# so every `sync: false` var — and NETWORK_BULLETIN_URL / APP_BASE_URL if the
+# service hasn't been re-synced — must be set directly on the SERVICE in the
+# Render dashboard. This bit email.2plot.dev: NETWORK_BULLETIN_URL sat in its
+# render.yaml for weeks while the running service never saw it.
+# ---------------------------------------------------------------------------
 #
 # Local equivalent (no Render needed):
 #   docker build -t dash-flows-docs .
@@ -14,53 +18,58 @@
 #   open http://localhost:8560
 services:
   - type: web
-    name: dash-flows-docs
+    # NOTE: renaming here does NOT rename an already-provisioned service —
+    # the live service keeps whatever name it was created with. This value
+    # matters for fresh Blueprint syncs only.
+    name: dash-flows
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
     # Free tier is fine for a docs site, but it sleeps after ~15 min idle and
     # cold-starts on the next request. Use "starter" (or higher) for always-on.
     plan: free
-    # Render serves the container on the port it injects via $PORT; the
-    # Dockerfile binds gunicorn to it. Nothing to configure here.
-    # /healthz is the 2plot network convention (lib/satellite_analytics.py) and
-    # is excluded from traffic counts, so it makes a cleaner health check than /.
+    # /healthz returns the network-standard {"ok": true, ...} body; it is
+    # excluded from traffic counts at write time (lib/analytics_tracker.py).
     healthCheckPath: /healthz
     autoDeploy: true
-    # Which branch Render deploys. Omit to use the repo's default branch.
-    # This 1.3.0 work currently lives on feature/1.3.0 — set this (or merge to
-    # main) so Render deploys the branch that actually has the code.
-    # branch: main
+    branch: main
     envVars:
-      # Flask (WSGI) backend, served by gunicorn. Do NOT set fastapi/quart here:
-      # those are ASGI and would need uvicorn instead of gunicorn.
+      # Flask (WSGI) backend, served by gunicorn. Do NOT set fastapi/quart
+      # here: those are ASGI and would need uvicorn instead of gunicorn.
       - key: DASH_BACKEND
         value: flask
       # gunicorn worker processes. 2 is a reasonable default; drop to 1 if the
-      # free tier's 512 MB feels tight, raise on larger plans. The Dockerfile
-      # also runs 4 threads per worker for callback concurrency.
+      # free tier's 512 MB feels tight. The Dockerfile also runs 4 threads per
+      # worker for callback concurrency.
       - key: WEB_CONCURRENCY
         value: "2"
-      # Optional: public base URL used only for canonical/SEO metadata. Set it
-      # to your Render URL after the first deploy, e.g.
-      # https://dash-flows-docs.onrender.com  (run.py defaults to localhost).
-      - key: DASH_FLOWS_BASE_URL
-        sync: false
-      # ---------------------------------------------------------------------
-      # 2plot.ai satellite analytics (lib/satellite_analytics.py). Without the
-      # secret the app still serves /healthz but reports nothing.
-      #   Hub side, to also health-sweep this app hourly, add to 2plot.ai:
-      #   PULSE_POLL_TARGETS=...,dash-flows=https://<this-service>/healthz
-      # ---------------------------------------------------------------------
-      # The shared HMAC secret every satellite holds — set it in the Render
-      # dashboard (same value as on 2plot.ai), never in this file.
+      # Canonical public origin — feeds every absolute URL the app emits
+      # (canonical tags, sitemap.xml, llms.txt links). APP_BASE_URL is the
+      # network-wide name; DASH_FLOWS_BASE_URL is this repo's original
+      # spelling and lib/constants.py honours both (APP_BASE_URL wins).
+      # The in-code default is already https://flows.2plot.dev, so these are
+      # belt-and-braces rather than load-bearing.
+      - key: APP_BASE_URL
+        value: https://flows.2plot.dev
+      # -----------------------------------------------------------------
+      # 2plot network wiring
+      # -----------------------------------------------------------------
+      # The shared HMAC secret every satellite holds — set it ON THE SERVICE
+      # in the Render dashboard (same value as on 2plot.ai), never in this
+      # file. Without it the app serves fine but reports no traffic.
       - key: CROSS_APP_WEBHOOK_SECRET
         sync: false
-      # The series name this app reports under on /traffic. "flows" is this
-      # app's 2plot network-directory key — the hub health-sweeps it and
-      # labels/colors its series from the directory.
+      # This app's ONE short id on every hub surface (ads, traffic, bulletin):
+      # its 2plot network-directory key. Never the PyPI package name.
       - key: SATELLITE_APP_ID
         value: flows
+      - key: AD_APP_ID
+        value: flows
+      # The hub's announcement feed for the llms.txt viewer header. Opt-in:
+      # unset means the viewer renders on built-in tips. REMEMBER: must also
+      # be set on the live service directly (see the header note).
+      - key: NETWORK_BULLETIN_URL
+        value: https://2plot.dev/api/network/bulletin
       # Minimum seconds between rollup POSTs (the contract asks for hourly).
       # 1800 halves what a free-tier container eviction can swallow, and the
       # reporter only POSTs when the day's numbers actually changed.

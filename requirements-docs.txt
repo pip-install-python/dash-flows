@@ -1,6 +1,16 @@
 # Requirements for the dash-flows documentation site (python run.py).
 # The component library itself only needs `dash` (see requirements.txt / setup.py);
 # these are the extra packages the markdown-driven docs app depends on.
+#
+# Standard install incantation (Dockerfile, CI and local dev all use it):
+#
+#     pip install -r requirements-docs.txt
+#     pip install --no-deps markdown2dash==0.1.2
+#
+# markdown2dash 0.1.2 pins gunicorn>=21.2.0,<22.0.0 — a range vulnerable to
+# CVE-2024-6827 and CVE-2024-1135 (HTTP request smuggling) and unresolvable
+# against the gunicorn>=23 floor below. So it installs with --no-deps and its
+# real dependencies are listed here explicitly instead.
 
 dash[dev]>=4.2.0
 dash-mantine-components>=2.8.0
@@ -10,19 +20,26 @@ dash-iconify>=0.1.2
 # plotly is already pulled in by dash; pandas is needed for the DataFrame inputs.
 pandas>=2.0.0
 
-# Markdown -> Dash rendering + custom directives (.. exec:: / .. source:: / .. kwargs:: / .. toc::)
-markdown2dash>=0.1.0
+# markdown2dash's real dependencies (it installs with --no-deps, see above).
+mistune>=3.0.0
+docutils!=0.21
+jsonpath>=0.82,<0.83
 python-frontmatter>=1.0.0
 pydantic>=2.3.0
 
-# Optional niceties
+# Production WSGI server. Floor is the CVE fix line; CI asserts this version
+# inside the built container image so the markdown2dash pin can't drag it back.
+gunicorn>=23.0.0
+
+# AI/LLM & SEO: /llms.txt, /<page>/llms.txt, /robots.txt, /sitemap.xml, the
+# crawler prerender and the network directory. 2.3.4 floor is load-bearing:
+# it ships resolve_site_title (the /llms.txt H1 + viewer brand chip) and the
+# fixed crawler taxonomy — run.py refuses to boot below it.
+dash-improve-my-llms[flask]>=2.3.4
+
 python-dotenv>=1.0.0          # DASH_BACKEND / .env support in lib/backend.py
 requests>=2.27.1              # 2plot.dev ad-network client (lib/ad_client.py) +
-                              # 2plot.ai traffic rollups (lib/satellite_analytics.py)
-
-# Optional: AI/LLM SEO endpoints (/llms.txt, /robots.txt, /sitemap.xml).
-# The site boots fine without it (run.py degrades gracefully).
-# dash-improve-my-llms[flask]>=2.0.0
+                              # 2plot.ai traffic rollups (lib/satellite_reporter.py)
 
 # The component library under test (installed from this repo).
 # Run `pip install -e .` from the repo root, or rely on the local ./dash_flows package.

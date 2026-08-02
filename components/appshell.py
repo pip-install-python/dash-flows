@@ -4,7 +4,7 @@ from dash import Output, Input, clientside_callback, dcc, page_container, State
 from components.header import create_header
 from components.navbar import create_navbar, create_navbar_drawer
 from lib.constants import PRIMARY_COLOR
-from lib.satellite_analytics import beacon_component
+from lib.pageview_beacon import beacon_component
 
 
 def create_appshell(data):
@@ -311,3 +311,9 @@ clientside_callback(
     Input("url", "pathname"),
     State("desktop-navbar-collapsed", "data"),
 )
+
+
+# The canonical/og:url SPA-navigation sync that used to live here moved into
+# templates/index.html (the network-standard script), which patches the
+# History API directly and also refreshes twitter:url. One mechanism, the
+# network's, instead of two racing over the same tags.

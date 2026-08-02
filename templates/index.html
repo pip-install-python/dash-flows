@@ -1,45 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- CHARSET MUST BE FIRST.
+         The HTML spec requires the encoding declaration to appear entirely
+         within the first 1024 bytes of the document. Dash emits its own
+         charset meta in the placeholder block below, but that block comes
+         *after* the per-page description/og/twitter tags register_page()
+         prepends. Declaring it here pins it near byte 60 whatever Dash adds
+         later; the duplicate is deliberate and harmless, the first
+         declaration wins.
+
+         NEVER NAME A DASH PLACEHOLDER INSIDE A COMMENT. Dash substitutes them
+         by plain string replacement over the whole template, comments
+         included — a placeholder spelled out in a comment emits its entire
+         block twice, and a scraper reading the raw HTML sees two og:image
+         tags and picks one. -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>dash-flows — React Flow components for Plotly Dash</title>
-    <meta name="title" content="dash-flows — React Flow components for Plotly Dash">
-    <meta name="description" content="dash-flows wraps @xyflow/react (React Flow 12) for Plotly Dash: interactive node graphs with a glass-morphism theme, ELK layouts, custom node/edge types, and full Dash callback integration.">
+    <!-- Dash emits, per page, from register_page(): description, og:title,
+         og:type, og:description, og:image and the full twitter:* set. Do NOT
+         restate any of those below — a second, site-level copy is strictly
+         worse than the page-level one, and search engines pick between
+         duplicates arbitrarily. -->
+    {%metas%}
+    <title>{%title%}</title>
+    {%favicon%}
+
+    <!-- Two theme-colors, not one: the appshell follows
+         prefers-color-scheme (components/appshell.py), so a single value
+         would paint the mobile browser chrome wrong for half of visitors.
+         These are the Mantine body backgrounds for each scheme. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1b1e">
+
+    {%css%}
+
+    <!-- ========================================================================
+         SITE-LEVEL TAGS DASH DOES NOT EMIT
+         ========================================================================
+         ONE RULE, and it is the whole reason this block is short: declare only
+         what Dash does NOT emit itself.
+
+         `dash.register_page()` makes Dash generate `description`, `og:type`,
+         `og:title`, `og:description`, `og:image` and the full `twitter:*` set
+         on EVERY request, per page (see `_page_meta_tags` in dash/_pages.py).
+         Declaring them here as well produces two of each — and the static copy
+         describes the SITE while Dash's describes the PAGE, so the duplicate
+         is both redundant and less accurate.
+
+         tests/test_social_card.py asserts the counts in both directions. -->
     <meta name="keywords" content="Plotly Dash, React Flow, xyflow, node graph, flow diagram, Dash Mantine Components, ELK layout, dash-flows, Python">
     <meta name="author" content="Pip Install Python">
     <meta name="robots" content="index, follow">
+    <meta property="og:site_name" content="dash-flows — React Flow node graphs for Dash">
+    <meta property="og:locale" content="en_US">
 
-    <!-- Open Graph / Twitter -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="dash-flows — React Flow components for Plotly Dash">
-    <meta property="og:description" content="Interactive node graphs for Plotly Dash, powered by React Flow 12.">
-    <meta property="og:site_name" content="dash-flows">
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="dash-flows — React Flow components for Plotly Dash">
-    <meta property="twitter:description" content="Interactive node graphs for Plotly Dash, powered by React Flow 12.">
+    <!-- OG URL. Genuinely absent from Dash's per-page set, so it belongs here.
+         The origin is substituted from lib/constants.py at startup; the
+         client-side script below re-points it on SPA navigation. -->
+    <meta property="og:url" content="__CANONICAL_ORIGIN__/">
 
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
-    <meta name="theme-color" content="#3b82f6">
+    <!-- THE SOCIAL CARD — and note that the image URL itself is NOT here.
+         Deliberately.
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+         Dash emits `og:image` and `twitter:image` for every page from
+         `register_page(image_url=...)`, which `lib/constants.OG_IMAGE_URL`
+         supplies (pages/home.py, pages/markdown.py). A static copy here would
+         make TWO of each and let the scraper choose.
 
-    <!-- Dash-required template tags -->
-    {%metas%}
-    {%favicon%}
-    {%css%}
+         What stays are the auxiliaries Dash never emits. Keep them in step
+         with lib/constants.OG_IMAGE_* — a width/height that disagrees with
+         the real file is worse than declaring none, because the platform
+         reserves that box and crops into it. scripts/smoke_live.py reads the
+         IHDR chunk of the actual CDN object after every deploy and compares.
 
-    <noscript>
-        <div style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; line-height: 1.6;">
-            <h1>dash-flows</h1>
-            <p><strong>This documentation site requires JavaScript.</strong></p>
-            <p>dash-flows provides React Flow (@xyflow/react) node-graph components for Plotly Dash.
-               See the source and examples at
-               <a href="https://github.com/pip-install-python/dash-flows">github.com/pip-install-python/dash-flows</a>.</p>
-        </div>
-    </noscript>
+         secure_url is the https duplicate Facebook still reads; type saves
+         the scraper a HEAD request to learn the format. -->
+    <meta property="og:image:secure_url" content="https://cdn.2plot.ai/github_assets/flows.2plot.dev.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="dash-flows — React Flow node graphs for Dash">
+
+    <!-- Same rule as above: Dash emits twitter:card, twitter:url,
+         twitter:title, twitter:description and twitter:image per page. Only
+         the alt text is left, because Dash omits it. -->
+    <meta name="twitter:image:alt" content="dash-flows — React Flow node graphs for Dash">
+
+    <!-- Keeps canonical / og:url / twitter:url correct across CLIENT-SIDE
+         navigation only. dash-improve-my-llms emits all three server-side per
+         route (tagged data-dimll-prerender), so the raw document is already
+         right — this exists solely because Dash routes without firing a
+         navigation event, which leaves those tags describing the page the
+         visitor first landed on.
+
+         UPDATE-ONLY, deliberately: it never creates a tag the server did not
+         send. Creating one would put a second <link rel="canonical"> on the
+         page whenever the package's prerender path did not run, and two
+         canonicals is worse than a stale one — engines may ignore both.
+
+         CANONICAL_ORIGIN is substituted from lib/constants.py at startup, not
+         read from location.origin, so hits on the *.onrender.com hostname
+         consolidate onto flows.2plot.dev instead of competing with it. -->
+    <script>
+    (function () {
+        var CANONICAL_ORIGIN = '__CANONICAL_ORIGIN__';
+
+        // Consumed by nothing today, kept for parity with older integrations
+        // that read a global rather than closing over the origin.
+        window.__DASH_FLOWS_BASE_URL__ = CANONICAL_ORIGIN;
+
+        function update(selector, attr, value) {
+            var el = document.head.querySelector(selector);
+            if (el) { el.setAttribute(attr, value); }
+        }
+
+        function canonicalUrl() {
+            var path = window.location.pathname || '/';
+            // Collapse a trailing slash so /nodes and /nodes/ do not become
+            // two indexed URLs. The root keeps its slash.
+            if (path.length > 1 && path.charAt(path.length - 1) === '/') {
+                path = path.slice(0, -1);
+            }
+            // Query strings and fragments are never part of the canonical.
+            return CANONICAL_ORIGIN + path;
+        }
+
+        function sync() {
+            var url = canonicalUrl();
+            // Every one of these is emitted server-side; we only refresh them.
+            update('link[rel="canonical"]', 'href', url);
+            update('meta[property="og:url"]', 'content', url);
+            update('meta[property="twitter:url"]', 'content', url);
+        }
+
+        // Dash routes client-side and fires no navigation event, so the only
+        // reliable hook is patching the History API itself.
+        ['pushState', 'replaceState'].forEach(function (name) {
+            var original = history[name];
+            history[name] = function () {
+                var result = original.apply(this, arguments);
+                sync();
+                return result;
+            };
+        });
+        window.addEventListener('popstate', sync);
+
+        sync();
+    })();
+    </script>
+
+    <!-- Structured data.
+         SoftwareSourceCode, not SoftwareApplication: this describes an
+         open-source library you import, not a hosted app you sign up for.
+         Every value here is checked against the actual package — do not add
+         ratings, prices or download counts that nothing measures. -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "SoftwareSourceCode",
+                "name": "dash-flows — React Flow node graphs for Dash",
+                "description": "dash-flows — React Flow (@xyflow/react 12) node-graph components for Plotly Dash: interactive flow diagrams with a glass-morphism theme, ELK layouts, custom node/edge types and full Dash callback integration. By Pip Install Python.",
+                "url": "__CANONICAL_ORIGIN__",
+                "codeRepository": "https://github.com/pip-install-python/dash-flows",
+                "programmingLanguage": ["Python", "JavaScript"],
+                "runtimePlatform": "Python 3.9+, Dash 4.1+",
+                "license": "https://opensource.org/licenses/MIT",
+                "author": {
+                    "@type": "Organization",
+                    "name": "Pip Install Python LLC",
+                    "url": "https://pip-install-python.com"
+                }
+            },
+            {
+                "@type": "WebSite",
+                "name": "dash-flows — React Flow node graphs for Dash",
+                "url": "__CANONICAL_ORIGIN__",
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Pip Install Python LLC",
+                    "url": "https://pip-install-python.com"
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- LLM discovery -->
+    <meta name="llms-txt" content="__CANONICAL_ORIGIN__/llms.txt">
+    <meta name="llms-sitemap" content="__CANONICAL_ORIGIN__/sitemap.xml">
+
 </head>
 <body>
     {%app_entry%}
@@ -48,5 +201,35 @@
         {%scripts%}
         {%renderer%}
     </footer>
+    <noscript>
+        <div style="max-width: 640px; margin: 40px auto; font-family: sans-serif;">
+            <h1>dash-flows — React Flow node graphs for Dash</h1>
+            <p>
+                React Flow (@xyflow/react 12) node-graph components for Plotly
+                Dash: interactive flow diagrams with a glass-morphism theme,
+                ELK layouts, custom node/edge types and full Dash callback
+                integration. MIT licensed, Python 3.9+, Dash 4.1+.
+                By Pip Install Python.
+            </p>
+            <!-- Deliberately does not lead with "requires JavaScript".
+                 dash-improve-my-llms prerenders real prose for crawlers, so
+                 that framing is misleading for the readers most likely to act
+                 on it. JS-disabled humans still get the links below, which is
+                 the part that was ever useful. -->
+            <p>
+                The interactive documentation renders in the browser. These
+                machine-readable versions are always available:
+            </p>
+            <ul>
+                <li><a href="/llms.txt"><strong>llms.txt</strong></a> — LLM-friendly documentation</li>
+                <li><a href="/sitemap.xml"><strong>sitemap.xml</strong></a> — full site structure</li>
+                <li><a href="/robots.txt"><strong>robots.txt</strong></a> — crawler instructions</li>
+            </ul>
+            <p>
+                Source code: <a href="https://github.com/pip-install-python/dash-flows">github.com/pip-install-python/dash-flows</a>
+                · Package: <a href="https://pypi.org/project/dash-flows/">pypi.org/project/dash-flows</a>
+            </p>
+        </div>
+    </noscript>
 </body>
 </html>

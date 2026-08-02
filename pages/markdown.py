@@ -10,7 +10,7 @@ from markdown2dash import Admonition, BlockExec, Divider, Image, create_parser
 from pydantic import BaseModel
 
 from lib.ad_client import inject_ad_into_aside
-from lib.constants import PAGE_TITLE_PREFIX, NAME_CONTENT_MAP
+from lib.constants import OG_IMAGE_URL, PAGE_TITLE_PREFIX, NAME_CONTENT_MAP
 from lib.directives.kwargs import Kwargs
 from lib.directives.llms_copy import LlmsCopy
 from lib.directives.source import SC
@@ -119,7 +119,9 @@ for file in files:
     # the page's aside (pages without `.. toc::` simply get no ad).
     inject_ad_into_aside(layout, metadata.endpoint)
 
-    # register with dash
+    # register with dash. `image_url=` is load-bearing: without it Dash emits
+    # an EMPTY og:image/twitter:image for the page (worse than none — the
+    # scraper renders a blank card). tests/test_social_card.py pins it.
     dash.register_page(
         metadata.name,
         metadata.endpoint,
@@ -129,6 +131,7 @@ for file in files:
         layout=layout,
         category=metadata.category,
         icon=metadata.icon,
+        image_url=OG_IMAGE_URL,
     )
 
     # Feed the expanded markdown into dash-improve-my-llms so /<page>/llms.txt

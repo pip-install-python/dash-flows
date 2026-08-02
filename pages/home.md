@@ -1,4 +1,4 @@
-# dash-flows
+# dash-flows — React Flow node graphs for Dash
 
 > **React Flow (@xyflow/react) node-graph components for Plotly Dash** — glass-morphism theming, ELK layouts, DashIconify icons, and full Dash callback interoperability.
 

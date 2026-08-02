@@ -19,8 +19,9 @@ Wiring (custom apps without the markdown TOC aside):
 
 Env:
     AD_SERVER_URL  — ad server origin (default https://2plot.dev)
-    AD_APP_ID      — this app's identity in the network (default from
-                     the APP_ID fallback below; override per deployment)
+    AD_APP_ID      — this app's identity in the network (default "flows",
+                     this app's 2plot network-directory key; override per
+                     deployment)
 
 Failure behaviour: if the ad server is unreachable the slot simply stays
 hidden, and a 60s circuit breaker stops retrying so an outage never adds
@@ -41,7 +42,13 @@ from dash_iconify import DashIconify
 logger = logging.getLogger(__name__)
 
 AD_SERVER_URL = os.environ.get("AD_SERVER_URL", "https://2plot.dev").rstrip("/")
-APP_ID = os.environ.get("AD_APP_ID", "dash-flows")
+# "flows" is this app's key in the 2plot network directory — the ONE short id
+# used on every hub surface (ads, traffic, bulletin). The hub folds the legacy
+# "dash-flows" spelling at ingest (`canonical_app_id`), so rows already logged
+# under the package name are not orphaned — but a new deployment must
+# converge, and render.yaml sets it explicitly rather than leaning on this
+# default.
+APP_ID = os.environ.get("AD_APP_ID", "flows")
 
 _TIMEOUT = 2          # seconds per fetch — never stall a page view longer
 _COOLDOWN = 60        # seconds to skip fetches after a failure
@@ -62,11 +69,21 @@ def fetch_ad(page: str) -> dict | None:
     with _breaker_lock:
         if time.time() - _last_failure < _COOLDOWN:
             return None
+
+    from lib.constants import internal_ua
+
     try:
         resp = _session.get(
             f"{AD_SERVER_URL}/api/ad-network/serve",
             params={"app": APP_ID, "page": page},
             timeout=_TIMEOUT,
+            # The highest-volume outbound call this app makes — one per docs
+            # page view, server-to-server. Without the internal-traffic token
+            # every one of them reaches 2plot.dev as `python-requests/2.x`,
+            # which its tracker classifies as a bot: this satellite's readers
+            # would be counted as crawler traffic on the hub. See
+            # lib/constants.INTERNAL_UA.
+            headers={"User-Agent": internal_ua("ad-client")},
         )
         if resp.status_code == 200 and resp.content:
             return resp.json()
