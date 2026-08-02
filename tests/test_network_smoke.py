@@ -103,9 +103,7 @@ def test_the_battery_passes_against_this_app(wired, capsys):
     failed = [(name, detail) for name, verdict, detail in wired._RESULTS
               if verdict == wired.FAIL]
     assert failed == [], f"battery failures against the in-process app:\n{output}"
-    # 10, not dash-email's 11: this battery omits `installable_as_an_app`
-    # because the repo ships no webmanifest (see scripts/network_smoke.py).
-    assert len(wired._RESULTS) >= 10, "checks silently stopped running"
+    assert len(wired._RESULTS) >= 11, "checks silently stopped running"
 
 
 def test_every_request_the_battery_makes_is_internal(wired):

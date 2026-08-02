@@ -205,6 +205,7 @@ def test_no_surface_still_carries_the_old_display_name():
     """
     offenders = []
     for path in ("lib/constants.py", "templates/index.html",
+                 "assets/favicon/site.webmanifest",
                  "scripts/network_smoke.py"):
         text = (REPO_ROOT / path).read_text()
         if path.endswith(".py"):

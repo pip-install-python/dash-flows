@@ -1,0 +1,21 @@
+{
+  "name": "dash-flows \u2014 React Flow node graphs for Dash",
+  "short_name": "dash-flows",
+  "description": "dash-flows \u2014 React Flow (@xyflow/react 12) node-graph components for Plotly Dash: interactive flow diagrams with a glass-morphism theme, ELK layouts, custom node/edge types, undo/redo, sub-flows and full Dash callback integration. By Pip Install Python.",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/assets/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#1a1b1e",
+  "background_color": "#1a1b1e",
+  "display": "standalone"
+}

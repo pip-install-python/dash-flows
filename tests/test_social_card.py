@@ -1,11 +1,9 @@
 """The social card — the surface that fails silently and fails OUTSIDE the app.
 
 NETWORK FILE: adapted from dash-documentation-boilerplate 1.2.4 via
-email.2plot.dev. It changes only where this site legitimately differs: this
-repo ships NO installable-app surface — no `assets/favicon/site.webmanifest`,
-no apple-touch-icon set, only `assets/favicon.ico` — so the boilerplate's
-manifest section has no counterpart here. If that surface is ever added, port
-the manifest tests back from dash-email alongside it.
+email.2plot.dev, including the manifest/installable-app section — the icon
+set and `assets/favicon/site.webmanifest` are rendered by
+`scripts/make_favicons.py` and landed in the same change as these tests.
 
 What is tested fails silently, which is why it needs tests rather than a look
 at the page — nobody sees their own unfurls.
@@ -32,6 +30,7 @@ is why deleting the template would silently kill every unfurl.
 
 from __future__ import annotations
 
+import json
 import re
 
 from conftest import REPO_ROOT
@@ -43,6 +42,8 @@ from lib.constants import (
     OG_IMAGE_WIDTH,
     SITE_BRAND,
 )
+
+MANIFEST = REPO_ROOT / "assets" / "favicon" / "site.webmanifest"
 
 
 def _visible(html: str) -> str:
@@ -289,3 +290,72 @@ def test_the_template_takes_its_origin_from_the_constants(app_module):
         "run.py did not substitute the origin token"
     )
     assert DOCS_BASE_URL in app_module.app.index_string
+
+
+# ------------------------------------------------------------- the manifest --
+
+
+def test_the_manifest_is_linked_and_served(client):
+    html = _visible(client.get("/").text)
+    assert 'rel="manifest"' in html, "no manifest link — no install prompt"
+    match = re.search(r'<link[^>]+rel="manifest"[^>]+href="([^"]+)"', html)
+    assert match
+    assert client.get(match.group(1)).ok, "the manifest link 404s"
+
+
+def test_the_manifest_describes_THIS_site():
+    """On dash-email this shipped naming "2plot.dev", copied in from the hub.
+
+    An installed app takes its home-screen label from `short_name`, so this is
+    the one place a wrong string becomes a permanent icon on someone's phone.
+    """
+    manifest = json.loads(MANIFEST.read_text())
+    assert manifest["name"] == SITE_BRAND
+    assert "2plot.dev" not in manifest["short_name"]
+    assert "2plot.dev" not in manifest["description"]
+
+
+def test_the_manifest_is_installable():
+    manifest = json.loads(MANIFEST.read_text())
+    assert manifest["name"].strip(), "empty name — no browser will offer install"
+    assert manifest["short_name"].strip(), "empty short_name"
+    assert manifest["start_url"] == "/"
+    assert manifest["display"] == "standalone"
+
+
+def test_every_manifest_icon_resolves(client):
+    manifest = json.loads(MANIFEST.read_text())
+    icons = manifest.get("icons") or []
+    assert icons, "the manifest declares no icons"
+    for icon in icons:
+        assert client.get(icon["src"]).ok, f"manifest icon {icon['src']} 404s"
+    assert any(i.get("sizes") == "192x192" for i in icons)
+    assert any(i.get("sizes") == "512x512" for i in icons)
+
+
+def test_the_apple_touch_icon_is_declared_and_resolves(client):
+    """iOS ignores the manifest and uses this for Add to Home Screen."""
+    html = _visible(client.get("/").text)
+    match = re.search(r'<link[^>]*rel="apple-touch-icon"[^>]*href="([^"]+)"', html)
+    assert match, "no apple-touch-icon link"
+    assert client.get(match.group(1)).ok, f"{match.group(1)} does not resolve"
+
+
+def test_the_theme_colour_agrees_with_the_manifest(client):
+    """A mismatch is one colour in the browser chrome, another on the splash.
+
+    This site declares two media-scoped theme-colours (the appshell follows
+    `prefers-color-scheme`, so a single value paints the mobile chrome wrong
+    for half of visitors). The manifest can only carry one, and it is the dark
+    surface — the same colour as `background_color`, which is what the install
+    splash paints. So the assertion is membership rather than equality, and
+    the light value having no manifest counterpart is correct.
+    """
+    manifest = json.loads(MANIFEST.read_text())
+    declared = [c.lower() for c in _meta(client.get("/").text, "theme-color")]
+    assert declared, "no theme-color"
+    assert manifest["theme_color"].lower() in declared, (
+        f"manifest theme_color {manifest['theme_color']} matches none of the "
+        f"declared theme-colours {declared}"
+    )
+    assert manifest["theme_color"].lower() == manifest["background_color"].lower()

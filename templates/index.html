@@ -25,7 +25,20 @@
          duplicates arbitrarily. -->
     {%metas%}
     <title>{%title%}</title>
+    <!-- The favicon placeholder below emits exactly ONE tag: a cache-busted
+         <link rel="icon"> for the favicon.ico it finds anywhere under assets/
+         (Dash walks the tree, so assets/favicon/favicon.ico is picked up).
+         Do not add a second hand-written .ico link — that is a duplicate.
+         Everything Dash does NOT emit is listed after it: the PNG size
+         variants, the iOS touch icon and the manifest. The set is rendered by
+         scripts/make_favicons.py. -->
     {%favicon%}
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/assets/favicon/site.webmanifest">
 
     <!-- Two theme-colors, not one: the appshell follows
          prefers-color-scheme (components/appshell.py), so a single value

@@ -336,11 +336,28 @@ def satellite_checks(base: str) -> None:
                f"index.html declares {declared_w}x{declared_h}, the file is "
                f"{actual_w}x{actual_h}")
 
-    # dash-email's battery also runs `installable_as_an_app` (webmanifest +
-    # icon set). This repo ships only assets/favicon.ico — no manifest, no PNG
-    # icon set — so the check is omitted rather than asserted against a
-    # surface that does not exist. Port it back from dash-email's
-    # scripts/network_smoke.py in the same change that adds the manifest.
+    def installable_as_an_app():
+        """The manifest, and whether a browser could offer to install this.
+
+        An install prompt that is never offered reports nothing, and a
+        manifest naming another site is the string an installed icon would
+        carry on somebody's home screen forever.
+        """
+        status, _, html = get("/")
+        expect(status == 200, f"/ {status}")
+        visible = re.sub(r"<!--.*?-->", "", html, flags=re.S)
+        match = re.search(r'<link[^>]+rel="manifest"[^>]+href="([^"]+)"', visible)
+        expect(match is not None, "no manifest link — no install prompt")
+
+        status, headers, body = get(match.group(1))
+        expect(status == 200, f"the manifest link returns {status}")
+        manifest = json.loads(body)
+        expect(bool(manifest.get("name", "").strip()), "manifest has no name")
+        expect(bool(manifest.get("short_name", "").strip()),
+               "manifest has no short_name")
+        for icon in manifest.get("icons") or []:
+            icon_status, _, _ = get(icon["src"])
+            expect(icon_status == 200, f"manifest icon {icon['src']} -> {icon_status}")
 
     for name, fn in (
         ("healthz_ok", healthz_ok),
@@ -354,6 +371,7 @@ def satellite_checks(base: str) -> None:
         ("agents_and_browsers_get_different_types",
          agents_and_browsers_get_different_types),
         ("social_card_real_pixels", social_card_real_pixels),
+        ("installable_as_an_app", installable_as_an_app),
     ):
         check(name, fn)
 
