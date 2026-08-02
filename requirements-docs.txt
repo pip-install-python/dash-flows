@@ -21,7 +21,7 @@ dash-iconify>=0.1.2
 pandas>=2.0.0
 
 # markdown2dash's real dependencies (it installs with --no-deps, see above).
-mistune>=3.0.0
+mistune>=3.3.4
 docutils!=0.21
 jsonpath>=0.82,<0.83
 python-frontmatter>=1.0.0
