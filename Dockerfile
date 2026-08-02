@@ -22,8 +22,16 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # Install Python deps first so this layer is cached across app-code changes.
+#
+# markdown2dash installs with --no-deps ON PURPOSE: 0.1.2 pins
+# gunicorn>=21.2.0,<22.0.0, a range vulnerable to CVE-2024-6827 and
+# CVE-2024-1135, and unresolvable against the gunicorn>=23 floor in
+# requirements-docs.txt. Its real dependencies (mistune, docutils, jsonpath,
+# pydantic, frontmatter) are listed there explicitly. CI asserts the gunicorn
+# version inside this image so the pin cannot quietly come back.
 COPY requirements-docs.txt ./
-RUN pip install --no-cache-dir -r requirements-docs.txt gunicorn
+RUN pip install --no-cache-dir -r requirements-docs.txt \
+    && pip install --no-cache-dir --no-deps markdown2dash==0.1.2
 
 # Copy the application. run.py resolves templates/, dash_flows/, docs/,
 # examples/, components/, lib/, pages/ relative to the working directory, so it

@@ -29,4 +29,8 @@ class SC(SourceCode):
                     "icon": mapping[extension]["icon"],
                 }
             )
-        return dmc.CodeHighlightTabs(code=code, defaultExpanded=defaultExpanded=="true", withExpandButton=withExpandedButton=='true')
+        return dmc.CodeHighlightTabs(
+            code=code,
+            defaultExpanded=defaultExpanded == "true",
+            withExpandButton=withExpandedButton == "true",
+        )

@@ -1,6 +1,6 @@
 <div align="center">
 
-# Dash Flows
+# dash-flows — React Flow node graphs for Dash
 
 **React Flow ([@xyflow/react](https://reactflow.dev)) node-graph components for [Plotly Dash](https://dash.plotly.com).**
 

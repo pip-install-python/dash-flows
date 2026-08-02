@@ -1,5 +1,5 @@
 import dash_mantine_components as dmc
-from dash import Output, Input, clientside_callback, html, get_asset_url
+from dash import Output, Input, clientside_callback
 from dash_iconify import DashIconify
 
 from components.backend_badge import create_backend_badge

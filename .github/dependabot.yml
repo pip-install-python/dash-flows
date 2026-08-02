@@ -1,0 +1,35 @@
+# Version drift is the network's chronic disease — satellites were still
+# running a 2.0-era artifact the day 2.3.4 shipped, and nothing about a stale
+# host looks broken from the outside. This is the standing fix.
+#
+# TEMPLATE FILE: satellites copy this verbatim. The `dash-network` group is
+# the point — a package release lands as ONE reviewable pull request per repo
+# instead of five, which is the difference between a rollout and a chore.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      dash-network:
+        patterns:
+          - "dash*"
+          - "plotly*"
+          - "markdown2dash"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: monthly

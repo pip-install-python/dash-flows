@@ -19,7 +19,11 @@ setup(
     description=package.get('description', package_name),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=['dash>=4.0.0'],
+    # 4.1.0 floor: the first Dash release with the multi-backend (flask /
+    # fastapi / quart) constructor this component targets. The wheel carries
+    # ONLY the component package — none of the docs site's dependencies
+    # (requirements-docs.txt) belong here.
+    install_requires=['dash>=4.1.0'],
     classifiers = [
         'Framework :: Dash',
     ],    

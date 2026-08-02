@@ -1,0 +1,116 @@
+name: CD
+
+# Deploys flows.2plot.dev, then checks the live site.
+#
+# The deploy step POSTs to a Render deploy hook held in the
+# RENDER_DEPLOY_HOOK_URL secret. Without that secret the step is skipped and
+# the workflow goes straight to verification — which is the right behaviour
+# here, because render.yaml sets `autoDeploy: true` and Render is already
+# deploying from GitHub on its own. The hook only makes the timing explicit so
+# the wait loop below knows what it is waiting for.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: Site to verify (skips the deploy when set to another host)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  SITE_URL: ${{ inputs.target_url || 'https://flows.2plot.dev' }}
+
+jobs:
+  test:
+    name: ci
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: deploy to render
+    needs: [test]
+    runs-on: ubuntu-latest
+    # Long enough for the wait loop below (a 120s settle plus up to 40 × 15s)
+    # and no longer. Without it the job inherits GitHub's six-hour default,
+    # which is how a platform that never comes back healthy holds the
+    # `cd-production` concurrency group all day.
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://flows.2plot.dev
+    outputs:
+      deployed: ${{ steps.hook.outputs.deployed }}
+    steps:
+      - name: Trigger the Render deploy hook
+        id: hook
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::notice::RENDER_DEPLOY_HOOK_URL is not set. Skipping the deploy trigger and verifying whatever is currently live."
+            echo "deployed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the new build to serve traffic
+        if: steps.hook.outputs.deployed == 'true'
+        run: |
+          # Render swaps instances rather than restarting in place, so the old
+          # build answers /healthz throughout. Waiting for a 200 proves
+          # nothing; give the build time, then require sustained health.
+          sleep 120
+          ok=0
+          for _ in $(seq 1 40); do
+            if curl -fsS "$SITE_URL/healthz" > /dev/null; then
+              ok=$((ok + 1))
+              [ "$ok" -ge 5 ] && break
+            else
+              ok=0
+            fi
+            sleep 15
+          done
+          if [ "$ok" -lt 5 ]; then
+            echo "::error::$SITE_URL never became reliably healthy"
+            exit 1
+          fi
+
+  verify:
+    name: verify the live site
+    needs: [deploy]
+    if: always() && needs.deploy.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The network battery first: it is the same script, with the same check
+      # names, that CI ran against the container this deploy shipped. A name
+      # that passed in CI and fails here isolates the fault to the deploy.
+      - name: Network smoke battery
+        run: python scripts/network_smoke.py --base-url "$SITE_URL"
+
+      # Then the satellite-specific checks the battery does not make: every
+      # canonical, every crawler body, the social card's real pixels, and
+      # every peer llms.txt in the directory actually resolving. Peer checks
+      # WARN; own-host checks FAIL — a hub outage must never block this
+      # satellite's deploy, and this satellite's regressions always must.
+      - name: Smoke-test the deployment
+        run: python scripts/smoke_live.py "$SITE_URL"
+
+      - name: Report
+        if: failure()
+        run: |
+          echo "::error::Live verification failed for $SITE_URL. Every failure these check for is silent in production: a site identity that fell back to a framework default, a stale dash-improve-my-llms artifact, a canonical on the wrong host, a page serving the JavaScript stub, a blank or reshaped social card, a missing network directory, and dead peer llms.txt links."

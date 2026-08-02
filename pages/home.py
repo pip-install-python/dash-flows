@@ -3,7 +3,6 @@ from pathlib import Path
 import frontmatter
 import dash_mantine_components as dmc
 from dash import dcc, register_page
-from dash import html
 
 from lib.constants import OG_IMAGE_URL, PAGE_TITLE_PREFIX, SITE_DESCRIPTION
 
