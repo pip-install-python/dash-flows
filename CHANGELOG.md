@@ -5,7 +5,77 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - Unreleased
+## [1.3.0] - 2026-08-01
+
+### Changed — flows.2plot.dev joins the 2plot network standard
+
+The docs site now matches the pattern proven on 2plot.ai, 2plot.dev,
+boilerplate.2plot.dev, leaflet.2plot.dev and email.2plot.dev. What that means
+in practice:
+
+- **One identity, every surface.** `lib/constants.py` defines
+  `SITE_BRAND = "dash-flows — React Flow node graphs for Dash"` (package name
+  leads — the library rule; "Pip Install Python" is the byline, never the
+  name), and it now reaches the `<title>`, the `/llms.txt` H1, the llms
+  viewer's brand chip, the home prose, the README and every share-card
+  headline. `tests/test_site_identity.py` pins all of them, because every one
+  of these falls back to a framework default silently.
+- **`dash-improve-my-llms>=2.3.4` is now required** (run.py refuses to boot
+  below the floor) and replaces `lib/seo.py` entirely: `/robots.txt`,
+  `/sitemap.xml`, `/llms.txt`, `/<page>/llms.txt`, the crawler prerender,
+  canonical/og:url and the cross-host `## Network` directory
+  (`lib/network_directory.py`) all come from the package. The one thing
+  `lib/seo.py` did that the package does not — re-pointing canonical/og:url on
+  client-side navigation — moved into `templates/index.html` as the
+  network-standard History-API script.
+- **The analytics stack is the network's.** `lib/satellite_analytics.py` split
+  into the standard `lib/analytics_tracker.py` (which drops internal-network
+  and `/healthz` traffic at WRITE time — the internal-traffic contract's
+  inbound half), `lib/traffic_rollup.py`, `lib/satellite_reporter.py` (flock
+  lease so one worker reports per interval) and `lib/bulletin.py`. This app's
+  own SPA page-view beacon — the reason its session numbers are honest when
+  every other Dash site reports single-page visits — survives the split as
+  `lib/pageview_beacon.py`. The outbound half of the contract is new here:
+  `ad_client` and the traffic reporter now send the `2plot-internal` UA, so
+  this site's readers stop being counted as bot traffic on the hub.
+- **The app id is `flows` everywhere** — the network-directory key, never the
+  package name — across `AD_APP_ID`, `SATELLITE_APP_ID`/`SATELLITE_APP_KEY`
+  and the bulletin.
+- **Every page ships a real social card.** No `register_page()` call passed
+  `image_url=` before, so Dash emitted `og:image=""` on every page — an empty
+  tag that unfurls worse than none, because scrapers treat it as the declared
+  image and render a blank card. All pages now point at
+  `cdn.2plot.ai/github_assets/flows.2plot.dev.png` (1200x630, rendered by
+  `scripts/make_social_card.py`), the template declares only the auxiliary
+  tags Dash omits, and `scripts/smoke_live.py` reads the CDN object's IHDR
+  bytes after every deploy.
+- **gunicorn floored at 23** (CVE-2024-6827, CVE-2024-1135 — request
+  smuggling). markdown2dash 0.1.2 pins `gunicorn<22`, so it now installs with
+  `--no-deps` everywhere (Dockerfile, CI, requirements-docs.txt lists its real
+  dependencies) and CI asserts the gunicorn version *inside* the built image.
+
+### Added — CI/CD, from nothing
+
+This repo had no `.github/workflows` at all. It now has the boilerplate's
+proven shape: `ci.yml` (actionlint first — an invalid workflow file is the one
+defect CI structurally cannot report; flake8; the secretless pytest suite —
+zero secrets in CI on purpose, so fail-closed postures are provable; the real
+Docker image built, version-fingerprinted inside, booted and probed by
+`scripts/network_smoke.py` — the same battery CD runs against production; an
+examples matrix across Dash 4.2.0/4.4.1 and Python 3.10–3.13; a wheel build
+proving the `dash>=4.1.0` floor in a clean venv with nothing but Dash) and
+`cd.yml` (owns `main`, requires CI, then 120s settle + five *consecutive*
+healthy probes — Render swaps instances, so a single 200 can come from the
+dying instance — then the battery plus `scripts/smoke_live.py` against
+https://flows.2plot.dev, where peer checks warn and own-host checks fail).
+
+### Changed — the wheel states its real floor
+
+`setup.py` now declares `install_requires=['dash>=4.1.0']` (the first release
+with the multi-backend constructor this component targets). CI installs the
+wheel with exactly `dash==4.1.0` and nothing else, and asserts
+`top_level.txt == ["dash_flows"]` so no docs-site directory can ever leak into
+the package.
 
 ### Changed
 - **Dash 4.2+ support**: minimum `dash>=4.0.0` (dev pin `dash[dev]>=4.2.0`). Dash 4 keeps

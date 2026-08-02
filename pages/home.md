@@ -18,7 +18,7 @@ talk to your Python callbacks like any other Dash component.
 - **ELK layouts** for automatic graph arrangement
 - **Rich node & edge types** — default, input, output, group, resizable, circle, toolbar; straight, step, smoothstep, bezier, button, data, animated, floating
 - **Deep Dash integration** — clicks, selection, connections, drag/drop, context menus, undo/redo, copy/paste, save/restore, image export — all as callback props
-- **Dash 4.2+** compatible (React 18)
+- **Dash 4.1+** compatible (React 18; docs site developed against 4.2+)
 
 ---
 

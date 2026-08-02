@@ -8,12 +8,12 @@ Glass-morphism theming · ELK layouts · DashIconify icons · full Dash callback
 
 [![PyPI version](https://img.shields.io/pypi/v/dash-flows?color=blue)](https://pypi.org/project/dash-flows/)
 [![Python](https://img.shields.io/pypi/pyversions/dash-flows)](https://pypi.org/project/dash-flows/)
-[![Dash 4.2+](https://img.shields.io/badge/Dash-4.2%2B-1a1a2e?logo=plotly&logoColor=white)](https://dash.plotly.com/)
+[![Dash 4.1+](https://img.shields.io/badge/Dash-4.1%2B-1a1a2e?logo=plotly&logoColor=white)](https://dash.plotly.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/WEnZR35mrK)
 [![YouTube](https://img.shields.io/badge/YouTube-%402plotai-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/channel/UC6Bmo0t0ZUpU_xKBYW0bJuQ)
 
-**[Documentation](https://pip-install-python.com)** · [Discord](https://discord.gg/WEnZR35mrK) · [YouTube](https://www.youtube.com/channel/UC6Bmo0t0ZUpU_xKBYW0bJuQ) · [GitHub](https://github.com/pip-install-python/dash-flows)
+**[Documentation](https://flows.2plot.dev)** · [Discord](https://discord.gg/WEnZR35mrK) · [YouTube](https://www.youtube.com/channel/UC6Bmo0t0ZUpU_xKBYW0bJuQ) · [GitHub](https://github.com/pip-install-python/dash-flows)
 
 <br/>
 
@@ -41,7 +41,7 @@ state machines — that talk to your Python callbacks like any other Dash compon
 - **Deep Dash integration** — clicks, selection, connections, drag/drop, context menus, undo/redo,
   copy/paste, save/restore, image export — all as callback props
 - **DashIconify icons** and embedded Dash components inside nodes
-- **Dash 4.2+** compatible (React 18)
+- **Dash 4.1+** compatible (React 18; docs site developed against 4.2+)
 
 ## Installation
 
@@ -312,7 +312,7 @@ auto-generated from their PropTypes by `dash-generate-components`. See
 ## Requirements
 
 - Python >= 3.9
-- Dash >= 4.0.0 (developed against Dash 4.2; still React 18)
+- Dash >= 4.1.0 (the multi-backend floor; developed against Dash 4.2+, still React 18)
 - dash-mantine-components >= 2.8.0 (for the examples and docs site)
 - Node.js >= 16 (for development / rebuilding the JS bundle)
 
