@@ -11,10 +11,12 @@ from pydantic import BaseModel
 
 from lib.ad_client import inject_ad_into_aside
 from lib.constants import OG_IMAGE_URL, PAGE_TITLE_PREFIX, NAME_CONTENT_MAP
+from lib import page_tiers
 from lib.directives.kwargs import Kwargs
 from lib.directives.llms_copy import LlmsCopy
 from lib.directives.source import SC
 from lib.directives.toc import TOC
+from lib.versions import substitute_versions
 
 # Optional AI/LLM SEO integration — the docs site runs fine without it.
 try:
@@ -39,6 +41,10 @@ class Meta(BaseModel):
     package: str = "dash_flows"
     category: Optional[str] = None
     icon: Optional[str] = None
+    # Who may read this page: public | auth | admin | hidden. Absent means
+    # public — see lib/page_tiers.py for the tier model and why the default
+    # is open. Enforced only when access control is wired in run.py.
+    tier: Optional[str] = None
 
 
 _SOURCE_DIRECTIVE = re.compile(r'^\.\. source::(.+?)$', re.MULTILINE)
@@ -103,6 +109,13 @@ for file in files:
     metadata, content = frontmatter.parse(file.read_text())
     metadata = Meta(**metadata)
 
+    # Substitute derived facts BEFORE any consumer sees the text, so the
+    # browser page, the copy button, and /<page>/llms.txt all publish the
+    # same truth. A doc writes {{VERSION:<distribution>}} instead of a
+    # version number — any installed package, so a satellite documents its
+    # own component library the same way. See lib/versions.py for why.
+    content = substitute_versions(content, source=str(file))
+
     # Store raw markdown content in NAME_CONTENT_MAP for the LLM copy button.
     NAME_CONTENT_MAP[metadata.name] = content
 
@@ -133,6 +146,10 @@ for file in files:
         icon=metadata.icon,
         image_url=OG_IMAGE_URL,
     )
+
+    # Record the declared tier before the prose is registered, so a gate can
+    # never be applied later than the content it is meant to gate.
+    page_tiers.register(metadata.endpoint, metadata.tier)
 
     # Feed the expanded markdown into dash-improve-my-llms so /<page>/llms.txt
     # serves the directive-expanded prose. This replaces the custom Flask

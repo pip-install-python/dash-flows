@@ -29,8 +29,8 @@ at mounted storage to avoid it.
 Env:
     CROSS_APP_WEBHOOK_SECRET    shared HMAC secret (required — no secret, no
                                 reporting; the app runs on unaffected)
-    SATELLITE_APP_KEY           network directory key for this app (falls back
-                                to AD_APP_ID, then "dev")
+    SATELLITE_APP_KEY           network directory key for this app
+                                (default "flows")
     SATELLITE_TRAFFIC_URL       override the hub endpoint (default 2plot.ai)
     SATELLITE_REPORT_INTERVAL_S seconds between reports (default 3600)
     SATELLITE_REPORT_DELAY_S    delay before the first report (default 90)
@@ -77,20 +77,16 @@ def app_key() -> str:
     for ads must never silently re-key its analytics series off the directory.
     The convergence here is a convenience, not a contract to lean on.
 
-    TWO env names, on purpose: ``SATELLITE_APP_KEY`` is the network-wide name
-    (the boilerplate, leaflet, email); ``SATELLITE_APP_ID`` is this repo's
-    original spelling and is still honoured because render.yaml has been
-    setting it in production since the first deploy.
+    ONE env name: ``SATELLITE_APP_KEY``, the network-wide spelling (the
+    boilerplate, leaflet, email). This repo's original spelling was retired
+    fleet-wide in the 1.3.x instrumentation sync; render.yaml sets the
+    network-wide name.
 
     Default is "flows" (this app's own directory key). The "dev" key belongs
     to 2plot.dev (the pip-docs+ deployment) — every satellite MUST report
     under its own key or the reports overwrite each other's rows.
     """
-    return (
-        os.getenv("SATELLITE_APP_KEY")
-        or os.getenv("SATELLITE_APP_ID")
-        or "flows"
-    )
+    return os.getenv("SATELLITE_APP_KEY") or "flows"
 
 
 def _secret() -> str | None:

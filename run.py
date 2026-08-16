@@ -235,6 +235,20 @@ else:
             pass
 
 
+# Tiered corpus documents (dash-improve-my-llms >= 2.4.0). Pseudo-paths:
+# they never enter dash.page_registry, so they cannot leak into listings —
+# registering them here lets this satellite tier its compact briefing and
+# full corpus via env (LLMS_SMALL_TIER / LLMS_FULL_TIER; unset = the
+# default tier, i.e. public), and the hub can tighten either network-wide
+# through its page-tier ceilings with no redeploy here. Inert on older
+# package versions. Registration is declaration only on this fork — the
+# enforcement half (the boilerplate's lib/access.py) is not ported; it
+# lands with the metering pass, after the 30-day data window.
+from lib import page_tiers as _page_tiers  # noqa: E402
+
+_page_tiers.register("/llms-small.txt", os.environ.get("LLMS_SMALL_TIER"))
+_page_tiers.register("/llms-full.txt", os.environ.get("LLMS_FULL_TIER"))
+
 # Wires /llms.txt, /<page>/llms.txt, /robots.txt, /sitemap.xml and
 # bot-detection middleware. Pages (home + every docs/*.md) were already
 # registered by use_pages importing pages/ during Dash(); nothing may register

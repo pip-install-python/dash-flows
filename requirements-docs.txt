@@ -35,7 +35,14 @@ gunicorn>=23.0.0
 # crawler prerender and the network directory. 2.3.4 floor is load-bearing:
 # it ships resolve_site_title (the /llms.txt H1 + viewer brand chip) and the
 # fixed crawler taxonomy — run.py refuses to boot below it.
-dash-improve-my-llms[flask]>=2.3.4
+# 2.5.1 is the Tier-B SEO standard: configure_seo (icons, social card,
+# publisher/sameAs), crawler <title> carrying the site name, per-page
+# title/image_url/schema_type reaching the crawler document, /favicon.ico
+# answered with a redirect instead of the app shell, and a prerender that
+# no longer clobbers the browser's per-page <title>. It also carries the
+# tiered corpus docs (/llms-small.txt, /llms-full.txt; 2.4.0+) that
+# run.py registers with lib/page_tiers.
+dash-improve-my-llms[flask]>=2.5.1
 
 python-dotenv>=1.0.0          # DASH_BACKEND / .env support in lib/backend.py
 requests>=2.27.1              # 2plot.dev ad-network client (lib/ad_client.py) +

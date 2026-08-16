@@ -39,7 +39,7 @@ in practice:
   `ad_client` and the traffic reporter now send the `2plot-internal` UA, so
   this site's readers stop being counted as bot traffic on the hub.
 - **The app id is `flows` everywhere** — the network-directory key, never the
-  package name — across `AD_APP_ID`, `SATELLITE_APP_ID`/`SATELLITE_APP_KEY`
+  package name — across `AD_APP_ID`, `SATELLITE_APP_KEY`
   and the bulletin.
 - **Every page ships a real social card.** No `register_page()` call passed
   `image_url=` before, so Dash emitted `og:image=""` on every page — an empty

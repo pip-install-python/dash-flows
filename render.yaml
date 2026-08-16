@@ -25,9 +25,11 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    # Free tier is fine for a docs site, but it sleeps after ~15 min idle and
-    # cold-starts on the next request. Use "starter" (or higher) for always-on.
-    plan: free
+    # Starter, not free: the free tier sleeps after ~15 min idle (cold-starts
+    # the next reader) and cannot mount the disk below — and without that disk
+    # every deploy wipes the analytics ledger mid-day. The x402 data window
+    # needs both always-on and a ledger that survives restarts.
+    plan: starter
     # /healthz returns the network-standard {"ok": true, ...} body; it is
     # excluded from traffic counts at write time (lib/analytics_tracker.py).
     healthCheckPath: /healthz
@@ -61,7 +63,7 @@ services:
         sync: false
       # This app's ONE short id on every hub surface (ads, traffic, bulletin):
       # its 2plot network-directory key. Never the PyPI package name.
-      - key: SATELLITE_APP_ID
+      - key: SATELLITE_APP_KEY
         value: flows
       - key: AD_APP_ID
         value: flows
@@ -71,7 +73,29 @@ services:
       - key: NETWORK_BULLETIN_URL
         value: https://2plot.dev/api/network/bulletin
       # Minimum seconds between rollup POSTs (the contract asks for hourly).
-      # 1800 halves what a free-tier container eviction can swallow, and the
-      # reporter only POSTs when the day's numbers actually changed.
+      # 1800 halves what a container eviction can swallow, and the reporter
+      # only POSTs when the day's numbers actually changed.
       - key: SATELLITE_REPORT_INTERVAL_S
         value: "1800"
+
+      # Access tiers for the tiered corpus documents (/llms-small.txt,
+      # /llms-full.txt — dash-improve-my-llms >= 2.4.0). Deliberately set to
+      # the default here so every fork SEES the knob: the 402 experiment
+      # tightens the full corpus by flipping this to `auth`, per satellite,
+      # with no code change. See .env.example for the tier values.
+      - key: LLMS_SMALL_TIER
+        value: public
+      - key: LLMS_FULL_TIER
+        value: public
+
+      # The hub takes the LAST report for a given (app, date). On an ephemeral
+      # filesystem a mid-day deploy wipes the ledger and the next hourly report
+      # overwrites the day's real total with whatever accrued since the
+      # restart. The disk below is what stops that.
+      - key: TRAFFIC_ANALYTICS_FILE
+        value: /var/data/visitor_analytics.json
+
+    disk:
+      name: analytics
+      mountPath: /var/data
+      sizeGB: 1
