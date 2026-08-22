@@ -54,9 +54,13 @@ UA = _INTERNAL_UA + " network-smoke"
 CRAWLER_UA = "Mozilla/5.0 (compatible; Googlebot/2.1) " + _INTERNAL_UA
 
 # The body dash-improve-my-llms serves when a page has no prose registered.
-# Matched in full, deliberately: this app's own <noscript> block legitimately
-# says "requires JavaScript", and a substring check on that phrase reports a
-# perfectly healthy host as broken.
+# Matched IN FULL, not as a substring of the phrase "requires JavaScript".
+# The template used to carry a <noscript> fallback whose own HTML comment
+# spelled that phrase, so a substring check reported a perfectly healthy host
+# as broken. That block is gone — the 2.6.1 prerender is served VISIBLE and
+# hidden only by a script JS-disabled readers never run, so it covered the
+# same readers better — but the full match stays, because it is strictly the
+# safer comparison and this class of false positive is cheap to reintroduce.
 STUB_MARKER = "This page contains interactive content that requires JavaScript"
 
 # ---------------------------------------------------------------- per-site --

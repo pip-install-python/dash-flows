@@ -64,10 +64,9 @@
 
          tests/test_social_card.py asserts the counts in both directions. -->
     <meta name="keywords" content="Plotly Dash, React Flow, xyflow, node graph, flow diagram, Dash Mantine Components, ELK layout, dash-flows, Python">
-    <meta name="author" content="Pip Install Python">
+    <meta name="author" content="Pip Install Python LLC">
     <meta name="robots" content="index, follow">
     <meta property="og:site_name" content="dash-flows — React Flow node graphs for Dash">
-    <meta property="og:locale" content="en_US">
 
     <!-- OG URL. Genuinely absent from Dash's per-page set, so it belongs here.
          The origin is substituted from lib/constants.py at startup; the
@@ -222,9 +221,12 @@
     }
     </script>
 
-    <!-- LLM discovery -->
+    <!-- LLM discovery. `llms-txt` only: the sitemap is already advertised
+         where crawlers look for it — the Sitemap: line in /robots.txt, which
+         scripts/smoke_live.py pins to this host — so a hand-rolled
+         `llms-sitemap` meta was a second, unread declaration of the same URL
+         that could drift from the first. -->
     <meta name="llms-txt" content="__CANONICAL_ORIGIN__/llms.txt">
-    <meta name="llms-sitemap" content="__CANONICAL_ORIGIN__/sitemap.xml">
 
 </head>
 <body>
@@ -234,35 +236,5 @@
         {%scripts%}
         {%renderer%}
     </footer>
-    <noscript>
-        <div style="max-width: 640px; margin: 40px auto; font-family: sans-serif;">
-            <h1>dash-flows — React Flow node graphs for Dash</h1>
-            <p>
-                React Flow (@xyflow/react 12) node-graph components for Plotly
-                Dash: interactive flow diagrams with a glass-morphism theme,
-                ELK layouts, custom node/edge types and full Dash callback
-                integration. MIT licensed, Python 3.9+, Dash 4.1+.
-                By Pip Install Python.
-            </p>
-            <!-- Deliberately does not lead with "requires JavaScript".
-                 dash-improve-my-llms prerenders real prose for crawlers, so
-                 that framing is misleading for the readers most likely to act
-                 on it. JS-disabled humans still get the links below, which is
-                 the part that was ever useful. -->
-            <p>
-                The interactive documentation renders in the browser. These
-                machine-readable versions are always available:
-            </p>
-            <ul>
-                <li><a href="/llms.txt"><strong>llms.txt</strong></a> — LLM-friendly documentation</li>
-                <li><a href="/sitemap.xml"><strong>sitemap.xml</strong></a> — full site structure</li>
-                <li><a href="/robots.txt"><strong>robots.txt</strong></a> — crawler instructions</li>
-            </ul>
-            <p>
-                Source code: <a href="https://github.com/pip-install-python/dash-flows">github.com/pip-install-python/dash-flows</a>
-                · Package: <a href="https://pypi.org/project/dash-flows/">pypi.org/project/dash-flows</a>
-            </p>
-        </div>
-    </noscript>
 </body>
 </html>
