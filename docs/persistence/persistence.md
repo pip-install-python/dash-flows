@@ -4,6 +4,7 @@ description: Persist and restore flow state, export to PNG, and copy/paste.
 endpoint: /persistence
 package: dash_flows
 icon: mdi:content-save-outline
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Save, Restore & Export

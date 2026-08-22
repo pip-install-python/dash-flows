@@ -97,16 +97,35 @@
     <meta property="og:image:alt" content="dash-flows — React Flow node graphs for Dash">
 
     <!-- Same rule as above: Dash emits twitter:card, twitter:url,
-         twitter:title, twitter:description and twitter:image per page. Only
-         the alt text is left, because Dash omits it. -->
+         twitter:title, twitter:description and twitter:image per page.
+
+         BUT: Dash declares all five with `property=`, and Twitter reads
+         `name=` — its parser predates the OG convention and never adopted
+         it. So Dash's five are invisible to the one platform they exist
+         for. The two tags below are the ones actually read: the card type
+         declared with `name=`, and the alt text Dash omits entirely. The
+         rest (title, description, image) falls back to the og:* set, which
+         Twitter does read. Measured on this host 2026-08-22: the served
+         document carried `property="twitter:card"` alone, so no page here
+         declared a card type any scraper could see. -->
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image:alt" content="dash-flows — React Flow node graphs for Dash">
 
     <!-- Keeps canonical / og:url / twitter:url correct across CLIENT-SIDE
          navigation only. dash-improve-my-llms emits all three server-side per
-         route (tagged data-dimll-prerender), so the raw document is already
+         route from its prerender block, so the raw document is already
          right — this exists solely because Dash routes without firing a
          navigation event, which leaves those tags describing the page the
          visitor first landed on.
+
+         NEVER name that block's marker attribute in this file. The package
+         decides whether it has already injected by testing whether the
+         marker string appears anywhere in the served document — a substring
+         probe, not a node lookup — so spelling it here (this comment used
+         to) makes every response read as already-injected and silently
+         disables the universal prerender site-wide. It did, in production,
+         for as long as the words were here. Describe the block; do not
+         quote it. tests/test_prerender.py pins both halves.
 
          UPDATE-ONLY, deliberately: it never creates a tag the server did not
          send. Creating one would put a second <link rel="canonical"> on the
@@ -180,12 +199,13 @@
                 "url": "__CANONICAL_ORIGIN__",
                 "codeRepository": "https://github.com/pip-install-python/dash-flows",
                 "programmingLanguage": ["Python", "JavaScript"],
+                "version": "1.3.0",
                 "runtimePlatform": "Python 3.9+, Dash 4.1+",
                 "license": "https://opensource.org/licenses/MIT",
                 "author": {
                     "@type": "Organization",
                     "name": "Pip Install Python LLC",
-                    "url": "https://pip-install-python.com"
+                    "url": "https://2plot.dev"
                 }
             },
             {
@@ -195,7 +215,7 @@
                 "publisher": {
                     "@type": "Organization",
                     "name": "Pip Install Python LLC",
-                    "url": "https://pip-install-python.com"
+                    "url": "https://2plot.dev"
                 }
             }
         ]

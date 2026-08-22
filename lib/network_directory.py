@@ -41,27 +41,14 @@ from typing import Any, Dict, List
 
 # Only list hosts that are actually live. A directory entry pointing at a
 # subdomain with no site is a dead link an agent will follow once and then
-# distrust the rest of the list for. muicharts.2plot.dev and
-# flexlayout.2plot.dev have no docs site yet — add them in the same change
-# that ships them, not before.
-#
-# ---------------------------------------------------------------------------
-# DIVERGENCE FROM boilerplate.2plot.dev — deliberate, not drift.
-#
-# Verified by request on 2026-07-31, not by reading a status table:
-#
-#     pannellum.2plot.dev   NXDOMAIN   <- listed in the boilerplate's copy
-#     emojimart.2plot.dev   NXDOMAIN   <- listed in the boilerplate's copy
-#     muischeduler.2plot.dev  200      (hub still says "shipping")
-#     flows.2plot.dev         200      (hub still says "shipping")
-#     leaflet.2plot.dev       200
-#     boilerplate.2plot.dev   200
-#     llms.2plot.dev          503 spin-up, live per the hub  <- ABSENT upstream
-#
-# So the two dead entries are dropped here and llms.2plot.dev is added. The
-# real fix belongs in the boilerplate, because that copy propagates to every
-# satellite; restore this file to a straight copy once it lands there.
-# ---------------------------------------------------------------------------
+# distrust the rest of the list for. The full docs fleet went live on paid
+# hosting 2026-08-19/20 — muicharts, flexlayout and llms joined in that
+# window (the drift sweep of 2026-08-20 found seven different versions of
+# this list across nine repos; this copy is the canonical one and the fleet
+# syncs FROM here, verbatim). excalidraw.2plot.dev and modelviewer.2plot.dev
+# were deliberately absent until they deployed; both went live in the gate
+# wave (2026-08-21/22, verified via /healthz build identity) and joined in
+# 1.6.5. The fleet re-copy carries them to every satellite's directory.
 PEERS: List[Dict[str, str]] = [
     {
         "name": "2plot.ai",
@@ -89,9 +76,14 @@ PEERS: List[Dict[str, str]] = [
         "description": "MUI X Scheduler — calendars and event scheduling for Dash.",
     },
     {
-        "name": "dash-flows",
-        "url": "https://flows.2plot.dev",
-        "description": "Node-graph editors built on React Flow.",
+        "name": "dash-mui-charts",
+        "url": "https://muicharts.2plot.dev",
+        "description": "MUI X charts, tree views and time pickers for Dash.",
+    },
+    {
+        "name": "flexlayout-dash",
+        "url": "https://flexlayout.2plot.dev",
+        "description": "IDE-style dockable, resizable and floatable window panels.",
     },
     {
         "name": "dash-improve-my-llms",
@@ -99,21 +91,43 @@ PEERS: List[Dict[str, str]] = [
         "description": "The AI/LLM and SEO package every site in this network is built on.",
     },
     {
+        "name": "dash-flows",
+        "url": "https://flows.2plot.dev",
+        "description": "Node-graph editors built on React Flow.",
+    },
+    {
+        "name": "dash-pannellum",
+        "url": "https://pannellum.2plot.dev",
+        "description": "360° panorama and virtual-tour viewer.",
+    },
+    {
+        "name": "dash-emoji-mart",
+        "url": "https://emojimart.2plot.dev",
+        "description": "Emoji picker component.",
+    },
+    {
         "name": "dash-email",
         "url": "https://email.2plot.dev",
         "description": "Email composition and delivery components.",
     },
-    # dash-pannellum (pannellum.2plot.dev) and dash-emoji-mart
-    # (emojimart.2plot.dev) belong here the day their DNS resolves. Both are
-    # NXDOMAIN as of 2026-07-31 — see the note above.
+    {
+        "name": "dash-model-viewer",
+        "url": "https://modelviewer.2plot.dev",
+        "description": "3D model viewer with AR support, built on Google's model-viewer.",
+    },
+    {
+        "name": "dash-excalidraw",
+        "url": "https://excalidraw.2plot.dev",
+        "description": "Excalidraw virtual whiteboard and sketching canvas.",
+    },
 ]
 
+# pip-install-python.com is deliberately NOT here: the domain is retired
+# network-wide (the fleet's retire-pip-install-python-domain sweep), and
+# leaflet's test_social_card pins its absence. A directory that keeps
+# pointing agents at a retired origin re-teaches them the identity the
+# network spent a release unlearning.
 AFFILIATED: List[Dict[str, str]] = [
-    {
-        "name": "Pip Install Python",
-        "url": "https://pip-install-python.com",
-        "description": "The original component documentation site.",
-    },
     {
         "name": "Pirate's Bargain",
         "url": "https://piratesbargain.com",

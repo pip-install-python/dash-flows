@@ -62,25 +62,46 @@ jobs:
           curl -fsS -X POST "$HOOK" > /dev/null
           echo "deployed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Wait for the new build to serve traffic
-        if: steps.hook.outputs.deployed == 'true'
+      - name: Wait for THIS build to serve traffic
+        # NOT gated on the hook step, and that is the whole fix: with
+        # RENDER_DEPLOY_HOOK_URL unset — which is the recorded fleet
+        # decision, Render's autoDeploy owns deploy timing — the old shape
+        # SKIPPED this wait entirely and let `verify` run the battery
+        # seconds after the push, against the PREVIOUS release. The defect
+        # was invisible for the workflow's whole life, because the old build
+        # always already passed the old battery; it only shows when a run
+        # adds a new surface. Found on muicharts 2026-08-21, fleet-wide
+        # class, and this repo had it verbatim.
         run: |
-          # Render swaps instances rather than restarting in place, so the old
-          # build answers /healthz throughout. Waiting for a 200 proves
-          # nothing; give the build time, then require sustained health.
-          sleep 120
+          # A bare 200 proves nothing about WHICH build answered: /healthz
+          # now reports the running instance's commit (RENDER_GIT_COMMIT),
+          # and this loop holds until it equals the SHA that triggered this
+          # run. Fallback: a build that predates the field gets the old
+          # sustained-health wait, with a warning naming what it cannot tell
+          # — that fallback fires exactly once, on the deploy that carries
+          # the field for the first time (this one).
+          want="${GITHUB_SHA}"
+          matched=0
           ok=0
-          for _ in $(seq 1 40); do
-            if curl -fsS "$SITE_URL/healthz" > /dev/null; then
-              ok=$((ok + 1))
-              [ "$ok" -ge 5 ] && break
-            else
-              ok=0
+          for _ in $(seq 1 60); do
+            body="$(curl -fsS "$SITE_URL/healthz" 2>/dev/null || true)"
+            if [ -n "$body" ]; then
+              build="$(printf '%s' "$body" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("build",""))' 2>/dev/null || true)"
+              if [ "$build" = "$want" ]; then
+                matched=$((matched + 1))
+                [ "$matched" -ge 3 ] && break
+              elif [ -z "$build" ]; then
+                ok=$((ok + 1))
+              fi
             fi
             sleep 15
           done
-          if [ "$ok" -lt 5 ]; then
-            echo "::error::$SITE_URL never became reliably healthy"
+          if [ "$matched" -ge 3 ]; then
+            echo "::notice::live /healthz reports build $want — verifying the artifact this run shipped."
+          elif [ "$ok" -ge 5 ]; then
+            echo "::warning::live /healthz predates the build field — cannot prove WHICH build is serving; verified sustained health only. This warning should appear exactly once."
+          else
+            echo "::error::$SITE_URL never served this run's build ($want) and never became reliably healthy"
             exit 1
           fi
 

@@ -126,6 +126,29 @@ def header(headers: Dict[str, str], name: str) -> str:
     return ""
 
 
+def post(url: str, payload: str = "{}") -> int:
+    """POST for the auth-wiring probe; returns the status, 0 on transport.
+
+    No retry ladder on purpose: a 4xx here IS the answer (invalid token,
+    anonymous signout — both prove the route is registered and callable),
+    so only a transport failure reads as 0.
+    """
+    request = urllib.request.Request(
+        url,
+        data=payload.encode("utf-8"),
+        headers={"User-Agent": BROWSER_UA, "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT,
+                                    context=SSL_CONTEXT) as resp:
+            return resp.status
+    except urllib.error.HTTPError as exc:
+        return exc.code
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return 0
+
+
 def check(name: str, passed: bool, detail: str = "", fatal: bool = True) -> None:
     """Record one check. ``fatal=False`` warns instead of failing the deploy.
 
@@ -163,6 +186,32 @@ def main(base: str) -> int:
     print("Core surfaces")
     status, home, _ = fetch(f"{base}/")
     check("home page responds 200", status == 200, f"got {status}")
+
+    # --- Auth wiring: the two-call split, proven from outside --------------
+    # dash-clerk-auth wires either side of Dash(...): register() is the UI
+    # half, configure_app(app) registers /api/auth/* and per-request
+    # identity. A fork that drops the second call still LOOKS signed in
+    # (components render, ClerkJS runs) while every server render reads
+    # signed-out and sign-out never revokes — flexlayout shipped exactly
+    # that, and no local suite can see it because Clerk is off in test
+    # environments. From outside the tell is unambiguous: registered, these
+    # POSTs answer 2xx/4xx; unregistered, the path falls through to Dash's
+    # GET-only page catch-all and answers 405 (or 404) — which is exactly
+    # what this host measured before the gate pass. Gated on the package's
+    # inline bootstrap being in the served shell, so a clerk-off host skips
+    # rather than fails: this site ships DARK and will skip until the keys
+    # land.
+    if "dashClerkAuth" in home:
+        for endpoint in ("session", "signout"):
+            status = post(f"{base}/api/auth/{endpoint}")
+            check(
+                f"POST /api/auth/{endpoint} is a registered route",
+                status not in (0, 404, 405),
+                f"got {status} — the configure_app(app) half of the auth "
+                "wiring is missing: components without a server",
+            )
+    else:
+        print("  · auth wiring probe skipped (Clerk not in the served shell)")
 
     status, llms, llms_headers = fetch(f"{base}/llms.txt")
     check("/llms.txt responds 200", status == 200, f"got {status}")

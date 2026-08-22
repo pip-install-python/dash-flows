@@ -4,6 +4,7 @@ description: Undo/redo, computing flows, sub-flows, viewport portal, accessibili
 endpoint: /advanced
 package: dash_flows
 icon: mdi:star-outline
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Advanced Features

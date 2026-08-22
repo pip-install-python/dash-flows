@@ -45,6 +45,15 @@ SECRET_ENV_KEYS = (
     "CROSS_APP_WEBHOOK_SECRET", "NETWORK_BULLETIN_URL",
     "SESSION_SECRET", "FLASK_SECRET_KEY",
     "DATABASE_URL",
+    # Clerk. lib/auth.py registers nothing without these, which is the
+    # posture the suite must measure: every local assertion about the gate
+    # is about a site that ships the capability and not the login wall.
+    # A developer's .env holding real keys would otherwise flip the whole
+    # suite into a signed-out-gated posture that CI never sees.
+    "CLERK_SECRET_KEY", "CLERK_PUBLISHABLE_KEY", "CLERK_SIGN_IN_URL",
+    "CLERK_SIGN_UP_URL", "CLERK_FRONTEND_API", "CLERK_WEBHOOK_SECRET",
+    "CLERK_IS_SATELLITE", "CLERK_SATELLITE_DOMAIN",
+    "CLERK_SATELLITE_SIGN_IN_REDIRECT",
 )
 for _key in SECRET_ENV_KEYS:
     os.environ[_key] = ""
@@ -56,6 +65,9 @@ for _key in SECRET_ENV_KEYS:
 # happens to send.
 _TMP_STATE = tempfile.mkdtemp(prefix="dash-flows-tests-")
 os.environ["TRAFFIC_ANALYTICS_FILE"] = os.path.join(_TMP_STATE, "visitor_analytics.json")
+# Same reason for the control board's override store — and pointing it at a
+# tmp path also keeps the import-time [visibility] boot warning quiet.
+os.environ["PAGE_VISIBILITY_FILE"] = os.path.join(_TMP_STATE, "page_visibility.json")
 # Behind Cloudflare in production; in tests an outbound ip-api.com lookup per
 # hit would make the suite depend on a third party being up.
 os.environ["ANALYTICS_GEO_LOOKUP"] = "0"
@@ -87,6 +99,21 @@ STUB_MARKER = "This page contains interactive content that requires JavaScript"
 # A real documentation page, used wherever a test needs one that is not the
 # home page. Mirrors scripts/network_smoke.SAMPLE_PAGE.
 SAMPLE_PAGE = "/getting-started"
+
+
+def backend() -> str:
+    """Whichever backend the app will actually boot on.
+
+    Not `os.environ["DASH_BACKEND"]` directly: lib/backend.py calls
+    `load_dotenv()`, so a local .env can select a backend the bare
+    environment knows nothing about. Reading the env here instead would hand
+    out a Werkzeug test client for a FastAPI app, and every test would fail
+    on the client rather than on the code. The env block above pins flask,
+    which is the deployed backend; this stays honest if that ever changes.
+    """
+    from lib.backend import resolve_backend
+
+    return resolve_backend()
 
 
 @pytest.fixture(scope="session")

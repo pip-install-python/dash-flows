@@ -4,6 +4,7 @@ description: Color modes, glass/solid/minimal presets, color schemes, and UI bui
 endpoint: /theming
 package: dash_flows
 icon: mdi:palette-outline
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Theming & UI

@@ -41,6 +41,13 @@ SITE_DESCRIPTION = (
 # otherwise run past every platform's truncation point.
 SITE_SHORT_NAME = "dash-flows"
 
+# The <title> Dash falls back to for any path outside the page registry, and
+# `resolve_site_title`'s second candidate. An alias rather than a second
+# string: the network's shared tests import APP_TITLE by that name on every
+# host, and two hand-maintained titles is how a site ends up calling itself
+# one thing in the tab and another in /llms.txt.
+APP_TITLE = SITE_BRAND
+
 # Prefixed to every per-page title (`pages/markdown.py`, `pages/home.py`), and
 # therefore NOT only a browser-tab string: Dash passes the page title straight
 # into `og:title` and `twitter:title` (dash/_pages.py `_page_meta_tags`), so
@@ -153,6 +160,26 @@ def internal_ua(caller: str = "") -> str:
     """
     caller = (caller or "").strip()
     return f"{INTERNAL_UA} {caller}" if caller else INTERNAL_UA
+
+
+# Who publishes this site, for the crawler document's JSON-LD and for
+# configure_seo. A fork sets these once; the other half of the loop (PyPI
+# project_urls and the GitHub README pointing back at the docs subdomain) is
+# a per-package checklist item, not code.
+PUBLISHER = "Pip Install Python LLC"
+SAME_AS = [
+    GITHUB_URL,
+    "https://pypi.org/project/dash-flows/",
+    # NOT pip-install-python.com: retired network-wide, and a sameAs is a
+    # claim of identity — the strongest possible way to keep a dead origin
+    # associated with this one. 2plot.dev is its successor.
+    "https://2plot.dev",
+]
+
+# Height of the fixed AppShell header, in px. Consumed by AppShell(header=...)
+# and by the mobile drawer, which docks itself directly below the header.
+# Change it here only — the two must never drift apart.
+HEADER_HEIGHT = 70
 
 
 def require_owned_base_url(base_url: str = DOCS_BASE_URL) -> None:

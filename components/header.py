@@ -1,22 +1,58 @@
 import dash_mantine_components as dmc
-from dash import Output, Input, clientside_callback
+from dash import Output, Input, State, clientside_callback
 from dash_iconify import DashIconify
 
 from components.backend_badge import create_backend_badge
 from lib.backend import get_backend_info
+from lib.constants import HEADER_HEIGHT
 
 
-def create_link(icon, href):
-    """Create an external link icon button"""
+def create_clerk_avatar():
+    """Clerk avatar / sign-in control, sat beside the colour-scheme toggle.
+
+    Returns None when Clerk is not configured, so local development and any
+    deploy without the keys renders the header exactly as before rather than
+    erroring on a missing component. `lib/auth.py` registers Clerk with
+    `headless=True`, meaning the package injects NO UI of its own — without
+    this widget there is no way to sign in even though Clerk initialises.
+    The package renders `#clerk-login-button` inside it; since
+    dash-clerk-auth 0.9.2 that button's own handler is satellite-safe, so it
+    needs nothing from us.
+    """
+    from lib.auth import clerk_enabled
+
+    if not clerk_enabled():
+        return None
+    from dash_clerk_auth import create_clerk_menu
+
+    return create_clerk_menu(show_dropdown=True, dropdown_align="right")
+
+
+def create_link(icon, href, label):
+    """Create an external link icon button.
+
+    ``label`` is REQUIRED: an icon-only link has no accessible name, so
+    screen readers announce it as "link" and AI agents can't tell what it
+    does — the exact Lighthouse/Agentic-Browsing failure measured on the
+    fleet 2026-08-21. The label lands on both the anchor and the button.
+
+    NEVER pass ``title=`` to a DMC component to do this instead: DMC 2.8's
+    ActionIcon and Anchor accept ``aria-*`` wildcards but REJECT ``title``,
+    raising TypeError DURING APP CONSTRUCTION — the whole site fails to boot
+    rather than rendering a wrong tooltip. Use ``aria-label`` for names and
+    ``dmc.Tooltip`` for hover text.
+    """
     return dmc.Anchor(
         dmc.ActionIcon(
             DashIconify(icon=icon, width=22),
             variant="subtle",
             size="lg",
             color="gray",
+            **{"aria-label": label},
         ),
         href=href,
         target="_blank",
+        **{"aria-label": label},
     )
 
 
@@ -86,6 +122,7 @@ def create_header(data):
                             size="lg",
                             color="gray",
                             hiddenFrom="md",
+                            **{"aria-label": "Open navigation menu"},
                         ),
                         # Desktop-only burger: collapses/expands the AppShell navbar
                         # on md-xl screens. Default opened=True so users see the X
@@ -116,6 +153,7 @@ def create_header(data):
                             ),
                             href="/",
                             underline=False,
+                            **{"aria-label": "dash-flows — home"},
                         ),
                     ],
                     gap="md",
@@ -130,6 +168,7 @@ def create_header(data):
                         create_link(
                             "radix-icons:github-logo",
                             "https://github.com/pip-install-python/dash-flows",
+                            "View the source on GitHub",
                         ),
                         dmc.ActionIcon(
                             [
@@ -148,13 +187,15 @@ def create_header(data):
                             color="yellow",
                             id="color-scheme-toggle",
                             size="lg",
+                            **{"aria-label": "Toggle light / dark color scheme"},
                         ),
+                        create_clerk_avatar(),
                     ],
                     gap="sm",
                 ),
             ],
             justify="space-between",
-            h=70,
+            h=HEADER_HEIGHT,
             px="xl",
         ),
     )
@@ -172,9 +213,29 @@ clientside_callback(
     Input("select-component", "value"),
 )
 
+# Mobile drawer search -> navigate (the header Select is hidden below `sm`).
 clientside_callback(
-    """function(n_clicks) { return true }""",
+    """
+    function(value) {
+        if (value) {
+            return value
+        }
+        return window.dash_clientside.no_update
+    }
+    """,
+    Output("url", "href", allow_duplicate=True),
+    Input("mobile-select-component", "value"),
+    prevent_initial_call=True,
+)
+
+# The overlay no longer covers the header, so the hamburger stays reachable
+# while the drawer is open — make a second tap close it. `return true` alone
+# left the drawer stuck open: the only way out was the close button the
+# network-standard drawer deliberately does not have.
+clientside_callback(
+    """function(n_clicks, opened) { return !opened }""",
     Output("components-navbar-drawer", "opened"),
     Input("drawer-hamburger-button", "n_clicks"),
+    State("components-navbar-drawer", "opened"),
     prevent_initial_call=True,
 )

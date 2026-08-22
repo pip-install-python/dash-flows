@@ -4,6 +4,7 @@ description: Every edge type, including floating edges that attach to the neares
 endpoint: /edges
 package: dash_flows
 icon: tabler:line-dashed
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Edges

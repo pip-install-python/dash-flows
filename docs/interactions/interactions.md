@@ -4,6 +4,7 @@ description: Clicks, context menus, connection validation and limits, and multi-
 endpoint: /interactions
 package: dash_flows
 icon: mdi:cursor-default-click-outline
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Interactions & Selection

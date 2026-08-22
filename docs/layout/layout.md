@@ -4,6 +4,7 @@ description: Automatic ELK layouts, smart handles, helper lines, and animated la
 endpoint: /layout
 package: dash_flows
 icon: mdi:sitemap-outline
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Layout & Handles

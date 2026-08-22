@@ -4,6 +4,7 @@ description: The full DashFlows prop table plus node and edge component props.
 endpoint: /api-reference
 package: dash_flows
 icon: mdi:api
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::API Reference

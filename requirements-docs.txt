@@ -32,17 +32,67 @@ pydantic>=2.3.0
 gunicorn>=23.0.0
 
 # AI/LLM & SEO: /llms.txt, /<page>/llms.txt, /robots.txt, /sitemap.xml, the
-# crawler prerender and the network directory. 2.3.4 floor is load-bearing:
-# it ships resolve_site_title (the /llms.txt H1 + viewer brand chip) and the
-# fixed crawler taxonomy — run.py refuses to boot below it.
-# 2.5.1 is the Tier-B SEO standard: configure_seo (icons, social card,
-# publisher/sameAs), crawler <title> carrying the site name, per-page
-# title/image_url/schema_type reaching the crawler document, /favicon.ico
-# answered with a redirect instead of the app shell, and a prerender that
-# no longer clobbers the browser's per-page <title>. It also carries the
-# tiered corpus docs (/llms-small.txt, /llms-full.txt; 2.4.0+) that
-# run.py registers with lib/page_tiers.
-dash-improve-my-llms[flask]>=2.5.1
+# universal prerender and the network directory. Every floor below is
+# load-bearing, and run.py refuses to boot under the current one:
+#   2.3.4  resolve_site_title (the /llms.txt H1 + viewer brand chip) and
+#          the fixed crawler taxonomy.
+#   2.5.1  the Tier-B SEO standard: configure_seo (icons, social card,
+#          publisher/sameAs), crawler <title> carrying the site name,
+#          per-page title/image_url/schema_type reaching the crawler
+#          document, /favicon.ico answered with a redirect instead of the
+#          app shell, and a prerender that no longer clobbers the
+#          browser's per-page <title>. Also the tiered corpus docs
+#          (/llms-small.txt, /llms-full.txt; 2.4.0+) that run.py registers
+#          with lib/page_tiers.
+#   2.6.0  configure_access — the enforcement half the interactive gate
+#          reads, so the prerender obeys a page's tier instead of
+#          publishing gated prose to crawlers.
+#   2.6.1  THE PRERENDER GUARANTEE. Up to 2.6.0 the prerender div shipped
+#          with a literal `hidden` attribute, so every visibility-respecting
+#          text extractor read the site as "Loading..." and nothing else —
+#          present and invisible, the worst of both. 2.6.1 serves it
+#          visible and hides it with a synchronous inline script only JS
+#          browsers run. tests/test_prerender.py pins the served shape.
+#
+# GREP THE NUMBER, NOT THE FILE, when bumping this: the floor is also
+# encoded in run.py's boot assertion, in .github/workflows/ci.yml (twice —
+# the host check and the in-image check) and in tests/test_config.py.
+dash-improve-my-llms[flask]>=2.6.1
+# The other two backends lib/backend.py can select. Commented, not
+# installed: flask is what this site deploys, and pulling three server
+# stacks into every image to support an env var nobody sets is not a
+# trade worth making. They live HERE so an operator flipping
+# DASH_BACKEND finds the install step next to every other dependency
+# instead of in a boot traceback — tests/test_runtime_imports.py holds
+# that promise open, because it is the condition under which the
+# optional-backend imports in lib/ are exempt from the declared-imports
+# guard.
+# dash-improve-my-llms[fastapi]>=2.6.1   # DASH_BACKEND=fastapi
+# dash-improve-my-llms[quart]>=2.6.1     # DASH_BACKEND=quart
+# dash-improve-my-llms[all]>=2.6.1       # all three
+
+# Clerk satellite authentication (dash-clerk-auth, vendored — not on PyPI).
+#
+# Installed ALWAYS, gated at runtime: with no CLERK_* keys in the
+# environment lib/auth.py registers nothing and the site runs fully public.
+# The capability ships; the login wall does not.
+#
+# The floors below are the fleet security baseline, not a preference:
+# clerk-backend-api 5.x capped cryptography at <47.0.0 — below the fixes
+# for GHSA-537c-gmf6-5ccf (48.0.1), PYSEC-2026-3553/3554 (49.0.0) and
+# PYSEC-2026-3552 (50.0.0). SDK 7.0.0 allows cryptography <51.0.0, and
+# dash-clerk-auth 1.0.1 widened its cap to <8 exactly so applications can
+# assert these floors rather than merely permit them.
+#
+# PROVENANCE — the dist/ tarball IS the release; there is no PyPI copy:
+#   sha256  a2f9062e15a69fc79deeaf76fcf1380907a961978db558b2aa227572cb2b74f3
+# Twice-proven rule (1.0.4's 22117b20…, 1.0.5's first build): early builds
+# go stale on sdist-shipped doc edits and are NOT distinguishable by name,
+# size or date — only the recorded sha admits a tarball into this file.
+# Vendor from Dash-Clerk-Auth-Hook's dist/ and verify before every copy.
+./vendor/dash_clerk_auth-1.0.5.tar.gz
+clerk-backend-api>=7.0.0,<8
+cryptography>=50.0.0
 
 python-dotenv>=1.0.0          # DASH_BACKEND / .env support in lib/backend.py
 requests>=2.27.1              # 2plot.dev ad-network client (lib/ad_client.py) +

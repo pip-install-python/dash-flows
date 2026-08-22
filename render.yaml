@@ -10,6 +10,19 @@
 # service hasn't been re-synced — must be set directly on the SERVICE in the
 # Render dashboard. This bit email.2plot.dev: NETWORK_BULLETIN_URL sat in its
 # render.yaml for weeks while the running service never saw it.
+#
+# OWNER SWEEP, noted here because no test can see it: the live service was
+# surveyed (2026-08-16) carrying SATELLITE_APP_ID — a RETIRED name that is
+# now read by nothing. The canonical spelling is SATELLITE_APP_KEY (below),
+# and run.py additionally claims the identity via os.environ.setdefault, so
+# nothing depends on either variable being present. SATELLITE_APP_ID is a
+# delete candidate, not a migration.
+#
+# The shared values for the gate arrive via env GROUPS, which the dashboard
+# links to the service: `2plot-network-shared` (the HMAC secret),
+# `2plot-satellite-reporting` (cadence + both /var/data paths) and
+# `2plot-clerk-satellite` (the whole Clerk block). Group linkage cannot be
+# expressed in this file — the boot guards announce if it has not landed.
 # ---------------------------------------------------------------------------
 #
 # Local equivalent (no Render needed):
@@ -75,8 +88,12 @@ services:
       # Minimum seconds between rollup POSTs (the contract asks for hourly).
       # 1800 halves what a container eviction can swallow, and the reporter
       # only POSTs when the day's numbers actually changed.
+      # 900 is the wave's cadence, delivered fleet-wide via env group
+      # `2plot-satellite-reporting`; declared here so the knob is visible.
+      # The reporter only POSTs when the day's numbers actually changed, so
+      # a shorter interval costs a lease check, not a request.
       - key: SATELLITE_REPORT_INTERVAL_S
-        value: "1800"
+        value: "900"
 
       # Access tiers for the tiered corpus documents (/llms-small.txt,
       # /llms-full.txt — dash-improve-my-llms >= 2.4.0). Deliberately set to
@@ -94,6 +111,66 @@ services:
       # restart. The disk below is what stops that.
       - key: TRAFFIC_ANALYTICS_FILE
         value: /var/data/visitor_analytics.json
+      # The control board's override store. Shares the disk with the ledger
+      # above and for the same reason: without it every deploy silently
+      # resets whatever the board was toggled to. lib/page_visibility.py
+      # prints a [visibility] WARNING at boot naming exactly which half is
+      # missing — the ABSENCE of that line in the deploy log is the check.
+      - key: PAGE_VISIBILITY_FILE
+        value: /var/data/page_visibility.json
+
+      # -----------------------------------------------------------------
+      # The interactive sign-in gate — SHIPPED DARK.
+      # -----------------------------------------------------------------
+      # `public` is declared EXPLICITLY rather than left unset, and the
+      # difference is not cosmetic: run.py passes
+      # force=bool(PAGE_DEFAULT_TIER or LLMS_PUBLIC_DEFAULT) to
+      # lib.access.configure(), so this value is what wires the verdict
+      # plumbing (and the prerender's use of it) live during the dark
+      # launch. A host that flips straight from unset to `auth` would be
+      # turning the gate on and wiring enforcement in the same deploy, and
+      # would prerender gated prose to crawlers in between.
+      #
+      # THE FLIP, when this host's own pre-flight passes: change this one
+      # value to `auth`. Rollback is the same lever back to `public` — no
+      # code revert anywhere.
+      - key: PAGE_DEFAULT_TIER
+        value: public
+      # LLMS_PUBLIC_DEFAULT stays UNSET network-wide until phase 4: machine
+      # surfaces (/llms.txt, /<page>/llms.txt, the crawler document) remain
+      # public through the data window BY DECISION, even on pages the
+      # interactive gate closes. Setting it here would quietly end that.
+      #
+      # Clerk satellite auth. Every value below arrives from the shared env
+      # GROUP `2plot-clerk-satellite`, which is why none are declared with
+      # values here — declaring them would fight the group on the next
+      # Blueprint sync. Listed as `sync: false` so the knobs are visible in
+      # this file and the dashboard is the single source:
+      #   CLERK_SECRET_KEY, CLERK_PUBLISHABLE_KEY, CLERK_SIGN_IN_URL,
+      #   CLERK_IS_SATELLITE, CLERK_SATELLITE_DOMAIN,
+      #   CLERK_SATELLITE_SIGN_IN_REDIRECT  (= https://2plot.ai/onboarding;
+      #     unset strands authenticated users, a truthy non-URL gives a
+      #     404ing Sign In button — lib/auth.py boot-guards both, and the
+      #     absence of its [auth] WARNING lines is the acceptance check)
+      #   SESSION_SECRET  (per-service and UNIQUE — never shared)
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SIGN_IN_URL
+        sync: false
+      - key: CLERK_IS_SATELLITE
+        sync: false
+      - key: CLERK_SATELLITE_DOMAIN
+        sync: false
+      - key: CLERK_SATELLITE_SIGN_IN_REDIRECT
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      # Who may reach /admin/control-board once Clerk is on. Comma-separated
+      # addresses; fails CLOSED when unset.
+      - key: ADMIN_EMAILS
+        sync: false
 
     disk:
       name: analytics

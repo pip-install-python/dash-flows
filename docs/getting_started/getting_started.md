@@ -4,6 +4,7 @@ description: "Build your first dash-flows graph: nodes, edges, and styling."
 endpoint: /getting-started
 package: dash_flows
 icon: mdi:rocket-launch-outline
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Getting Started

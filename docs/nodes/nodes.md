@@ -4,6 +4,7 @@ description: Built-in node types, handle configuration, and Dash components or i
 endpoint: /nodes
 package: dash_flows
 icon: carbon:assembly-cluster
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Nodes

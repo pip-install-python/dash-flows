@@ -1,6 +1,8 @@
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
+from lib.constants import HEADER_HEIGHT
+
 excluded_links = [
     "/404",
 ]
@@ -124,10 +126,17 @@ def create_content(data):
                             "https://www.dash-mantine-components.com/",
                             external=True
                         ),
+                        # pip-install-python.com is RETIRED network-wide
+                        # (the fleet's retire-pip-install-python-domain
+                        # sweep). 2plot.dev is its successor as the package
+                        # index — lib/network_directory.py carries the same
+                        # entry, and pointing a reader at a retired origin
+                        # re-teaches the identity the network spent a
+                        # release unlearning.
                         create_nav_link(
                             "solar:box-bold-duotone",
                             "Pip Components",
-                            "https://pip-install-python.com/",
+                            "https://2plot.dev/",
                             external=True
                         ),
                     ]
@@ -136,6 +145,43 @@ def create_content(data):
             gap="xs",
             p="md",
         ),
+    )
+
+
+def create_mobile_content(data):
+    """Drawer body: a sticky search field above the scrolling nav sections.
+
+    The header's search Select is `visibleFrom="sm"`, so phones otherwise
+    have no way to jump straight to a page. This is that missing entry point.
+    """
+    return dmc.Stack(
+        [
+            dmc.Box(
+                dmc.Select(
+                    id="mobile-select-component",
+                    placeholder="Search pages...",
+                    searchable=True,
+                    clearable=True,
+                    size="md",
+                    nothingFoundMessage="No pages found",
+                    leftSection=DashIconify(icon="mingcute:search-3-line", width=18),
+                    data=[
+                        {"label": component["name"], "value": component["path"]}
+                        for component in data
+                        if component["name"] not in ["Home", "Not found 404"]
+                    ],
+                    comboboxProps={"zIndex": 2000},
+                ),
+                p="md",
+                pb="xs",
+            ),
+            dmc.Divider(),
+            # flex/minHeight give the ScrollArea a definite box to scroll inside.
+            dmc.Box(create_content(data), style={"flex": 1, "minHeight": 0}),
+        ],
+        gap=0,
+        className="mobile-nav",
+        style={"height": "100%"},
     )
 
 
@@ -148,16 +194,46 @@ def create_navbar(data):
 
 
 def create_navbar_drawer(data):
-    """Create mobile drawer navigation"""
+    """Mobile navigation: a solid, full-height side panel.
+
+    Runs from the bottom of the fixed header to the bottom of the viewport —
+    no floating card, no close-button header row. The hamburger toggles it
+    and the header stays visible (and tappable) above the overlay.
+
+    REQUIRES dash-mantine-components >= 2.8.0. On 2.7.0 these exact props
+    render as a floating card instead — the styles below are the network
+    standard's shape, and the floor in requirements-docs.txt is what makes
+    them mean what they say.
+    """
     return dmc.Drawer(
         id="components-navbar-drawer",
         overlayProps={"opacity": 0.55, "blur": 3},
         zIndex=1500,
-        offset=8,
-        radius="md",
-        withCloseButton=True,
-        size="280px",
-        children=create_content(data),
+        withCloseButton=False,  # removes the whole Drawer header row
+        size="300px",
+        padding=0,
+        children=create_mobile_content(data),
         trapFocus=False,
         position="left",
+        styles={
+            # Dock below the fixed header. dvh (not vh) so a collapsing
+            # mobile URL bar doesn't leave a dead gap at the bottom.
+            "inner": {
+                "top": HEADER_HEIGHT,
+                "height": f"calc(100dvh - {HEADER_HEIGHT}px)",
+            },
+            # Overlay starts below the header too, keeping the hamburger
+            # tappable.
+            "overlay": {"top": HEADER_HEIGHT},
+            # Solid panel: fill the inner, square corners.
+            "content": {
+                "height": "100%",
+                "maxHeight": "100%",
+                "borderRadius": 0,
+                "display": "flex",
+                "flexDirection": "column",
+            },
+            # Definite height so create_content's ScrollArea can scroll.
+            "body": {"flex": 1, "minHeight": 0, "height": "100%", "padding": 0},
+        },
     )

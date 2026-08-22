@@ -79,4 +79,4 @@ runnable examples with their source code:
 
 ---
 
-*Built by [Pip Install Python](https://pip-install-python.com) · [GitHub](https://github.com/pip-install-python/dash-flows) · MIT licensed*
+*Built by [Pip Install Python](https://2plot.dev) · [GitHub](https://github.com/pip-install-python/dash-flows) · MIT licensed*

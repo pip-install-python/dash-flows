@@ -34,7 +34,12 @@ def test_no_url_means_the_feature_is_simply_off():
     assert bulletin.configure() is False
 
 
-def test_configure_reports_that_it_wired(monkeypatch):
+def test_configure_reports_that_it_wired(monkeypatch, app_module):
+    """`app_module` is requested for the app_id assertion at the end: the
+    identity this satellite announces to the hub is claimed by run.py's fork
+    point, so a test that never boots the app would measure the byte-
+    identical reporter's "boilerplate" fallback instead of what production
+    sends."""
     from lib import bulletin
 
     monkeypatch.setenv("NETWORK_BULLETIN_URL", bulletin.HUB_BULLETIN_URL)
@@ -54,13 +59,116 @@ def test_configure_reports_that_it_wired(monkeypatch):
     assert seen["app_id"] == "flows"
 
 
-def test_the_app_id_is_the_directory_key_not_a_second_opinion():
-    """One id on every hub surface. A satellite still announcing itself as
-    "boilerplate" would receive the template's announcements."""
-    from lib import bulletin
-    from lib.satellite_reporter import app_key
+def test_the_reporters_own_fallback_says_boilerplate_and_that_is_correct():
+    """The byte-copy identity trap, pinned from the side people get wrong.
 
-    assert bulletin.app_id() == app_key() == "flows"
+    `lib/satellite_reporter.py` is kept BYTE-IDENTICAL to the boilerplate's
+    across the whole fleet — `shasum` against the template's copy is the
+    acceptance check for every sync — so its unset fallback necessarily says
+    "boilerplate", the TEMPLATE's directory key, on every fork. Three
+    template-copied modules share that fallback while this fork's own
+    `ad_client` says "flows", and an unset SATELLITE_APP_KEY would file this
+    site's traffic under the template's hub row (found live on pannellum
+    2026-08-21; this repo has its own contamination in the hub's history).
+
+    Repairing the fallback here is the WRONG fix — it breaks the byte
+    identity the fleet checks. The right fix is the fork point in run.py,
+    pinned by the test below. This test exists so that anyone who "helpfully"
+    edits the reporter to say "flows" fails here and reads why.
+    """
+    from lib import hub_client, satellite_reporter
+
+    with_nothing_set = {}
+    import os
+    saved = {k: os.environ.pop(k, None) for k in ("SATELLITE_APP_KEY", "AD_APP_ID")}
+    try:
+        with_nothing_set["reporter"] = satellite_reporter.app_key()
+        with_nothing_set["hub"] = hub_client.app_id()
+    finally:
+        for k, v in saved.items():
+            if v is not None:
+                os.environ[k] = v
+
+    assert with_nothing_set["reporter"] == "boilerplate", (
+        "the byte-identical reporter's fallback changed — either the file is "
+        "no longer byte-identical to the template's (shasum it) or someone "
+        "repaired the fallback instead of setting the run.py fork point"
+    )
+    assert with_nothing_set["hub"] == "boilerplate"
+
+
+def test_run_py_claims_this_apps_identity_before_any_hub_facing_import():
+    """THE FORK POINT. Read run.py's source, not the environment.
+
+    An env-based assertion would pass on any developer machine that happens
+    to export SATELLITE_APP_KEY, and on Render where the dashboard sets it —
+    which is precisely the configuration whose absence this line exists to
+    survive. So this reads the file: the `setdefault` must be there, must
+    name this app, and must sit above the first hub-facing import.
+    """
+    import ast
+    import pathlib
+
+    source = pathlib.Path(__file__).resolve().parent.parent / "run.py"
+    tree = ast.parse(source.read_text(encoding="utf-8"))
+
+    claim_line = None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if not (isinstance(func, ast.Attribute) and func.attr == "setdefault"):
+            continue
+        if len(node.args) != 2:
+            continue
+        key, value = node.args
+        if getattr(key, "value", None) == "SATELLITE_APP_KEY":
+            assert getattr(value, "value", None) == "flows", (
+                f"the fork point claims {value.value!r}, not 'flows' — this "
+                "site's traffic would file under another app's hub row"
+            )
+            claim_line = node.lineno
+
+    assert claim_line, (
+        "run.py has no os.environ.setdefault(\"SATELLITE_APP_KEY\", \"flows\") "
+        "— the byte-identical reporter would fall back to \"boilerplate\" and "
+        "this site's traffic would land on the template's hub row"
+    )
+
+    first_hub_import = min(
+        node.lineno
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.Import, ast.ImportFrom))
+        for name in (
+            [node.module or ""] if isinstance(node, ast.ImportFrom)
+            else [a.name for a in node.names]
+        )
+        if "satellite_reporter" in name or "hub_client" in name
+        or "bulletin" in name or "ad_client" in name
+    )
+    assert claim_line < first_hub_import, (
+        f"the fork point is on line {claim_line}, below the first hub-facing "
+        f"import on line {first_hub_import} — modules that read the key at "
+        "import time would already have taken the fallback"
+    )
+
+
+def test_every_hub_surface_names_this_app_the_same_way(app_module):
+    """One id on every hub surface, measured on the RUNNING app.
+
+    Four modules present an identity to the hub and each carries its own
+    fallback, so they can drift apart without anything failing — the symptom
+    is a column on /admin/ad-board that does not line up with /traffic, which
+    nobody reconciles. Requesting `app_module` is the point: this asserts the
+    state after run.py's fork point has executed, which is the state the
+    deployed process is actually in.
+    """
+    from lib import ad_client, bulletin, hub_client, satellite_reporter
+
+    assert ad_client.APP_ID == "flows"
+    assert satellite_reporter.app_key() == "flows"
+    assert hub_client.app_id() == "flows"
+    assert bulletin.app_id() == "flows"
 
 
 def test_a_bad_ttl_falls_back_rather_than_crashing_the_boot(monkeypatch):

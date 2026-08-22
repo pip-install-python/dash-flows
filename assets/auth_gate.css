@@ -1,0 +1,6 @@
+/* Teaser demos inside the auth gate card (lib/auth_demos.py) reuse the docs'
+   exec examples verbatim — some carry fixed pixel widths sized for the full
+   docs page. Clamp them to the card. */
+.auth-gate-demo > * {
+    max-width: 100% !important;
+}

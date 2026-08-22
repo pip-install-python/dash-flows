@@ -202,27 +202,48 @@ input:invalid {
     }
 }
 
-.m_b8a05bbd {
-    margin-top: 80px !important;
-    height: 63vh !important;
-}
+/* NEVER style Mantine's hashed .m_* classes — they are private internals,
+   version-coupled by construction. A rule that stops matching after a bump
+   fails silently; one that STARTS matching applies geometry to the wrong
+   component. Four fossils from the dmc-docs fork era lived here until this
+   pass, and resolving each against the DMC 2.8 bundle is what showed how
+   little they were doing:
 
-div .m_46b77525 {
-    margin-top: calc(0.5rem* var(--mantine-scale)) !important;
-}
+     .m_b8a05bbd  Drawer content — `margin-top: 80px; height: 63vh` is the
+                  exact pinning that left emojimart's drawer stuck at 63vh.
+                  The network-standard drawer is full-height and sets its
+                  own geometry from components/navbar.py, so this rule is
+                  now actively wrong rather than merely private. Dropped.
+     .m_46b77525  an !important margin on EVERY Input.Wrapper site-wide,
+                  from a fork that had one form. Dropped.
+     .m_5caae85b  not present in DMC 2.8 at all — a rule that has been
+                  matching nothing for at least two majors. Dropped.
+     .m_9cdde9a   AppShell aside, restating Mantine's own declarations for
+                  width/transform/z-index. Its one intentful pixel is
+                  rescued onto the static selector below.
 
-.m_5caae85b {
-    position: absolute !important;
-    top: calc(0.3125rem* var(--mantine-scale));
-    inset-inline-end: calc(0.3125rem* var(--mantine-scale));
-    z-index: 1;
-}
+   tests/test_css_hygiene.py now fails on any hashed selector; use the
+   static mantine-<Component>-<part> classes like the rule below. */
 
-.m_9cdde9a {
-    inset-inline-end: 0;
-    width: var(--app-shell-aside-width);
-    transform: var(--app-shell-aside-transform);
-    z-index: var(--app-shell-aside-z-index);
+/* Rank the AppShell sections: the aside under the header, always.
+   The Clerk avatar dropdown renders INSIDE the header, so no z-index on the
+   menu itself (it ships with 10000 inline) can lift it above anything that
+   outranks the header's own stacking context — and Mantine gives the aside
+   calc(shell + 1), later in the DOM, so the open menu painted underneath
+   the Table of Contents.
+
+   Overriding --app-shell-aside-z-index on the shell root does NOT work:
+   Mantine stamps that variable INLINE on the <aside> element itself, and an
+   element's own inline declaration beats anything inherited. The inline
+   style only carries the variable though — the z-index PROPERTY comes from
+   the stylesheet — so overriding the property on the section wins. Static
+   selector per the DMC Styles API guidance (never the hashed m_* classes).
+   10 keeps the aside above page content and below every piece of chrome. */
+aside.mantine-AppShell-aside {
+    z-index: 10 !important;
+    /* Rescued from the retired .m_9cdde9a fossil: the one intentful pixel
+       in that copied block was this breathing gap between the header line
+       and the top of the TOC. */
     margin-top: 15px;
 }
 

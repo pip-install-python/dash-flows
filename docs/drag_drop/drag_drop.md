@@ -4,6 +4,7 @@ description: Drag nodes from a palette onto the canvas, and create nodes by drop
 endpoint: /drag-drop
 package: dash_flows
 icon: mdi:drag-variant
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Drag & Drop

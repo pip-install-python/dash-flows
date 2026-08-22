@@ -60,6 +60,23 @@ def _default_tier() -> str:
 # endpoint -> tier, populated from frontmatter as pages/markdown.py loads docs.
 _LOCAL_TIERS: Dict[str, str] = {}
 
+# endpoint -> machine-surface openness, the SECOND axis. `tier` answers "who
+# may use the page in a browser"; `llms_public` answers "does the machine
+# twin (/<page>/llms.txt, crawler HTML, the prerender) stay open anyway".
+# The split exists so the fleet can gate the interactive experience for
+# humans while the 30-day crawl-demand window keeps measuring agents — and
+# so the later agent flip is one env change (`LLMS_PUBLIC_DEFAULT=0`), not a
+# code change. Only meaningful on `auth` pages: `public` needs no exemption,
+# and `admin`/`hidden` must never leak through a machine surface.
+_LOCAL_LLMS_PUBLIC: Dict[str, bool] = {}
+
+_FALSE_VALUES = ("0", "false", "no", "off")
+
+
+def _default_llms_public() -> bool:
+    raw = (os.getenv("LLMS_PUBLIC_DEFAULT") or "").strip().lower()
+    return raw not in _FALSE_VALUES if raw else True
+
 
 def normalize(path: str) -> str:
     """One canonical path form, so registration and lookup cannot disagree."""
@@ -69,8 +86,14 @@ def normalize(path: str) -> str:
     return path.rstrip("/") or "/"
 
 
-def register(path: str, tier: Optional[str]) -> str:
-    """Record a page's locally declared tier. Returns the tier applied."""
+def register(path: str, tier: Optional[str],
+             llms_public: Optional[bool] = None) -> str:
+    """Record a page's locally declared tier. Returns the tier applied.
+
+    ``llms_public`` pins the machine-surface axis for this page; ``None``
+    (the overwhelmingly common case) defers to ``LLMS_PUBLIC_DEFAULT`` at
+    lookup time, so flipping the env flips every undeclared page at once.
+    """
     resolved = (tier or _default_tier()).strip().lower()
     if resolved not in TIERS:
         logger.warning(
@@ -79,7 +102,23 @@ def register(path: str, tier: Optional[str]) -> str:
         )
         resolved = _default_tier()
     _LOCAL_TIERS[normalize(path)] = resolved
+    # Declarative: a registration fully describes the page, so None does not
+    # mean "keep whatever was pinned before" — it clears the pin and defers
+    # to the env default again.
+    if llms_public is None:
+        _LOCAL_LLMS_PUBLIC.pop(normalize(path), None)
+    else:
+        _LOCAL_LLMS_PUBLIC[normalize(path)] = bool(llms_public)
     return resolved
+
+
+def get_llms_public(path: str) -> bool:
+    """Whether ``path``'s machine twin stays open to anonymous fetches.
+
+    Read at verdict time, not registration time, so `LLMS_PUBLIC_DEFAULT`
+    governs every page that did not pin the axis in frontmatter.
+    """
+    return _LOCAL_LLMS_PUBLIC.get(normalize(path), _default_llms_public())
 
 
 def local_tier(path: str) -> str:

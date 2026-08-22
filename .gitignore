@@ -298,3 +298,8 @@ __pycache__/
 /satellite_traffic.jsonl
 /satellite_traffic.jsonl.tmp
 /.satellite_traffic.jsonl.claim-*
+
+# Server-side session store. dash-clerk-auth's configure_app(app) creates
+# this at boot when Clerk is configured; it holds live session data and
+# belongs on the instance, never in the repo.
+flask_session/

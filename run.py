@@ -42,13 +42,40 @@ from dotenv import load_dotenv
 # to its default no matter what the file says.
 load_dotenv()
 
+# THE FORK POINT — claim this app's network identity before any hub-facing
+# module imports. Every module that names this app (satellite_reporter,
+# ad_client, hub_client, bulletin) carries its own fallback default, and
+# after a template sync those defaults DISAGREE: lib/satellite_reporter.py
+# is kept BYTE-IDENTICAL to the boilerplate's (shasum is the acceptance
+# check for the whole fleet), so its own fallback says "boilerplate" while
+# this fork's other modules say "flows". An unset SATELLITE_APP_KEY would
+# then file this site's traffic under the TEMPLATE's hub row — found live
+# on pannellum 2026-08-21, and this repo has its own contamination in the
+# hub's history from the same class.
+#
+# setdefault, not assignment: a real env value (Render dashboard, .env
+# loaded immediately above) always wins; this line only closes the unset
+# gap. FORKS CHANGE THIS ONE STRING — and repairing the reporter's
+# fallback instead would break the byte-identity the fleet checks.
+#
+# Supersedes the retired SATELLITE_APP_ID mechanism: that name is dead
+# network-wide, and any lingering SATELLITE_APP_ID in a service's env is
+# read by nothing.
+os.environ.setdefault("SATELLITE_APP_KEY", "flows")
+
 from lib import bulletin, network_directory  # noqa: E402
 from lib.analytics_tracker import tracker  # noqa: E402
 from lib.backend import resolve_backend, get_backend_info  # noqa: E402
 from lib.constants import (  # noqa: E402
     APP_VERSION,
     DOCS_BASE_URL,
+    OG_IMAGE_ALT,
+    OG_IMAGE_HEIGHT,
+    OG_IMAGE_URL,
+    OG_IMAGE_WIDTH,
     ORIGIN_PLACEHOLDER,
+    PUBLISHER,
+    SAME_AS,
     SITE_BRAND,
     SITE_DESCRIPTION,
     require_owned_base_url,
@@ -60,17 +87,32 @@ from lib.pageview_beacon import (  # noqa: E402
 
 from dash_improve_my_llms import (  # noqa: E402
     add_llms_routes,
+    configure_seo,
     LLMSConfig,
     RobotsConfig,
     register_page_metadata,
 )
 
-# dash-improve-my-llms floor. 2.3.4 ships `resolve_site_title` (the /llms.txt
-# H1 + viewer brand chip); 2.3.3 fixed the crawler taxonomy in robots.txt.
-# Below the floor those surfaces silently publish the wrong identity, so the
-# app refuses to boot rather than serve them — override with ALLOW_STALE_DEPS=1
-# for local archaeology only.
-LLMS_PKG_FLOOR = (2, 3, 4)
+# dash-improve-my-llms floor. Below it this site's published surfaces are
+# wrong in ways nothing about the running app looks wrong, so it refuses to
+# boot rather than serve them — override with ALLOW_STALE_DEPS=1 for local
+# archaeology only.
+#
+#   2.3.4  resolve_site_title (the /llms.txt H1 + viewer brand chip);
+#          2.3.3 had fixed the crawler taxonomy in robots.txt.
+#   2.5.1  configure_seo: icons, social card, publisher/sameAs.
+#   2.6.0  configure_access — the enforcement half lib/access.py wires, so
+#          the prerender obeys a page's tier rather than publishing gated
+#          prose to crawlers.
+#   2.6.1  the prerender guarantee: the block is served VISIBLE (<= 2.6.0
+#          shipped it `hidden`, so visibility-respecting extractors read
+#          the whole site as "Loading..."), hidden again by a synchronous
+#          script only JS browsers run.
+#
+# THIS NUMBER LIVES IN FIVE PLACES — requirements-docs.txt, here,
+# ci.yml (the host check and the in-image check) and tests/test_config.py.
+# Grep the number, not the file.
+LLMS_PKG_FLOOR = (2, 6, 1)
 try:
     from importlib.metadata import version as _pkg_version
 
@@ -83,7 +125,7 @@ if _llms_version < LLMS_PKG_FLOOR and os.environ.get("ALLOW_STALE_DEPS") != "1":
     raise RuntimeError(
         f"dash-improve-my-llms {'.'.join(map(str, _llms_version))} is below "
         f"the network floor {'.'.join(map(str, LLMS_PKG_FLOOR))}. "
-        "pip install -U 'dash-improve-my-llms[flask]>=2.3.4' "
+        "pip install -U 'dash-improve-my-llms[flask]>=2.6.1' "
         "(or set ALLOW_STALE_DEPS=1 to boot anyway)."
     )
 
@@ -107,6 +149,26 @@ _index_string = open(os.path.join("templates", "index.html")).read().replace(
     ORIGIN_PLACEHOLDER, DOCS_BASE_URL
 )
 
+# ----------------------------------------------------------------------------
+# Clerk satellite auth, HALF ONE OF TWO. MUST run BEFORE Dash(...) —
+# register_clerk_auth installs @dash.hooks callbacks that fire during app
+# construction, so calling it afterwards silently does nothing. Fully
+# optional: a no-op with no CLERK_* keys, which is the default and the
+# posture this site ships in.
+#
+# The other half is `_auth.configure_app(app)` immediately after Dash(...).
+# SHIPPING ONE WITHOUT THE OTHER MAKES THE SITE LIE: the components render
+# and ClerkJS reports signed-in while every server render reads signed-out,
+# so a gated page serves its owner a sign-in card forever, /api/auth/*
+# answers 405 through Dash's GET-only page catch-all, and sign-out never
+# revokes. Invisible to every local suite, because Clerk is off in test
+# environments and configure_app no-ops without keys — which is why
+# tests/test_auth_wiring.py pins BOTH calls by AST instead.
+# ----------------------------------------------------------------------------
+from lib import auth as _auth  # noqa: E402
+
+CLERK_ENABLED = _auth.register()
+
 _dash_kwargs = dict(
     use_pages=True,
     suppress_callback_exceptions=True,
@@ -124,6 +186,34 @@ try:
     app = Dash(__name__, backend=BACKEND, **_dash_kwargs)
 except TypeError:
     app = Dash(__name__, **_dash_kwargs)
+
+# Clerk satellite auth, HALF TWO OF TWO — see the block above Dash(...) for
+# why shipping only the first half makes the site lie. dash-clerk-auth splits
+# its setup either side of the constructor: sessions, the /api/auth/* routes
+# and per-request identity are wired here. No-op when Clerk is off.
+_auth.configure_app(app)
+
+# ----------------------------------------------------------------------------
+# Trust the proxy's forwarded scheme. Immediately after the server object
+# exists and before anything can serve a request.
+#
+# Dash builds `twitter:url` from `request.url` for every page, and behind
+# Cloudflare -> Render the last hop is plain HTTP, so production advertised
+# `http://flows.2plot.dev/` to every social scraper while `og:url` (which
+# templates/index.html hard-codes) looked correct — measured live on this
+# host 2026-08-22, before this pass. Scrapers do not run JavaScript, so the
+# client-side canonical sync in the template cannot reach this. See
+# lib/proxy.py for why gunicorn's own forwarded-header handling does not
+# cover it, and for the trust boundary.
+# ----------------------------------------------------------------------------
+from lib import proxy as _proxy  # noqa: E402
+
+PROXY_FIX_APPLIED = _proxy.apply(app, BACKEND)
+print(
+    "[dash-flows docs] forwarded-scheme trust: "
+    + ("on" if PROXY_FIX_APPLIED else "OFF — request.url will report the "
+       "scheme of the last proxy hop, and social cards will advertise it")
+)
 
 # Expose backend info so UI components can render a badge without re-reading env.
 app._backend_info = BACKEND_INFO
@@ -159,6 +249,48 @@ register_page_metadata(
 )
 
 # ============================================================================
+# Site identity for the CRAWLER document (dash-improve-my-llms >= 2.5.0).
+#
+# The crawler document carried this site's content signals and NONE of its
+# identity: measured here 2026-08-22, browsers got seven icon links, an
+# og:image and a Twitter card from templates/index.html while Googlebot got
+# publisher: no, sameAs: no, logo: no. One declaration covers every crawler
+# surface, and it also claims /favicon.ico (Google's fallback), which was
+# answering 404 on this host. Content may differ between the crawler
+# document and the browser document; identity may not.
+#
+# The icons list is SET-EQUAL to what 2.6's autodiscovery already finds in
+# assets/favicon/ — verified against the crawler head, and pinned by
+# tests/test_seo_icons.py. That agreement is the point: the explicit list is
+# authoritative today, and stays correct rather than fighting discovery.
+#
+# NO root assets/favicon.ico is added, deliberately. dimll answers
+# /favicon.ico with a 302 to the real file (verified), so the fallback is
+# covered — while a second, unreferenced copy at the root is precisely the
+# root-icon trap: two byte-identical files that stay identical until one is
+# regenerated and the other silently is not.
+# ============================================================================
+configure_seo(
+    icons=[
+        # Same paths templates/index.html links, so the two heads agree.
+        "/assets/favicon/favicon.ico",
+        {"href": "/assets/favicon/favicon-32x32.png", "sizes": "32x32"},
+        {"href": "/assets/favicon/favicon-16x16.png", "sizes": "16x16"},
+        {"href": "/assets/favicon/favicon-96x96.png", "sizes": "96x96"},
+        {"href": "/assets/favicon/android-chrome-192x192.png", "sizes": "192x192"},
+        {"href": "/assets/favicon/android-chrome-512x512.png", "sizes": "512x512"},
+        {"href": "/assets/favicon/apple-touch-icon.png",
+         "rel": "apple-touch-icon", "sizes": "180x180"},
+    ],
+    social_image=OG_IMAGE_URL,
+    social_image_alt=OG_IMAGE_ALT,
+    social_image_width=OG_IMAGE_WIDTH,
+    social_image_height=OG_IMAGE_HEIGHT,
+    publisher=PUBLISHER,
+    same_as=SAME_AS,
+)
+
+# ============================================================================
 # Native routes + visitor tracking — see the ORDER MATTERS note up top.
 # ============================================================================
 
@@ -166,13 +298,27 @@ register_page_metadata(
 def _health_body() -> dict:
     from lib.satellite_reporter import app_key
 
-    return {
+    body = {
         "ok": True,  # the network battery asserts this exact field
         "app": app_key(),
         "version": APP_VERSION,
         "dash": dash.__version__,
         "reporting": bool(os.environ.get("CROSS_APP_WEBHOOK_SECRET")),
     }
+    # Which commit the RUNNING instance was built from — what lets CD verify
+    # the artifact it just shipped rather than whichever build happens to be
+    # answering. A disk-backed Render service restarts with a blip instead of
+    # overlapping instances, so a bare 200 proves nothing about WHICH build
+    # replied: the old build always passed the old battery, and the bug only
+    # surfaced when a run added a new surface (the muicharts finding,
+    # 2026-08-21 — its battery had been verifying the previous release on
+    # every run, invisibly). ADDITIVE and optional: omitted where the platform
+    # variable does not exist, so the fleet's probe contract is unchanged and
+    # the battery's existing field assertions keep passing.
+    build = os.environ.get("RENDER_GIT_COMMIT")
+    if build:
+        body["build"] = build
+    return body
 
 
 register_pageview_route(app, BACKEND)
@@ -235,19 +381,51 @@ else:
             pass
 
 
+# ============================================================================
+# Access control (dash-improve-my-llms >= 2.6.0). Reads the tiers the pages
+# just declared, so it must run after they are registered and before the
+# routes are attached. The policy and the reasoning live in lib/access.py.
+#
+# This block is the enforcement half. Until this pass the registration above
+# was DECLARATION ONLY — the instrument-never-meter posture of the 30-day
+# data window. The window's rule still holds where it matters: no metering,
+# no 402, no day scope. What arrives here is the interactive sign-in gate,
+# shipped DARK (PAGE_DEFAULT_TIER=public), with the flip left to env.
+# ============================================================================
+
+from lib import access as _access  # noqa: E402
+from lib import page_tiers as _page_tiers  # noqa: E402
+from lib import page_visibility as _page_visibility  # noqa: E402
+
 # Tiered corpus documents (dash-improve-my-llms >= 2.4.0). Pseudo-paths:
 # they never enter dash.page_registry, so they cannot leak into listings —
 # registering them here lets this satellite tier its compact briefing and
-# full corpus via env (LLMS_SMALL_TIER / LLMS_FULL_TIER; unset = the
-# default tier, i.e. public), and the hub can tighten either network-wide
-# through its page-tier ceilings with no redeploy here. Inert on older
-# package versions. Registration is declaration only on this fork — the
-# enforcement half (the boilerplate's lib/access.py) is not ported; it
-# lands with the metering pass, after the 30-day data window.
-from lib import page_tiers as _page_tiers  # noqa: E402
+# full corpus via env (LLMS_SMALL_TIER / LLMS_FULL_TIER), and the hub can
+# tighten either network-wide through its page-tier ceilings with no
+# redeploy here. The explicit `or "public"` matters: these used to register
+# under the PAGE_DEFAULT_TIER fallback, which meant flipping that env to
+# gate the *interactive* site would silently gate the corpus documents too.
+# Machine surfaces stay public through the window, by decision — so their
+# tier is now always a deliberate setting, never an ambient default.
+_page_tiers.register("/llms-small.txt",
+                     os.environ.get("LLMS_SMALL_TIER") or "public")
+_page_tiers.register("/llms-full.txt",
+                     os.environ.get("LLMS_FULL_TIER") or "public")
 
-_page_tiers.register("/llms-small.txt", os.environ.get("LLMS_SMALL_TIER"))
-_page_tiers.register("/llms-full.txt", os.environ.get("LLMS_FULL_TIER"))
+# The home page registers via pages/home.py, not pages/markdown.py, so no
+# frontmatter ever declares its tier — under PAGE_DEFAULT_TIER=auth it would
+# silently inherit the gate. The funnel's front door stays public, always.
+_page_tiers.register("/", "public")
+
+# force= when either gate env is present: with every tier still public the
+# auto-detect would skip the wiring, but a host that flips by env needs the
+# verdict plumbing (and the prerender's use of it) live during the dark
+# launch, not on the flip. A host that flips without it wired would
+# prerender gated prose to crawlers — the ordering rule from the plan.
+ACCESS_ENABLED = _access.configure(
+    force=bool(os.environ.get("PAGE_DEFAULT_TIER")
+               or os.environ.get("LLMS_PUBLIC_DEFAULT"))
+)
 
 # Wires /llms.txt, /<page>/llms.txt, /robots.txt, /sitemap.xml and
 # bot-detection middleware. Pages (home + every docs/*.md) were already
@@ -296,6 +474,36 @@ app.layout = create_appshell(dash.page_registry.values())
 register_pageview_beacon()
 
 server = app.server
+
+# ============================================================================
+# The person -> agent handoff: /api/agent-key turns the browser's Clerk
+# session into a portable ?key= for copied llms.txt URLs (lib/agent_key.py).
+# 204 for everyone until Clerk and the hub are configured, so it is safe to
+# mount unconditionally — and mounting it always is what keeps the route off
+# Dash's GET-only page catch-all, which would otherwise answer it with the
+# app shell at 200 and look like a working endpoint.
+# ============================================================================
+
+from lib.agent_key import register_agent_key_route  # noqa: E402
+
+register_agent_key_route(app, BACKEND)
+
+# The three-absences-and-one-presence acceptance check for this host's
+# deploy: THIS line present and naming the dimll floor, no [visibility]
+# warning from lib/page_visibility, and no [auth] warning from lib/auth.
+_non_public = sum(1 for t in _page_tiers.registered().values() if t != "public")
+print(
+    f"[flows] interactive gate: default tier "
+    f"'{os.environ.get('PAGE_DEFAULT_TIER') or 'public'}', "
+    f"{_non_public} non-public page(s), machine surfaces "
+    f"{'GATED' if not _page_tiers.get_llms_public('/__probe__') else 'open'} "
+    f"by default (LLMS_PUBLIC_DEFAULT), access wiring "
+    f"{'ON' if ACCESS_ENABLED else 'off'}, clerk "
+    f"{'ON' if CLERK_ENABLED else 'off'}, dimll "
+    f"{'.'.join(map(str, _llms_version))}, control board at "
+    f"/admin/control-board ({_page_visibility.override_count()} live "
+    f"override(s))."
+)
 
 # Hourly signed rollup POSTed to 2plot.ai so the hub's owner-only /traffic
 # dashboard can chart this app alongside the network. No-op unless

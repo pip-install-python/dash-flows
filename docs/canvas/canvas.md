@@ -4,6 +4,7 @@ description: Background variants, zoom/pan controls, the minimap, and viewport c
 endpoint: /canvas
 package: dash_flows
 icon: mdi:card-outline
+lastmod: 2026-07-01
 ---
 
 .. llms_copy::Canvas & Controls
