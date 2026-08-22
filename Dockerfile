@@ -6,7 +6,7 @@
 # Node/webpack build is needed: this is a pure-Python image that serves the
 # pre-built Dash app with gunicorn. node_modules/ is excluded via .dockerignore.
 # ---------------------------------------------------------------------------
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # PYTHONUNBUFFERED   -> stream logs straight to stdout (Render shows them live)
 # PYTHONDONTWRITEBYTECODE -> no .pyc clutter in the image
