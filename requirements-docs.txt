@@ -95,7 +95,7 @@ clerk-backend-api>=7.0.0,<8
 cryptography>=50.0.0
 
 python-dotenv>=1.0.0          # DASH_BACKEND / .env support in lib/backend.py
-requests>=2.27.1              # 2plot.dev ad-network client (lib/ad_client.py) +
+requests>=2.34.2              # 2plot.dev ad-network client (lib/ad_client.py) +
                               # 2plot.ai traffic rollups (lib/satellite_reporter.py)
 
 # The component library under test (installed from this repo).
