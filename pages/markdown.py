@@ -96,9 +96,21 @@ def _expand_source_directives(markdown_content: str) -> str:
     `/<page>/llms.txt`. Replacing the directive with the real file content
     is what makes the LLM output self-contained for the "paste into a chat
     window" audience.
+
+    FENCE-AWARE, and it has to be: a directive INSIDE a fenced code block is
+    documentation showing the syntax, not a directive to act on. Expanding
+    one injects a ```python fence inside the already-open fence, which
+    CLOSES it early — from there the inlined file renders as markdown, every
+    `# comment` line in it becomes an <h1>, and the machine lane of the page
+    serves broken structure. The template shipped that bug on every fork
+    that teaches `.. source::` inside a ```markdown fence (found 2026-08-23
+    by the every-page single-h1 pin; the browser lane was never affected,
+    markdown2dash parses fences properly). No doc in THIS repo currently
+    teaches the directive that way, so the fix is prophylactic here — which
+    is exactly when it is cheap to take.
     """
-    def replace(match: re.Match) -> str:
-        file_path = match.group(1).strip()
+    def expansion(directive_line: str) -> str:
+        file_path = _SOURCE_DIRECTIVE.match(directive_line).group(1).strip()
         try:
             full = Path(file_path)
             content = full.read_text()
@@ -111,7 +123,19 @@ def _expand_source_directives(markdown_content: str) -> str:
         except Exception as exc:
             return f'\n<!-- Error reading {file_path}: {exc} -->\n'
 
-    return _SOURCE_DIRECTIVE.sub(replace, markdown_content)
+    out: List[str] = []
+    fence = None  # the marker that opened the block we are inside, if any
+    for line in markdown_content.split('\n'):
+        head = line.lstrip()[:3]
+        if fence is None and head in ('```', '~~~'):
+            fence = head
+        elif fence is not None and head == fence:
+            fence = None
+        elif fence is None and _SOURCE_DIRECTIVE.match(line):
+            out.append(expansion(line))
+            continue
+        out.append(line)
+    return '\n'.join(out)
 
 
 def _build_llms_doc(name: str, description: str, expanded_markdown: str, path: str) -> str:

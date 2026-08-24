@@ -108,11 +108,22 @@ from dash_improve_my_llms import (  # noqa: E402
 #          shipped it `hidden`, so visibility-respecting extractors read
 #          the whole site as "Loading..."), hidden again by a synchronous
 #          script only JS browsers run.
+#   2.7.0  dedup + hardening of that block: the injected prerender H1 no
+#          longer doubles the doc body's own markdown H1 (every page was a
+#          duplicate-H1 page to crawlers), the home footer stops doubling
+#          its /llms.txt link, and the idempotency probe no longer trips on
+#          a page that merely MENTIONS the marker — the trap that silently
+#          disabled this host's prerender from an index.html comment. Also
+#          ships the geo guardrail seam _health_body() reports.
+#   2.7.1  the round-3 network floor: llms.txt v2 discovery relations
+#          (rel=alternate/describedby on both lanes + Link headers), the
+#          Accept: text/plain ramp, and the representation content digest.
 #
 # THIS NUMBER LIVES IN FIVE PLACES — requirements-docs.txt, here,
 # ci.yml (the host check and the in-image check) and tests/test_config.py.
-# Grep the number, not the file.
-LLMS_PKG_FLOOR = (2, 6, 1)
+# Grep the number, not the file. The requirements-docs.txt line is also the
+# Docker cache bust; a floor that moves only here rebuilds nothing.
+LLMS_PKG_FLOOR = (2, 7, 1)
 try:
     from importlib.metadata import version as _pkg_version
 
@@ -125,7 +136,15 @@ if _llms_version < LLMS_PKG_FLOOR and os.environ.get("ALLOW_STALE_DEPS") != "1":
     raise RuntimeError(
         f"dash-improve-my-llms {'.'.join(map(str, _llms_version))} is below "
         f"the network floor {'.'.join(map(str, LLMS_PKG_FLOOR))}. "
-        "pip install -U 'dash-improve-my-llms[flask]>=2.6.1' "
+        "Below 2.7.1 the llms.txt v2 discovery relations (rel=alternate/"
+        "describedby + Link headers), the text/plain Accept ramp and the "
+        "representation digest are missing. Below 2.7.0 every page serves a "
+        "DUPLICATE H1 to crawlers, the home footer doubles its /llms.txt "
+        "link, and a page that merely mentions the prerender marker loses "
+        "its prerender entirely. Below 2.6.1 the prerender ships `hidden`, "
+        "so every visibility-respecting reader gets 'Loading...' instead of "
+        "the page's prose. "
+        "pip install -U 'dash-improve-my-llms[flask]>=2.7.1' "
         "(or set ALLOW_STALE_DEPS=1 to boot anyway)."
     )
 
@@ -295,7 +314,53 @@ configure_seo(
 # ============================================================================
 
 
-def _health_body() -> dict:
+def _resolved_country(headers=None) -> str:
+    """``geo.explain_resolution`` over THIS request's headers, or a reason.
+
+    Reads the request headers directly rather than anything the package
+    threads through, so it answers "did the country header reach this app at
+    all?" independently of how the enforcement seam is wired.
+
+    Each backend below hands its OWN framework's headers in. The template's
+    first cut read Flask's request context unconditionally, which made the
+    FastAPI and Quart lanes answer "no request context" forever — pannellum's
+    production /healthz is where that showed (2026-08-23). This site deploys
+    flask, so it would never have been bitten; the explicit hand-through is
+    ported anyway because DASH_BACKEND is a supported env var here and a
+    diagnostic that only works on the default backend is the kind of thing
+    nobody discovers until they need it. ``normalize_headers`` accepts
+    Flask/Starlette/Quart/dict and never raises; the Flask-context fallback
+    stays for callers that pass nothing.
+    """
+    try:
+        from dash_improve_my_llms import geo
+        from dash_improve_my_llms._headers import normalize_headers
+    except Exception:
+        return "unavailable (pre-2.7.0 package)"
+
+    try:
+        if headers is not None:
+            return geo.explain_resolution(normalize_headers(headers))
+
+        from flask import has_request_context, request
+
+        if not has_request_context():
+            return "no request context"
+        return geo.explain_resolution(normalize_headers(request.headers))
+    except Exception:
+        return "unavailable"
+
+
+def _health_body(headers=None) -> dict:
+    """Built PER REQUEST, never snapshotted at registration.
+
+    Every field here used to be static for a running process, which made a
+    snapshot look harmless — and `geo` is the field that stops being static:
+    this route is registered well before the access/geo configuration below
+    runs, so a value captured at registration would report the guardrail
+    unconfigured on a host where it IS configured. That is the diagnostic
+    lying in exactly the situation it exists for.
+    """
     from lib.satellite_reporter import app_key
 
     body = {
@@ -318,17 +383,53 @@ def _health_body() -> dict:
     build = os.environ.get("RENDER_GIT_COMMIT")
     if build:
         body["build"] = build
+
+    # The geo guardrail's LIVE state (dash-improve-my-llms >= 2.7.0). Added
+    # after a production verification elsewhere on the network could not
+    # answer "is the denylist actually in force?" from outside: the only
+    # surfaces that could settle it (the boot log, the operator panel) need
+    # credentials a verification pass does not have.
+    #
+    # COUNTS AND FLAGS ONLY — never the denylist's country codes. A health
+    # endpoint is not where anyone should learn policy. `resolved` reveals
+    # only the caller's own country back to them, which Cloudflare's
+    # /cdn-cgi/trace already does, and it is the one check that localises a
+    # failure: geo can be fully configured and still never match if the
+    # country header is not reaching the app. "configured: true, denied: 7,
+    # resolved: unknown" says that in one line.
+    try:
+        from dash_improve_my_llms import geo
+    except ImportError:
+        # Pre-2.7 package: the key is OMITTED, not error-flagged. A host on
+        # an older floor is not broken, it predates the diagnostic — and its
+        # absence in production is precisely how this site can tell that a
+        # floor bump did NOT reach the image (the Docker cache trap).
+        pass
+    else:
+        try:
+            body["geo"] = {
+                "configured": bool(geo.is_configured()),
+                "denied": len(geo.effective_policy().get("deny_countries") or []),
+                "resolved": _resolved_country(headers),
+            }
+        except Exception:  # never let a diagnostic break the health probe
+            body["geo"] = {"configured": False, "denied": 0, "error": True}
+
     return body
 
 
 register_pageview_route(app, BACKEND)
 
 if BACKEND == "fastapi":
+    from starlette.requests import Request as _StarletteRequest
     from starlette.responses import JSONResponse
 
     @app.server.get("/healthz", include_in_schema=False)
-    async def healthz():  # pragma: no cover — flask is the deployed backend
-        return JSONResponse(_health_body())
+    async def healthz(request: _StarletteRequest):  # pragma: no cover — flask deploys
+        # The request's headers go WITH the payload: geo's `resolved` reads
+        # the country header from THIS request, and _health_body's
+        # Flask-context fallback can never see a Starlette one.
+        return JSONResponse(_health_body(headers=request.headers))
 
 elif BACKEND == "quart":
     from quart import jsonify as _quart_jsonify
@@ -336,7 +437,7 @@ elif BACKEND == "quart":
 
     @app.server.get("/healthz")
     async def healthz():  # pragma: no cover — flask is the deployed backend
-        return _quart_jsonify(_health_body())
+        return _quart_jsonify(_health_body(headers=_quart_request.headers))
 
     @app.server.before_request
     async def track_visitor():  # pragma: no cover
@@ -363,7 +464,7 @@ else:
         write time, because Render probes it far more often than anyone reads
         the docs.
         """
-        return _flask_jsonify(_health_body())
+        return _flask_jsonify(_health_body(headers=_flask_request.headers))
 
     # Headers are passed so the tracker can read the real client IP and
     # country from the proxy: behind Render or Cloudflare, `remote_addr` is

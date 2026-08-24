@@ -13,6 +13,23 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    # Version-update PRs are restricted to the network packages — the drift
+    # alarm this file exists for. Without this allow-list, dependabot also
+    # proposes FLOOR-RAISES for every other requirement (gunicorn >=23 →
+    # >=26, cryptography >=50 → >=51, ...). Those floors encode
+    # minimum-compatibility knowledge — the gunicorn floor IS the
+    # CVE-2024-6827/CVE-2024-1135 fact, the cryptography floor IS the Clerk
+    # SDK 5.x advisory fact — the resolver already installs the latest
+    # release under them, and raising one erases its meaning while adding
+    # nothing. This fork opened six such PRs on its first push after the
+    # gate wave (mistune, python-frontmatter, requests, dash, gunicorn,
+    # dash-improve-my-llms, 2026-08-22). SECURITY updates are unaffected:
+    # they arrive through GitHub's separate security-update channel
+    # regardless of this list.
+    allow:
+      - dependency-name: "dash*"
+      - dependency-name: "plotly*"
+      - dependency-name: "markdown2dash"
     groups:
       dash-network:
         patterns:

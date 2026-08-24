@@ -53,11 +53,32 @@ gunicorn>=23.0.0
 #          present and invisible, the worst of both. 2.6.1 serves it
 #          visible and hides it with a synchronous inline script only JS
 #          browsers run. tests/test_prerender.py pins the served shape.
+#   2.7.0  Deduplication and hardening of that same block: the prerender
+#          H1 no longer doubles the doc body's own markdown H1 (every page
+#          was a duplicate-H1 page in a crawler's eyes), the home footer
+#          stops printing its /llms.txt link twice, and the idempotency
+#          probe is hardened so a page that merely MENTIONS the marker
+#          keeps its prerender. THIS HOST PAID FOR THAT LAST ONE: the
+#          marker sat in an index.html comment here and silently disabled
+#          the universal prerender site-wide until 2026-08-22. The
+#          hardening is a second line of defence, not a licence — the
+#          template rule (never spell the marker in served text) and
+#          tests/test_prerender.py both still stand.
+#   2.7.1  THE ROUND-3 NETWORK FLOOR. llms.txt v2 discovery relations
+#          (rel=alternate/describedby on both the browser and machine
+#          lanes, plus matching Link headers), the Accept: text/plain
+#          content ramp, and the representation content digest — the
+#          surfaces the network's agent lane composes over.
 #
 # GREP THE NUMBER, NOT THE FILE, when bumping this: the floor is also
 # encoded in run.py's boot assertion, in .github/workflows/ci.yml (twice —
 # the host check and the in-image check) and in tests/test_config.py.
-dash-improve-my-llms[flask]>=2.6.1
+#
+# AND REMEMBER THE CACHE TRAP: this line changing IS the Docker cache bust.
+# The requirements layer re-runs only when vendor/ or these bytes change, so
+# a `>=` floor can never pull a newer release through a cache hit — see the
+# CACHE SEMANTICS block in the Dockerfile.
+dash-improve-my-llms[flask]>=2.7.1
 # The other two backends lib/backend.py can select. Commented, not
 # installed: flask is what this site deploys, and pulling three server
 # stacks into every image to support an env var nobody sets is not a
@@ -67,9 +88,9 @@ dash-improve-my-llms[flask]>=2.6.1
 # that promise open, because it is the condition under which the
 # optional-backend imports in lib/ are exempt from the declared-imports
 # guard.
-# dash-improve-my-llms[fastapi]>=2.6.1   # DASH_BACKEND=fastapi
-# dash-improve-my-llms[quart]>=2.6.1     # DASH_BACKEND=quart
-# dash-improve-my-llms[all]>=2.6.1       # all three
+# dash-improve-my-llms[fastapi]>=2.7.1   # DASH_BACKEND=fastapi
+# dash-improve-my-llms[quart]>=2.7.1     # DASH_BACKEND=quart
+# dash-improve-my-llms[all]>=2.7.1       # all three
 
 # Clerk satellite authentication (dash-clerk-auth, vendored — not on PyPI).
 #
