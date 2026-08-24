@@ -12,7 +12,7 @@
 # against the gunicorn>=23 floor below. So it installs with --no-deps and its
 # real dependencies are listed here explicitly instead.
 
-dash[dev]>=4.2.0
+dash[dev]>=4.4.1
 dash-mantine-components>=2.8.0
 dash-iconify>=0.1.2
 
