@@ -29,7 +29,7 @@ pydantic>=2.3.0
 
 # Production WSGI server. Floor is the CVE fix line; CI asserts this version
 # inside the built container image so the markdown2dash pin can't drag it back.
-gunicorn>=23.0.0
+gunicorn>=26.1.0
 
 # AI/LLM & SEO: /llms.txt, /<page>/llms.txt, /robots.txt, /sitemap.xml, the
 # universal prerender and the network directory. Every floor below is
