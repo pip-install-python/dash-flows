@@ -92,6 +92,13 @@ def wired(battery, client, monkeypatch):
 
     monkeypatch.setattr(battery, "fetch_raw", fetch_raw)
     monkeypatch.setattr(battery, "_RESULTS", [])
+    # This seat's interpreter is the SUITE's, not a deploy artifact: /healthz
+    # here reports whichever Python is running pytest, which on a developer
+    # machine or the examples matrix' window legs is deliberately not the
+    # fleet Python. python_matches_declared still proves the field EXISTS;
+    # holding a served interpreter to the Dockerfile's minor is the container
+    # and production seats' job, and both of those are armed.
+    monkeypatch.setattr(battery, "declared_python_minor", lambda: None)
     battery.seen_agents = seen_agents
     return battery
 

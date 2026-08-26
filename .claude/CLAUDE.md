@@ -257,3 +257,78 @@ All Phase 1, 2, and 3 features from the roadmap are now implemented:
 - **ELK Layout Reference**: https://eclipse.dev/elk/reference.html
 - **Iconify Icons**: https://icon-sets.iconify.design/
 - **Pip Install Python**: https://pip-install-python.com
+---
+
+## Network role & the behavioral contract
+
+This repo wears two hats, and the second one is the one this section
+is about. It is the **dash-flows component library** (source of truth
+`src/lib/`, everything above this line) *and* the 2plot-network
+satellite that serves its documentation at **flows.2plot.dev** — a
+fork of dash-documentation-boilerplate, sharing the fleet's run.py,
+`lib/`, `pages/`, `docs/`, CI/CD and contract battery. A prompt about
+nodes, edges or the webpack bundle is library work; a prompt about
+llms.txt, the prerender, the gate, healthz, floors or a template sync
+is satellite work, and satellite work is bound by everything below.
+
+**Identity derives from the repo, never from this file**: the app key
+comes from `SATELLITE_APP_KEY` and run.py's fork point, the host from
+`lib/constants.py`'s `BASE_URL`, the deliberate differences from the
+template from `DIVERGENCES.md` at the repo root. If those disagree
+with anything written here, they win.
+
+### The contract — every session, every prompt
+
+1. **Check the prompt against this tree before executing.** Prompts
+   are written from the template's perspective and your fork may
+   legitimately differ — floors, backends, payload shapes, page
+   sets. A prompt step that doesn't fit this repo is a finding to
+   return, not an instruction to force.
+2. **Corrections are your job, not scope creep.** If a prompt's
+   reference list doesn't match its steps, if its assumed state is
+   wrong, or if executing it as written would produce a
+   green-but-vacuous result, say so and propose the corrected
+   version before running it.
+3. **Verify your own deploy on the wire before reporting.** A push
+   is not a result. Run `/wire-verify` (or its manual equivalent)
+   against production and paste what came back. If your sandbox
+   cannot reach your own domain, say exactly that — an unverified
+   claim marked as unverified is honest; the same claim unmarked is
+   not.
+4. **Report observed versus expected, with evidence.** Paste the
+   JSON, the status code, the test count. "Should work" and summary
+   claims without artifacts are not reports.
+5. **Divergence is legitimate when written down.** Before syncing
+   template changes, read `DIVERGENCES.md`; never let a sync
+   "restore" a recorded deliberate difference. When you deliberately
+   diverge, record it there in the same commit — an unrecorded
+   divergence is indistinguishable from drift and will be treated
+   as drift.
+6. **Never touch**: environment variable VALUES, hosting dashboards,
+   secrets, other repos' trees, or anything the prompt didn't put in
+   scope. Enumerate what you cannot do (closing PRs, dashboard
+   steps) for the owner instead of claiming it done.
+
+### Verification traps (fleet-learned, keep them)
+
+- A `>=` floor can never pull a new release through a Docker cache
+  hit — the requirements line changing IS the cache bust, and floors
+  live in several encodings (requirements, run.py's boot floor,
+  tests, CI): grep the number, move every one.
+- `/healthz` build == HEAD is the deploy proof; a missing geo block
+  on dimll ≥2.7 means the cache trap fired (unless DIVERGENCES.md
+  says this host's healthz is deliberately minimal).
+- Probe with GET, not HEAD — HEAD responses omit the Link headers.
+- Run-watchers keyed on a commit sha can match Dependabot's runs on
+  the same sha — key on the workflow path (cd.yml) instead.
+- The browser lane and the machine lane are different documents;
+  a fix proven on one is unproven on the other.
+- A bot-merged PR — any GITHUB_TOKEN merge — lands with ZERO
+  workflow runs on the merge sha (anti-recursion) yet still reaches
+  production: the deploy hook builds branch HEAD, so an in-flight
+  CD run ships the merge while its own build-match wait holds out
+  for the superseded release sha. Observed live on 4a1d430
+  (2026-08-25). Since 1.6.25 the wait fails FAST on this (live
+  build a descendant of the wanted sha, via the compare API)
+  instead of going red at timeout, and the remedy is policy —
+  actions PRs: human merge when green; never a bot actor on main.

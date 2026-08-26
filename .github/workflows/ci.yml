@@ -45,6 +45,13 @@ env:
 #     jobs, which install the wheel with nothing but Dash;
 #   * the DOCS SITE needs >= 3.10 — `python-frontmatter` imports
 #     `typing.TypeGuard`, which is 3.10+. It does not constrain the package.
+#
+# The MATRIX no longer proves that 3.10 claim. Since 1.6.27 the fleet runs
+# ONE Python (3.14, the Dockerfile's FROM tag) and the compat window stays
+# three minors wide around it — 3.14/3.13/3.12 here. The >= 3.10 line above
+# stays as the documented floor for a developer running the docs site
+# locally; the deployed artifact is the image, and the image is 3.14.
+# tests/test_python_version.py holds the window and every encoding.
 jobs:
   lint:
     name: lint
@@ -54,7 +61,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
       - run: pip install flake8
       - name: flake8
@@ -80,7 +87,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
 
       - name: Install the docs site
@@ -254,6 +261,31 @@ jobs:
           docker logs --tail 100 docs
           exit 1
 
+      # The curl above proves the APP answers. It says nothing about whether
+      # the HEALTHCHECK instruction works — a broken probe ships silently and
+      # everything stays green while the orchestrator sees an opaque box
+      # (emojimart's template-class finding, 1.6.19). Poll Docker's own
+      # verdict: with --interval=30s and --start-period=20s the first probe
+      # lands within ~50s. `none` FAILS — no HEALTHCHECK means the container
+      # cannot report its own health to anything that schedules it.
+      - name: Assert Docker's own health verdict
+        run: |
+          for i in $(seq 1 30); do
+            status="$(docker inspect -f '{{.State.Health.Status}}' docs 2>/dev/null || echo none)"
+            if [ "$status" = "healthy" ]; then
+              echo "docker reports healthy after ~$((i*3))s"
+              exit 0
+            fi
+            if [ "$status" = "none" ]; then
+              echo "image has NO HEALTHCHECK — the container is opaque to its orchestrator"
+              exit 1
+            fi
+            sleep 3
+          done
+          echo "HEALTHCHECK never reported healthy (last: $status) — the probe itself is broken:"
+          docker inspect -f '{{json .State.Health}}' docs || true
+          exit 1
+
       # The SAME script CD runs against https://flows.2plot.dev, so a failure
       # in CI and a failure in production read identically.
       - name: Smoke battery against the booted container
@@ -274,11 +306,15 @@ jobs:
         # floor is proven separately by the `package` job in a clean venv —
         # the examples pull in dmc and the docs stack, which have their own,
         # higher floors.
+        #
+        # `python` main is the fleet Python (the Dockerfile's FROM minor);
+        # the include legs are the two minors below it, so the examples keep
+        # a three-wide compat window without a second declared Python.
         dash: ["4.2.0", "4.4.1"]
-        python: ["3.12"]
+        python: ["3.14"]
         include:
           - dash: "4.4.1"
-            python: "3.10"
+            python: "3.12"
           - dash: "4.4.1"
             python: "3.13"
     steps:
@@ -326,7 +362,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Version consistency
         # package.json, lib/constants.py and the generated package-info must
@@ -449,6 +485,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - run: pip install pip-audit
       - run: pip-audit -r requirements-docs.txt --skip-editable

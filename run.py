@@ -29,6 +29,7 @@ bite when broken are:
      (Starlette runs the last-added middleware outermost).
 """
 import os
+import platform
 
 import dash
 from dash import Dash
@@ -369,6 +370,15 @@ def _health_body(headers=None) -> dict:
         "version": APP_VERSION,
         "dash": dash.__version__,
         "reporting": bool(os.environ.get("CROSS_APP_WEBHOOK_SECRET")),
+        # WHICH interpreter is actually serving. Three declared Pythons can
+        # coexist for months without a single surface able to contradict any
+        # of them — the template carried a patch-pinned 3.11.8 image, a 3.12
+        # CI matrix and a 3.12.0 render.yaml simultaneously (ops-seat finding,
+        # 2026-08-25). Here the Dockerfile's FROM tag is the ONE declaration
+        # (this service is `runtime: docker`, so no PYTHON_VERSION lane
+        # exists — see DIVERGENCES.md), and scripts/network_smoke.py's
+        # python_matches_declared holds this field against it.
+        "python": platform.python_version(),
     }
     # Which commit the RUNNING instance was built from — what lets CD verify
     # the artifact it just shipped rather than whichever build happens to be

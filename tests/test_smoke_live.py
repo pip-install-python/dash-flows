@@ -14,6 +14,7 @@ instead of the network.
 from __future__ import annotations
 
 import importlib.util
+import re
 import sys
 
 import pytest
@@ -333,3 +334,32 @@ def test_a_wired_bulletin_raises_no_warning(wired, smoke, monkeypatch, capsys):
     assert wired.main(BASE) == 0
     output = capsys.readouterr().out
     assert "ok    the network bulletin is wired" in output
+
+
+def test_smoke_live_urlopens_pass_the_ssl_context():
+    """Source pin: every urlopen in smoke_live.py must carry
+    context=SSL_CONTEXT.
+
+    It shipped without it on post(), so on any Python missing OS trust-store
+    integration (macOS — the fleet's whole local-dev half) every auth POST
+    died in the TLS handshake, returned 0, and the check accused the app of
+    the exact configure_app regression it exists to detect. CI never saw it
+    (Linux verifies fine) and no wired test can (they monkeypatch fetch and
+    post) — a SOURCE pin is the only net with a mesh this fine. Found by
+    flexlayout, F1 kit adoption 2026-08-24; ported here 2026-08-26.
+
+    This fork keeps the pin in the smoke-live file rather than upstream's
+    tests/test_auth_wiring.py: the pin is not auth-specific, it lives in the
+    auth file upstream only because that is where the incident surfaced
+    (batch-1 correction, accepted for pannellum and excalidraw).
+    """
+    source = (REPO_ROOT / "scripts" / "smoke_live.py").read_text(
+        encoding="utf-8"
+    )
+    calls = re.findall(r"urlopen\((?:[^)]|\n)*?\)", source)
+    assert calls, "no urlopen calls found in smoke_live.py — probe rewritten?"
+    naked = [c for c in calls if "context=SSL_CONTEXT" not in c]
+    assert not naked, (
+        f"urlopen without context=SSL_CONTEXT in smoke_live.py: {naked} — "
+        "on macOS this dies in the handshake and reads as missing auth wiring"
+    )

@@ -69,10 +69,14 @@ def sign_in_layout(page_name: str, path: str | None = None):
             demo = None
 
     if demo is not None:
+        # Promise only what ships: an earlier version added "and the AI
+        # assistant" — no fork wires one, and a gate card selling a feature
+        # that does not exist is the network's own credibility spent at its
+        # highest-intent moment (leaflet's F1 finding, 2026-08-24).
         intro = (
             f"You're looking at a live preview of {page_name}. Create a free "
             "account to unlock the full documentation — every interactive "
-            "example, the complete API reference, and the AI assistant."
+            "example and the complete API reference."
         )
     else:
         intro = (

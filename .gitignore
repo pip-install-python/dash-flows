@@ -303,3 +303,41 @@ __pycache__/
 # this at boot when Clerk is configured; it holds live session data and
 # belongs on the instance, never in the repo.
 flask_session/
+
+# Handoff notes for work that belongs in ANOTHER repo — the kickoff docs that
+# start a session elsewhere. Local scratch by design: a task list for
+# 2plot.dev has no business in the checkout of the template, and every
+# satellite forking this repo would inherit a to-do list that was never theirs.
+kickoff/
+
+# Session working documents are LOCAL BY CONVENTION, network-wide: sync
+# reports, handoffs, and kickoff briefs name hosts, topology, and process.
+# Two public fleet repos were caught tracking theirs and clerkhook's staged
+# handoff (naming the full satellite inventory) was one push from public
+# (2026-08-24). The ignore rule is the enforcement, here and in every fork.
+X402-SYNC-REPORT.md
+HANDOFF-*.md
+KICKOFF-*.md
+
+# The .claude/ development kit IS shipped — it is how every fork inherits
+# the network's behavioral contract, skills, and settings (the F1 fabric
+# build, 2026-08-24). Everything else in .claude/ stays local: session
+# scratch, screenshots, settings.local.json (per-seat model overrides),
+# vendored iteration copies. Allow-list, not blanket ignore — a dir-level
+# ignore cannot be re-included beneath, hence the /* form.
+.claude/*
+!.claude/CLAUDE.md
+!.claude/settings.json
+!.claude/skills/
+# THIS FORK ADDS THREE (divergence 1). dash-flows carried its own
+# component-library kit — agents/, support_files/, tasks/ — tracked since
+# March 2026 and predating the network kit by five months. They are real
+# repository documentation (the React Flow patterns, the theming reference,
+# the add-a-node-type walkthrough), not session scratch, and a contributor
+# cloning this repo to write a node component needs them. Re-included
+# EXPLICITLY rather than by weakening the rule: everything under .claude/
+# that is not named here stays structurally uncommittable, which is the
+# whole point of the allow-list form.
+!.claude/agents/
+!.claude/support_files/
+!.claude/tasks/

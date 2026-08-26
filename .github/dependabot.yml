@@ -1,42 +1,29 @@
-# Version drift is the network's chronic disease — satellites were still
-# running a 2.0-era artifact the day 2.3.4 shipped, and nothing about a stale
-# host looks broken from the outside. This is the standing fix.
+# TEMPLATE FILE: satellites copy this verbatim.
 #
-# TEMPLATE FILE: satellites copy this verbatim. The `dash-network` group is
-# the point — a package release lands as ONE reviewable pull request per repo
-# instead of five, which is the difference between a rollout and a chore.
+# Version updates for pip are OFF BY DESIGN (2026-08-25). On range
+# requirements dependabot can only propose FLOOR RAISES, so the old
+# `dash-network` allow-list group structurally produced the exact PR class
+# the allow-list existed to suppress — 18 of the fleet's 38 open dependabot
+# PRs were pip floor-raises. Floors encode minimum-compatibility knowledge
+# (a gunicorn floor IS the CVE fact), the resolver already installs latest
+# under them, and a raise erases the floor's meaning while adding none.
+# Floors move deliberately, through sync specs, every encoding at once;
+# drift detection — the group's stated purpose — is already answered on the
+# wire by the contract battery (healthz `dash_version` against the floor).
+#
+# SECURITY updates are unaffected. They ride GitHub's security-update
+# channel — dependency graph + Dependabot alerts, enabled per repo in
+# Settings → Advanced Security — which needs no entry in this file:
+# "There is no interaction between the settings specified in the
+# dependabot.yml file and Dependabot security alerts" (GitHub docs,
+# code-security/concepts/supply-chain-security/dependabot-security-updates).
 version: 2
 updates:
-  - package-ecosystem: pip
-    directory: "/"
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    # Version-update PRs are restricted to the network packages — the drift
-    # alarm this file exists for. Without this allow-list, dependabot also
-    # proposes FLOOR-RAISES for every other requirement (gunicorn >=23 →
-    # >=26, cryptography >=50 → >=51, ...). Those floors encode
-    # minimum-compatibility knowledge — the gunicorn floor IS the
-    # CVE-2024-6827/CVE-2024-1135 fact, the cryptography floor IS the Clerk
-    # SDK 5.x advisory fact — the resolver already installs the latest
-    # release under them, and raising one erases its meaning while adding
-    # nothing. This fork opened six such PRs on its first push after the
-    # gate wave (mistune, python-frontmatter, requests, dash, gunicorn,
-    # dash-improve-my-llms, 2026-08-22). SECURITY updates are unaffected:
-    # they arrive through GitHub's separate security-update channel
-    # regardless of this list.
-    allow:
-      - dependency-name: "dash*"
-      - dependency-name: "plotly*"
-      - dependency-name: "markdown2dash"
-    groups:
-      dash-network:
-        patterns:
-          - "dash*"
-          - "plotly*"
-          - "markdown2dash"
-
+  # Runner/action bumps are mechanical and CI-gated; a human merges the
+  # group's PR when its CI is green — never a bot actor on main. (The
+  # 1.6.24 auto-merge workflow was retired in 1.6.25: a GITHUB_TOKEN merge
+  # gets zero workflow runs on the merge sha, so its deploy is never
+  # certified by CD.)
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
@@ -46,6 +33,8 @@ updates:
         patterns:
           - "*"
 
+  # Docker base-image bumps stay manual: a Python major is a merits
+  # decision, never an auto-merge.
   - package-ecosystem: docker
     directory: "/"
     schedule:

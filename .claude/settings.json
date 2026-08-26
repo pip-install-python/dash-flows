@@ -1,0 +1,32 @@
+{
+  "model": "opus",
+  "sandbox": {
+    "network": {
+      "allowedDomains": [
+        "flows.2plot.dev",
+        "2plot.ai",
+        "2plot.dev",
+        "api.github.com",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "reactflow.dev",
+        "eclipse.dev",
+        "dash.plotly.com",
+        "www.dash-mantine-components.com",
+        "icon-sets.iconify.design"
+      ]
+    }
+  },
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:flows.2plot.dev)",
+      "WebFetch(domain:2plot.ai)",
+      "WebFetch(domain:2plot.dev)",
+      "WebFetch(domain:reactflow.dev)",
+      "WebFetch(domain:eclipse.dev)",
+      "WebFetch(domain:dash.plotly.com)",
+      "WebFetch(domain:www.dash-mantine-components.com)",
+      "WebFetch(domain:icon-sets.iconify.design)"
+    ]
+  }
+}
