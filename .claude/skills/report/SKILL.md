@@ -39,6 +39,13 @@ Structure, in order:
 6. **Open items** — split by who acts: owner (dashboard/env/merge),
    orchestrator (cross-repo), this repo's next pass.
 
+Where the pass consumed a sync spec, per-item dispositions use
+exactly these five words: `applied` / `ported-as-contract` /
+`already-present` / `not-applicable-because` / `open`. `open` means
+the detect fires but the item is deliberately out of this session's
+scope — name it under Open items with who acts. Do not invent a
+sixth word; the orchestrator's tooling reads these five.
+
 Anti-patterns, all observed in the fleet and all rejected on
 receipt: "should work" (test it or mark it unverified); summary
 claims without artifacts; green CI presented as deploy proof when
