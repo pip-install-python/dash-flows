@@ -37,13 +37,30 @@ def _ignored(path: str) -> bool:
     )
 
 
+def _in_repo(rel: str) -> bool:
+    return ".." not in rel and not rel.startswith("/")
+
+
 def _machine_fence(kind: str, text: str, where: str) -> None:
     """The shared pin for machine fences (```yaml sync-verbatim in specs,
     ```yaml byte-owned in DIVERGENCES.md): exactly one block, `- path`
     lines with `#` comments, every path repo-relative and real at HEAD.
     Empty is valid — an empty block is a statement, a missing one is an
-    omission. `# requires: <path>` lines (the fan-out's adoption gate,
-    1.6.23) are validated like paths — a typo'd gate gates nothing."""
+    omission. Gate lines (the fan-out's adoption gates) are validated
+    like paths — a typo'd gate gates nothing:
+
+      `# requires: <path>` (1.6.23) — the block applies only where
+        <path> exists. For paths no pre-existing file can occupy;
+        where one can, the gate must name a contract instead
+        (sync/README.md — flows' pre-existing CLAUDE.md, 1.6.28).
+      `# requires-contract: <path> :: <clause>` (1.6.28) — the block
+        applies only where <path> exists AND contains <clause>. The
+        clause must be real in THIS repo's copy at HEAD too.
+      `- <path>  # requires: <other>` (1.6.28) — per-file gate: the
+        fan-out skips this one copy where <other> is absent, instead
+        of gating the whole block (clerkhook: a lockdown fork has no
+        lib/auth_demos.py, legitimately, and must still receive the
+        rest)."""
     fences = re.findall(
         r"^```yaml " + kind + r"[ \t]*\n(.*?)^```[ \t]*$", text, re.M | re.S
     )
@@ -52,10 +69,34 @@ def _machine_fence(kind: str, text: str, where: str) -> None:
         f"found {len(fences)}"
     )
     for raw in fences[0].splitlines():
-        required = re.match(r"#\s*requires:\s*(.+)$", raw.strip())
+        stripped = raw.strip()
+        if re.match(r"#\s*requires-contract:", stripped):
+            gate = re.match(
+                r"#\s*requires-contract:\s*(.+?)\s*::\s*(.+)$", stripped
+            )
+            assert gate, (
+                f"{where} {kind}: {raw!r} — `# requires-contract:` takes "
+                "`<path> :: <clause>`; a malformed gate gates nothing"
+            )
+            req, clause = gate.group(1).strip(), gate.group(2).strip()
+            assert _in_repo(req), (
+                f"{where} {kind}: `# requires-contract:` path {req!r} "
+                "escapes the repo"
+            )
+            assert (REPO / req).is_file(), (
+                f"{where} {kind}: `# requires-contract:` names {req!r} "
+                "which does not exist at HEAD — a typo'd gate gates nothing"
+            )
+            assert clause in (REPO / req).read_text(), (
+                f"{where} {kind}: `# requires-contract:` clause {clause!r} "
+                f"is not in this repo's own {req} — a typo'd clause gates "
+                "nothing"
+            )
+            continue
+        required = re.match(r"#\s*requires:\s*(.+)$", stripped)
         if required:
             req = required.group(1).strip()
-            assert ".." not in req and not req.startswith("/"), (
+            assert _in_repo(req), (
                 f"{where} {kind}: `# requires:` path {req!r} escapes the repo"
             )
             assert (REPO / req).is_file(), (
@@ -63,20 +104,36 @@ def _machine_fence(kind: str, text: str, where: str) -> None:
                 "not exist at HEAD — a typo'd gate gates nothing"
             )
             continue
-        entry = raw.split("#", 1)[0].strip()
+        entry, _, comment = raw.partition("#")
+        entry = entry.strip()
         if not entry:
             continue
         assert entry.startswith("- "), (
             f"{where} {kind}: {raw!r} is not a `- path` line"
         )
         path = entry[2:].strip()
-        assert ".." not in path and not path.startswith("/"), (
+        assert _in_repo(path), (
             f"{where} {kind}: {path!r} escapes the repo"
         )
         assert (REPO / path).is_file(), (
             f"{where} {kind}: {path!r} does not exist at HEAD "
             "— the machine would act on nothing or the wrong thing"
         )
+        # A per-file gate is the WHOLE trailing comment, `requires: <path>`
+        # from its first character; prose comments that merely mention the
+        # word stay prose.
+        per_file = re.match(r"\s*requires:\s*(.+)$", comment)
+        if per_file:
+            gate_path = per_file.group(1).strip()
+            assert _in_repo(gate_path), (
+                f"{where} {kind}: per-file gate on {path!r} escapes the "
+                f"repo: {gate_path!r}"
+            )
+            assert (REPO / gate_path).is_file(), (
+                f"{where} {kind}: per-file gate on {path!r} names "
+                f"{gate_path!r} which does not exist at HEAD — a typo'd "
+                "gate gates nothing"
+            )
 
 
 def test_kit_files_exist_and_are_not_ignored():
