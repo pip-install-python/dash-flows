@@ -20,6 +20,7 @@ container run and the post-deploy run exist as well.
 from __future__ import annotations
 
 import importlib.util
+import re
 import sys
 
 import pytest
@@ -196,3 +197,29 @@ def test_the_default_base_url_matches_the_container_port(battery):
         f"the battery defaults to port {port}; the image's ENV default differs"
     )
     assert ":${PORT}" in dockerfile, "the CMD binds a different port"
+
+
+def test_battery_urlopens_pass_the_ssl_context():
+    """Source pin: every urlopen in network_smoke.py carries an SSL context.
+
+    Same class as the smoke_live pin (tests/test_smoke_live.py), and the same
+    blind spot: `fetch_raw` raises after its retries, so a handshake this
+    battery cannot complete surfaces as `FAIL healthz responds 200` — it
+    reads a healthy host as DOWN. macOS Python has no OS trust-store
+    integration, so that is every local run against production; CI is Linux
+    and never sees it. No wired test can either — they monkeypatch
+    `fetch_raw` — which leaves the source as the only place to hold the line.
+
+    Added fleet-wide 2026-08-26. The template's own copy still lacked it at
+    1.6.29 (5589318): reported upstream, applied here first.
+    """
+    source = (REPO_ROOT / "scripts" / "network_smoke.py").read_text(
+        encoding="utf-8"
+    )
+    calls = re.findall(r"urlopen\((?:[^)]|\n)*?\)", source)
+    assert calls, "no urlopen calls found in network_smoke.py — rewritten?"
+    naked = [c for c in calls if "context=SSL_CONTEXT" not in c]
+    assert not naked, (
+        f"urlopen without context=SSL_CONTEXT in network_smoke.py: {naked} — "
+        "from a Mac this reads every healthy host as down"
+    )

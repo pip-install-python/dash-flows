@@ -130,6 +130,42 @@ SSL source pin lives in `tests/test_smoke_live.py` rather than
 are ported and the pins pass; only the filenames differ, and a sync
 that adds the template's filenames alongside would duplicate them.
 
+### 9. `scripts/smoke_live.py` carries two checks the template does not
+
+The file is contract-class from template 1.6.29 (spec item 6) — the wake
+loop, the retry ladder and the certifi-backed SSL context are ported
+verbatim and a change to any of them belongs upstream first. Two checks
+below them are this fork's own:
+
+- **the hub-bulletin warning** (`fatal=False`): this host went live with
+  `NETWORK_BULLETIN_URL` unset, which breaks nothing visibly — the banner
+  just shows one generic tip and "No announcements." The deploy log is the
+  only place that fact is ever surfaced. The template pins the empty-state
+  text in a unit test instead and has never carried a live check.
+- **the auth-probe skip line**: this site ships the gate DARK, so the
+  `dashClerkAuth` probe skips on every run. Silence would read as "it
+  passed"; the line says it ran and found no Clerk.
+
+Both are additive, both are inside `main()`, and neither touches the ported
+contract. `scripts/smoke_live.py` is therefore listed in the byte-owned
+fence below — 1.6.28 shipped this file as block cargo for exactly one
+round and landed it red on 7 of 12 forks, so the fence is cheap insurance
+against a future block re-adding it.
+
+### 10. The battery's SSL context is ahead of the template
+
+`scripts/network_smoke.py` calls `urlopen` with an explicit certifi-backed
+`SSL_CONTEXT`; the template's copy at 1.6.29 (5589318) still does not.
+Without it, macOS Python — which has no OS trust-store integration — dies
+in the handshake, `fetch_raw` raises after its retries, and the battery
+reports a perfectly healthy host as DOWN. CI is Linux and never sees it.
+`tests/test_network_smoke.py::test_battery_urlopens_pass_the_ssl_context`
+is the source pin, the same shape as the smoke_live one in divergence 8.
+
+Applied here on the ops seat's fleet instruction (2026-08-26) and reported
+upstream. RETIRE this entry when the template adopts the same fix — at
+that point the difference is gone, not deliberate.
+
 *(Retirements: none yet. When one lands, mark it retired here rather
 than deleting it — a record that overclaims teaches the next sync to
 defend a line nobody is attacking.)*
@@ -142,19 +178,35 @@ block is the template's to update mechanically. Prose above explains
 divergences; this block is the machine answer.
 
 Repo-relative paths, one per line, `#` comments, no `..`; exactly one
-block. An EMPTY block means "the template owns every sync-verbatim
+block. Each line is a YAML LIST ITEM — `- path/to/file  # why` — which
+this paragraph did not say until a path was first put in it here:
+`tests/test_claude_kit.py` requires the `- ` and every fork's fence was
+empty, so nothing had ever exercised the form. Reported upstream
+2026-08-26; the sentence is the fix, not the pin. An EMPTY block means "the template owns every sync-verbatim
 path here" — present so the absence is a statement. When the block
 exists it is authoritative; a fork without it gets the conservative
 mention heuristic (over-flags, never restores).
 
-Audited 2026-08-26 against the three specs' blocks at template
-1.6.27. All six listed paths are template-owned here and were copied
-byte-identical: the three `.claude/skills/*/SKILL.md`,
-`tests/test_claude_kit.py`, `tests/test_auth_demos.py` and
-`.github/dependabot.yml`. Nothing in the prose above makes a
-byte-level claim on any of them — divergence 8 names test files, but
-none of them is a sync-verbatim path, and divergence 7's re-includes
-are `.gitignore` content, which no block carries. Hence: empty.
+Re-audited 2026-08-26 against the three specs' blocks at template
+1.6.29 (5589318 — the range file was renamed from `SYNC-1.6.22-1.6.27`
+as it grew). The block still lists the same six paths, and all six are
+template-owned here and byte-identical after the F3b fan-out landed
+1.6.29's two changed kit files (`d0ae5af`): the three
+`.claude/skills/*/SKILL.md`, `tests/test_claude_kit.py`,
+`tests/test_auth_demos.py` and `.github/dependabot.yml`. Nothing in the
+prose above makes a byte-level claim on any of them — divergence 8 names
+test files, but none of them is a sync-verbatim path, and divergence 7's
+re-includes are `.gitignore` content, which no block carries.
+
+The one entry is `scripts/smoke_live.py`, and it is defensive rather than
+current: 1.6.29 pulled that file back OUT of the block after one round,
+so no block claims it today. But 1.6.28 did claim it, byte-copied it into
+twelve forks and landed it red on seven — and this fork's copy carries two
+additive checks of its own (divergence 9). If a later spec re-adds the
+path, the fence is what keeps those two checks alive. The ported contract
+half — wake loop, retry ladder, SSL context — is still tracked upstream
+and updated by hand, which is what class `contract` means.
 
 ```yaml byte-owned
+- scripts/smoke_live.py  # divergence 9; contract-class since 1.6.29
 ```

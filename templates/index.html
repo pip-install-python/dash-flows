@@ -31,12 +31,21 @@
          Do not add a second hand-written .ico link — that is a duplicate.
          Everything Dash does NOT emit is listed after it: the PNG size
          variants, the iOS touch icon and the manifest. The set is rendered by
-         scripts/make_favicons.py. -->
+         scripts/make_favicons.py.
+
+         This list must match run.py's configure_seo(icons=) SIZE FOR SIZE.
+         That declaration renders the head a CRAWLER receives; this block
+         renders the head a BROWSER receives, and smoke_live.py's identity
+         parity block compares the two sets on every deploy. 512x512 was
+         declared to crawlers and missing here until 2026-08-26 — four live
+         FAILs on flows.2plot.dev, the red that template 1.6.29's spec
+         predicted for this host. -->
     {%favicon%}
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon/android-chrome-512x512.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
     <link rel="manifest" href="/assets/favicon/site.webmanifest">
 

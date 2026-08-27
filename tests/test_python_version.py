@@ -25,6 +25,28 @@ differs (DIVERGENCES.md 5 and 1):
     are `python:` scalars nested under `- dash:` entries rather than the
     template's `- python:` list items. Same contract, different selector.
 
+WHICH LANE EACH PIN READS (template 1.6.28's amendment: name it, because a
+fork with two lanes has two Pythons and a session must be able to tell which
+one a red pin is about). This repo has both:
+
+  * SITE lane — `lint`, `docs-tests`, `pip-audit`, the `docker` job and
+    cd.yml's verify job. These install `requirements-docs.txt` and boot or
+    probe the docs app, so they are the image's business and every one of
+    them is pinned to the Dockerfile's minor below.
+  * PACKAGE lanes — `examples` (every example app imported and served across
+    a dash x python matrix) and `package` (the dash-flows wheel built and
+    installed in a clean venv). These are the COMPONENT LIBRARY's business
+    and the spec puts them outside item 5.
+
+Today both lanes sit on the fleet minor, and the pins below hold all of
+ci.yml's literal `python-version:` values to it — deliberately stricter than
+the spec requires, because nothing here yet needs a wider window and one
+number is easier to keep honest than two. If the library ever needs to prove
+a broader `requires-python` (3.9-3.13 is the fleet-normal shape), relax
+`test_ci_matrix_main_and_singleton_jobs_agree_with_the_image` to read the
+SITE jobs only rather than deleting it — the site half is the half this item
+is about.
+
 What is deliberately NOT here: no comparison of the RUNNING interpreter to
 the fleet minor — the suite legitimately runs on the adjacent window legs
 (3.13/3.12), where that assertion would be false by design. Image-vs-served

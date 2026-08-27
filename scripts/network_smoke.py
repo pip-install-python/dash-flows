@@ -38,6 +38,7 @@ import argparse
 import json
 import os
 import re
+import ssl
 import sys
 import time
 import urllib.error
@@ -103,6 +104,29 @@ OG_IMAGE_HEIGHT = 630
 
 # ---------------------------------------------------------------------------
 
+
+def _ssl_context() -> ssl.SSLContext:
+    """Verify certificates via certifi when available. Same fix, same reason
+    as scripts/smoke_live.py's copy.
+
+    macOS Python ships without OS trust-store integration, so a bare urllib
+    https fetch dies in the handshake — and THIS battery turns that into
+    `FAIL healthz responds 200`, i.e. it reads a perfectly healthy host as
+    down, from a Mac, every time. CI never sees it (Linux verifies fine),
+    which is exactly why it survived here until the fleet round of
+    2026-08-26. Verification stays ON either way; certifi only supplies the
+    CA bundle.
+    """
+    try:
+        import certifi
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
+
+
+SSL_CONTEXT = _ssl_context()
+
 PASS, FAIL, WARN, SKIP = "pass", "FAIL", "warn", "skip"
 _RESULTS: list[tuple[str, str, str]] = []  # (name, verdict, detail)
 
@@ -135,7 +159,9 @@ def fetch_raw(url: str, ua: str = UA, method: str = "GET",
         for k, v in (headers or {}).items():
             req.add_header(k, v)
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as r:
+            with urllib.request.urlopen(
+                req, timeout=timeout, context=SSL_CONTEXT
+            ) as r:
                 return (r.status, {k.lower(): v for k, v in r.headers.items()},
                         r.read())
         except urllib.error.HTTPError as e:

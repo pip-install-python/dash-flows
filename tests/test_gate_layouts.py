@@ -103,3 +103,33 @@ def test_the_gate_card_names_the_sign_in_destination(app_module, monkeypatch):
     assert "https://example.test/in" in str(gate_layouts.sign_in_layout("P"))
     monkeypatch.setattr(access, "sign_in_url", lambda: None)
     assert "https://2plot.ai" in str(gate_layouts.sign_in_layout("P"))
+
+
+def test_a_fake_clerk_config_renders_the_CONFIGURED_gate_card(monkeypatch):
+    """Spec item 7 (template 1.6.29, found by clerkhook): a page that renders
+    differently once secrets are present must have its CONFIGURED branch
+    certified by something.
+
+    conftest blanks every CLERK_* var before run.py is imported — the right
+    posture for the rest of the suite, and the reason this branch was
+    certified by nothing here: the local lane never has a config, and
+    production ships DARK so smoke_live's live probe skips too. This test is
+    the one place a NON-EMPTY (fake, never real) config reaches the gate.
+
+    Driven from the ENV rather than by stubbing access.sign_in_url, so the
+    whole chain is exercised: env -> access.sign_in_url() ->
+    gate_layouts._sign_in_destination() -> the rendered card. The assertion
+    is non-vacuous by construction — the unconfigured branch emits the
+    network primary instead, which the second half pins.
+    """
+    configured = "https://accounts.example.test/sign-in"
+    monkeypatch.setenv("CLERK_SIGN_IN_URL", configured)
+    card = str(gate_layouts.sign_in_layout("P"))
+    assert configured in card, (
+        "a non-empty CLERK_SIGN_IN_URL did not reach the gate card — the "
+        "configured branch is unreachable from the config that turns it on"
+    )
+    assert "https://2plot.ai" not in card, "both branches rendered at once?"
+
+    monkeypatch.setenv("CLERK_SIGN_IN_URL", "")
+    assert "https://2plot.ai" in str(gate_layouts.sign_in_layout("P"))

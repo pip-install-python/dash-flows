@@ -3,9 +3,13 @@
 
     python scripts/smoke_live.py https://flows.2plot.dev
 
-NETWORK FILE: copied verbatim from dash-documentation-boilerplate 1.2.4.
-Nothing in it is per-site — every value it checks is read from the host under
-test — so a change here belongs upstream in the boilerplate first.
+NETWORK FILE, contract-class since template 1.6.29 (spec item 6): the wake
+loop, the retry ladder and the certifi-backed SSL context are the ported
+CONTRACT, and a change to any of them belongs upstream in the boilerplate
+first. Everything the checks read is taken from the host under test, so
+nothing here is per-site except two additions this fork owns and records in
+DIVERGENCES.md: the hub-bulletin warning, and the line that says out loud
+when the auth probe skipped.
 
 Everything here fails silently in production if it isn't checked. A wrong
 canonical host doesn't error, it deindexes; a stub body doesn't error, it
@@ -15,15 +19,26 @@ agent that this network's directory isn't worth following.
 Run in CD after every deploy, and by hand against any satellite you're
 upgrading. Exit code is the number of failed checks, capped at 125.
 
+Much of the fleet runs on Render's free tier, which sleeps after ~15 minutes
+idle and answers the first probe with a loading page or a hang — so the
+battery wakes the host up first (a `/healthz` poll, LESSONS §21) and `fetch`
+retries transport errors and 5xx. Both are tunable without editing this file:
+
+    SMOKE_WAKE_ATTEMPTS    /healthz probes before giving up   (default 24)
+    SMOKE_WAKE_INTERVAL_S  seconds between probes             (default 10)
+    SMOKE_FETCH_RETRIES    attempts per request inside fetch  (default 3)
+
 Only the standard library, so it runs anywhere without an install step.
 """
 
 from __future__ import annotations
 
+import html as html_lib
 import os
 import re
 import sys
 import ssl
+import time
 import urllib.error
 import urllib.request
 from typing import Dict, List, Optional, Tuple
@@ -59,6 +74,13 @@ STUB_MARKER = "This page contains interactive content that requires JavaScript"
 # the element.
 CHROME = re.compile(r'<[a-z]+ class="dv-banner')
 TIMEOUT = 30
+# Generous on purpose: a free-tier cold start routinely takes 60-90s, and the
+# only cost of a wide window is paid when the host is actually down — a warm
+# host passes the first probe. 24 x 10s covers the slow tail with room; a
+# satellite on an even slower tier stretches it via the env vars above.
+RETRIES = max(1, int(os.getenv("SMOKE_FETCH_RETRIES") or 3))
+WAKE_ATTEMPTS = max(1, int(os.getenv("SMOKE_WAKE_ATTEMPTS") or 24))
+WAKE_INTERVAL_S = max(0.0, float(os.getenv("SMOKE_WAKE_INTERVAL_S") or 10))
 
 
 def _ssl_context() -> ssl.SSLContext:
@@ -85,13 +107,26 @@ checks_run = 0
 
 
 def fetch(
-    url: str, user_agent: str = BROWSER_UA, accept: Optional[str] = None
+    url: str,
+    user_agent: str = BROWSER_UA,
+    accept: Optional[str] = None,
+    retries: Optional[int] = None,
+    timeout: float = TIMEOUT,
 ) -> Tuple[int, str, Dict[str, str]]:
     """Returns (status, body, headers).
 
     Headers are part of the contract from 2.2.0 on: `/<page>/llms.txt`
     content-negotiates, so which *type* came back is the thing being checked,
     and `Vary` is what stops a CDN handing cached HTML to the next agent.
+
+    TRANSPORT errors and 5xx are retried with backoff; other statuses are
+    verdicts and are not. The distinction matters because this script makes
+    ~40 requests in a burst against hosts on Render's free tier — one dropped
+    connection used to surface as `FAIL canonical on /<page>`, a check that
+    had never actually run, sending you to look at canonical tags that were
+    correct all along (LESSONS §21; same ladder as network_smoke.py). A 404 is
+    a real answer, and retrying it would only slow the battery down; a check
+    still failing after every attempt is a real failure.
 
     `errors="surrogateescape"`, not `"replace"`: this function also fetches
     the social card, and the card check reads the PNG's IHDR chunk for the
@@ -105,17 +140,39 @@ def fetch(
     if accept is not None:
         headers["Accept"] = accept
     request = urllib.request.Request(url, headers=headers)
-    try:
-        with urllib.request.urlopen(
-            request, timeout=TIMEOUT, context=SSL_CONTEXT
-        ) as response:
-            body = response.read().decode("utf-8", "surrogateescape")
-            return response.status, body, dict(response.headers)
-    except urllib.error.HTTPError as exc:
-        return (exc.code, exc.read().decode("utf-8", "surrogateescape"),
-                dict(exc.headers or {}))
-    except Exception as exc:  # noqa: BLE001 - DNS, TLS, timeouts all land here
-        return 0, f"{type(exc).__name__}: {exc}", {}
+    attempts = RETRIES if retries is None else max(1, retries)
+    last: Tuple[int, str, Dict[str, str]] = (0, "no attempt was made", {})
+    for attempt in range(attempts):
+        if attempt:
+            time.sleep(2 * attempt)
+        try:
+            with urllib.request.urlopen(
+                request, timeout=timeout, context=SSL_CONTEXT
+            ) as response:
+                body = response.read().decode("utf-8", "surrogateescape")
+                return response.status, body, dict(response.headers)
+        except urllib.error.HTTPError as exc:
+            # The STATUS is the answer; the body is a bonus. Reading it can
+            # itself raise — a host that 502s mid-body raises IncompleteRead
+            # here — and an exception escaping `fetch` takes the whole script
+            # down, turning one sick response into a dead CD run.
+            try:
+                body = exc.read().decode("utf-8", "surrogateescape")
+            except Exception:  # noqa: BLE001 - truncated or already-closed body
+                body = ""
+            last = (exc.code, body, dict(exc.headers or {}))
+            if exc.code < 500:
+                return last
+            reason = f"HTTP {exc.code}"
+        except Exception as exc:  # noqa: BLE001 - DNS, TLS, timeouts all land here
+            last = (0, f"{type(exc).__name__}: {exc}", {})
+            reason = type(exc).__name__
+        if attempt + 1 < attempts:
+            # Visible on purpose: a green run whose log shows retries is a
+            # host worth watching, and CD output is the only place that shows.
+            print(f"        retry {attempt + 1}/{attempts - 1} for {url} — {reason}",
+                  flush=True)
+    return last
 
 
 def header(headers: Dict[str, str], name: str) -> str:
@@ -140,8 +197,17 @@ def post(url: str, payload: str = "{}") -> int:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT,
-                                    context=SSL_CONTEXT) as resp:
+        # context= must match fetch()'s — this line shipped WITHOUT it, so on
+        # any Python without OS trust-store integration (macOS: the fleet's
+        # whole local-dev half) every auth POST died in the TLS handshake,
+        # returned 0, and the check accused the app of the exact
+        # configure_app regression it exists to detect. CI never saw it
+        # (Linux verifies fine); no wired test can see it (they monkeypatch
+        # post) — hence the SOURCE pin in tests/test_auth_wiring.py.
+        # Found by flexlayout during the F1 kit adoption (154688e).
+        with urllib.request.urlopen(
+            request, timeout=TIMEOUT, context=SSL_CONTEXT
+        ) as resp:
             return resp.status
     except urllib.error.HTTPError as exc:
         return exc.code
@@ -177,10 +243,63 @@ def check(name: str, passed: bool, detail: str = "", fatal: bool = True) -> None
             print(f"::warning title=peer unreachable::{name} — {detail}")
 
 
+def wake(base: str) -> bool:
+    """Poll `/healthz` until the host actually answers. LESSONS §21.
+
+    A sleeping free-tier host greets its first visitor with Render's loading
+    page or a hang, and the first visitor after a deploy is this battery — so
+    without this loop the opening checks fail on a perfectly healthy site.
+    Requiring `ok: true` rather than any 200 keeps the loading page (and a
+    CDN error page, which can also be a 200) from counting as awake.
+
+    Each probe is single-shot with a short timeout: the loop IS the retry
+    ladder here, and per-probe printing is what makes a slow start readable
+    in the CD log rather than a silent multi-minute stall.
+    """
+    url = f"{base}/healthz"
+    for attempt in range(1, WAKE_ATTEMPTS + 1):
+        try:
+            status, body, _ = fetch(url, retries=1, timeout=10)
+        except TypeError:
+            # A legacy fetch stub — `(url, user_agent, accept)`, pre-wake
+            # vintage — from a fork test that monkeypatches fetch without
+            # patching wake. The real fetch cannot raise TypeError (its
+            # signature takes these kwargs and everything inside its attempt
+            # loop is caught), so this branch can only be a stub's signature
+            # binding; probe bare rather than take the fork's whole suite
+            # down (the 1.6.28 fan-out went red on 7/12 forks exactly here).
+            status, body, _ = fetch(url)
+        if status == 200 and re.search(r'"ok"\s*:\s*true', body):
+            print(f"  wake  attempt {attempt}/{WAKE_ATTEMPTS}: up")
+            return True
+        detail = f"HTTP {status}" if status else body[:80]
+        print(f"  wake  attempt {attempt}/{WAKE_ATTEMPTS}: {detail}", flush=True)
+        if attempt < WAKE_ATTEMPTS:
+            time.sleep(WAKE_INTERVAL_S)
+    return False
+
+
 def main(base: str) -> int:
     base = base.rstrip("/")
     host = urlparse(base).netloc
     print(f"Smoke-testing {base}\n")
+
+    # --- 0. Wake the host before asserting anything about it ---------------
+    print("Wake-up")
+    if not wake(base):
+        # ONE clear failure, not a cascade: forty per-check failures against a
+        # host that never answered all say the same thing and bury it.
+        check(
+            "host answered /healthz",
+            False,
+            f"never woke after {WAKE_ATTEMPTS} probes ~{WAKE_INTERVAL_S:g}s "
+            "apart — nothing else was tested",
+        )
+        print(f"\n0/{checks_run} checks passed")
+        print("\nFailed:")
+        for name in failures:
+            print(f"  - {name}")
+        return min(len(failures), 125)
 
     # --- 1. The site is up, and llms.txt is the index it should be ---------
     print("Core surfaces")
@@ -211,6 +330,7 @@ def main(base: str) -> int:
                 "wiring is missing: components without a server",
             )
     else:
+        # Silence would read as "the probe passed". It ran and found no Clerk.
         print("  · auth wiring probe skipped (Clerk not in the served shell)")
 
     status, llms, llms_headers = fetch(f"{base}/llms.txt")
@@ -330,6 +450,70 @@ def main(base: str) -> int:
     else:
         check("og:image is not empty", False,
               "an EMPTY og:image renders a blank card — worse than none")
+
+    # --- 3c. Crawler/browser identity parity (the 2.5.0 Tier-B standard) ---
+    # Every SEO defect measured across the fleet in 2026-08 was one bug in
+    # different clothes: the head a crawler received had drifted from the
+    # head a browser received — 4-7 icon links vs zero, "site | page" vs a
+    # bare page name, og:image vs nothing. Content may differ between the
+    # two documents (that is what the prerender is for); identity may not.
+    # This block is the single assertion that would have caught all of it.
+    print("\nCrawler/browser identity parity")
+
+    def identity(html: str) -> Dict[str, object]:
+        # Icons compare as the SET of declared sizes, not a raw link count:
+        # Dash auto-injects one extra favicon link (with a cache-busting
+        # query) into the browser head, so counts differ by one forever
+        # while the actual identity — which sizes a consumer can pick from
+        # — is what the two heads must agree on.
+        icon_links = re.findall(r'<link[^>]+rel="(?:icon|apple-touch-icon)"[^>]*>', html)
+        # Unescape before comparing: one side may write an apostrophe as
+        # &#x27; and the other verbatim — same identity, different escaping.
+        unescape = html_lib.unescape
+        return {
+            "icon sizes": sorted(
+                {s for link in icon_links for s in re.findall(r'sizes="([^"]+)"', link)}
+            ),
+            "title": unescape(
+                (re.findall(r"<title>(.*?)</title>", html, re.S) or [""])[0].strip()
+            ),
+            "og:image": sorted({
+                unescape(u)
+                for u in re.findall(r'property="og:image"[^>]+content="([^"]*)"', html)
+            }),
+            "twitter:card": sorted({
+                unescape(v)
+                for v in re.findall(r'name="twitter:card"[^>]+content="([^"]*)"', html)
+            }),
+        }
+
+    for url in [f"{base}/"] + page_urls[:3]:
+        path = urlparse(url).path or "/"
+        _status, crawler_html, _ = fetch(url, CRAWLER_UA)
+        _status, browser_html, _ = fetch(url, BROWSER_UA)
+        seen_c, seen_b = identity(crawler_html), identity(browser_html)
+        for field in ("icon sizes", "title", "og:image", "twitter:card"):
+            check(
+                f"{path}: crawler and browser agree on {field}",
+                seen_c[field] == seen_b[field] and seen_c[field] not in (0, "", []),
+                f"crawler={seen_c[field]!r} browser={seen_b[field]!r}",
+            )
+        check(
+            f"{path}: crawlers get an icon >=192px",
+            'sizes="192x192"' in crawler_html or 'sizes="512x512"' in crawler_html,
+            "no >=192px icon link in the crawler head — Google's preferred size",
+        )
+
+    # Google falls back to <origin>/favicon.ico when the page it crawled
+    # declares no icon. Dash's page catch-all used to answer it with the app
+    # shell — 200 text/html where an image belongs, a poisoned fallback.
+    status, favicon_body, _ = fetch(f"{base}/favicon.ico")
+    check("/favicon.ico resolves", status == 200, f"got {status}")
+    check(
+        "/favicon.ico is an image, not the app shell",
+        not favicon_body.lstrip().lower().startswith("<!doctype"),
+        "text/html where an image belongs — a poisoned fallback",
+    )
 
     # --- 4. Content negotiation on llms.txt -------------------------------
     # Production is where this can break in ways development cannot show: a
