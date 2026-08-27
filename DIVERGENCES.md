@@ -142,9 +142,14 @@ below them are this fork's own:
   just shows one generic tip and "No announcements." The deploy log is the
   only place that fact is ever surfaced. The template pins the empty-state
   text in a unit test instead and has never carried a live check.
-- **the auth-probe skip line**: this site ships the gate DARK, so the
-  `dashClerkAuth` probe skips on every run. Silence would read as "it
-  passed"; the line says it ran and found no Clerk.
+- **the auth-probe skip line**: the `dashClerkAuth` probe is gated on the
+  package's bootstrap being in the served shell, and silence would read as
+  "it passed" — the line says instead that it ran and found no Clerk.
+  (Measured 2026-08-27, the probe RUNS on this host: production carries a
+  live publishable key and both auth POSTs answer as registered routes.
+  What is still dark is the TIER — no page resolves to `auth`, so the gate
+  card renders nowhere live. The skip line stays: it is the shape a lost
+  key would take, and the only place that would be visible.)
 
 Both are additive, both are inside `main()`, and neither touches the ported
 contract. `scripts/smoke_live.py` is therefore listed in the byte-owned

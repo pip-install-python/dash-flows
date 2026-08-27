@@ -318,8 +318,14 @@ def main(base: str) -> int:
     # GET-only page catch-all and answers 405 (or 404) — which is exactly
     # what this host measured before the gate pass. Gated on the package's
     # inline bootstrap being in the served shell, so a clerk-off host skips
-    # rather than fails: this site ships DARK and will skip until the keys
-    # land.
+    # rather than fails.
+    #
+    # MEASURED on flows.2plot.dev 2026-08-27: the shell carries a live
+    # publishable key, both POSTs answer as registered routes, and this
+    # branch RUNS. (The comment here claimed the opposite until then — it
+    # was written during the 2026-08-22 gate wave, when the keys had not
+    # landed. What is still dark is the TIER: no page resolves to `auth`,
+    # so the gate CARD renders nowhere in production.)
     if "dashClerkAuth" in home:
         for endpoint in ("session", "signout"):
             status = post(f"{base}/api/auth/{endpoint}")
@@ -330,7 +336,8 @@ def main(base: str) -> int:
                 "wiring is missing: components without a server",
             )
     else:
-        # Silence would read as "the probe passed". It ran and found no Clerk.
+        # Silence would read as "the probe passed". It ran and found no
+        # Clerk — the shape a clerk-off environment, or a lost key, takes.
         print("  · auth wiring probe skipped (Clerk not in the served shell)")
 
     status, llms, llms_headers = fetch(f"{base}/llms.txt")
