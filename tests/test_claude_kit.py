@@ -136,8 +136,12 @@ def _machine_fence(kind: str, text: str, where: str) -> None:
             )
 
 
-_POSTURE_KEYS = {"ai_bots", "healthz", "runtime"}
-_POSTURE_ENUMS = {"healthz": {"minimal", "full"}, "runtime": {"docker", "python"}}
+_POSTURE_KEYS = {"ai_bots", "healthz", "runtime", "deploy"}
+_POSTURE_ENUMS = {
+    "healthz": {"minimal", "full"},
+    "runtime": {"docker", "python"},
+    "deploy": {"release-branch"},
+}
 
 
 def _posture_fence(text: str, where: str) -> dict:
