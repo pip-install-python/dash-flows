@@ -332,3 +332,25 @@ with anything written here, they win.
   build a descendant of the wanted sha, via the compare API)
   instead of going red at timeout, and the remedy is policy —
   actions PRs: human merge when green; never a bot actor on main.
+- There is ONE classifier: `dash_improve_my_llms.classify()`. Never
+  add a User-Agent list to this app — the tracker had one for a year
+  (`lib/analytics_tracker.py`, until 1.6.34), it filed ClaudeBot as
+  *search* (it is Anthropic's training crawler; the package's registry
+  and this repo's own `run.py` comment both said so six lines from
+  where the list ignored them), it still named the retired
+  `anthropic-ai` / `claude-web` tokens, and it counted every UA-less or
+  library client as a human. Every host in the fleet reported those
+  numbers. A token the registry lacks is a pushback to the package
+  seat, not a list here; `tests/test_analytics_classifier.py` greps the
+  module for the old tokens and goes red if one comes back.
+- `build == HEAD` on `/healthz` means HEAD of **`release`**, not main
+  (1.6.35). Render deploys `release`; only cd.yml's `deploy` job writes
+  it, fast-forward, after the CI matrix is green. `main` ahead of
+  `release` is an uncertified push pending — its CD run is red or still
+  running — never "drift" and never a reason to deploy by hand or to
+  write `release` yourself (a non-fast-forward push fails the next run
+  on purpose). Compare the wire against `git rev-parse origin/release`;
+  the one measurement behind this: 2026-08-29 14:12Z, de0bcff pushed
+  to main, built by Render inside the minute, red in CD at 14:13Z,
+  served for ~6 minutes. A host whose DIVERGENCES.md posture fence has
+  no `deploy:` key still watches main — there the trap is the old one.

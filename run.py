@@ -90,6 +90,7 @@ from dash_improve_my_llms import (  # noqa: E402
     add_llms_routes,
     configure_seo,
     LLMSConfig,
+    on_document_read,
     RobotsConfig,
     register_page_metadata,
 )
@@ -119,12 +120,23 @@ from dash_improve_my_llms import (  # noqa: E402
 #   2.7.1  the round-3 network floor: llms.txt v2 discovery relations
 #          (rel=alternate/describedby on both lanes + Link headers), the
 #          Accept: text/plain ramp, and the representation content digest.
+#   2.8.0  the ledger floor (2026-08-29): ONE classifier — `classify()` is
+#          the registry robots.txt is rendered from, and
+#          lib/analytics_tracker delegates to it instead of carrying a
+#          fourth UA list that filed ClaudeBot as search; the READ EVENT —
+#          `on_document_read` hands the app one row per corpus document
+#          served (tier, verdict, bytes, verified vendor), which the
+#          tracker keeps as the ledger's `reads` table; and verified vendor
+#          identity (`verified` is `n/a` where the operator publishes no
+#          ranges — Anthropic does not). 2.8.1 will write the resolved
+#          `policy` on every event; until then it is None and the rollup
+#          groups it as "default". Nothing here waits on it.
 #
 # THIS NUMBER LIVES IN FIVE PLACES — requirements-docs.txt, here,
 # ci.yml (the host check and the in-image check) and tests/test_config.py.
 # Grep the number, not the file. The requirements-docs.txt line is also the
 # Docker cache bust; a floor that moves only here rebuilds nothing.
-LLMS_PKG_FLOOR = (2, 7, 1)
+LLMS_PKG_FLOOR = (2, 8, 0)
 try:
     from importlib.metadata import version as _pkg_version
 
@@ -137,6 +149,10 @@ if _llms_version < LLMS_PKG_FLOOR and os.environ.get("ALLOW_STALE_DEPS") != "1":
     raise RuntimeError(
         f"dash-improve-my-llms {'.'.join(map(str, _llms_version))} is below "
         f"the network floor {'.'.join(map(str, LLMS_PKG_FLOOR))}. "
+        "Below 2.8.0 there is no `classify()` and no `on_document_read`: the "
+        "tracker cannot delegate bot classification and no read row is ever "
+        "kept, so the ledger's `reads` table and rollup v4's vendors[] are "
+        "empty (ImportError at boot, not a silent degrade). "
         "Below 2.7.1 the llms.txt v2 discovery relations (rel=alternate/"
         "describedby + Link headers), the text/plain Accept ramp and the "
         "representation digest are missing. Below 2.7.0 every page serves a "
@@ -145,7 +161,7 @@ if _llms_version < LLMS_PKG_FLOOR and os.environ.get("ALLOW_STALE_DEPS") != "1":
         "its prerender entirely. Below 2.6.1 the prerender ships `hidden`, "
         "so every visibility-respecting reader gets 'Loading...' instead of "
         "the page's prose. "
-        "pip install -U 'dash-improve-my-llms[flask]>=2.7.1' "
+        "pip install -U 'dash-improve-my-llms[flask]>=2.8.0' "
         "(or set ALLOW_STALE_DEPS=1 to boot anyway)."
     )
 
@@ -543,6 +559,16 @@ ACCESS_ENABLED = _access.configure(
 # registered by use_pages importing pages/ during Dash(); nothing may register
 # in front of /<page>/llms.txt after this point.
 add_llms_routes(app, LLMSConfig(warn_missing_llms_doc=True))
+
+# The ledger row (1.6.34, dimll 2.8.0): the package emits one event per
+# corpus document it serves and does no I/O with it; the tracker keeps it
+# as the `reads` table next to `visits`. Registered ONCE — the test suite
+# imports run.py more than once per process and `on_document_read`
+# appends, so a marker on the callback's owner guards the second import
+# (the package also dedups an identical callable; belt and braces).
+if not getattr(tracker, "_read_hook_registered", False):
+    on_document_read(tracker.record_read)
+    tracker._read_hook_registered = True
 
 if BACKEND == "fastapi":  # pragma: no cover — flask is the deployed backend
     # Mirror image of the Flask hook above: Starlette runs the LAST-added

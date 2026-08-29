@@ -111,7 +111,7 @@ jobs:
               return tuple(int(x) for x in v.split(".")[:3] if x.isdigit())
 
           assert parts(dash.__version__)[:2] >= (4, 1), dash.__version__
-          # 2.7.1 is the network floor. Below 2.3.4 `resolve_site_title` does
+          # 2.8.0 is the network floor. Below 2.3.4 `resolve_site_title` does
           # not exist and this site's identity degrades to app.title; below
           # 2.6.0 there is no `configure_access` for the gate to read; below
           # 2.6.1 the prerender block ships `hidden` and every
@@ -119,8 +119,11 @@ jobs:
           # below 2.7.0 every page serves a duplicate H1 to crawlers and the
           # idempotency probe still trips on a page that merely mentions the
           # marker; below 2.7.1 there are no llms.txt v2 discovery relations,
-          # no text/plain Accept ramp and no representation digest.
-          assert parts(pkg.__version__) >= (2, 7, 1), pkg.__version__
+          # no text/plain Accept ramp and no representation digest; below
+          # 2.8.0 there is no `classify()` and no `on_document_read`, so the
+          # tracker cannot delegate bot classification and the ledger's
+          # `reads` table / rollup v4's vendors[] never populate.
+          assert parts(pkg.__version__) >= (2, 8, 0), pkg.__version__
           # 2.7.0 renders the network-standard mobile drawer as a floating
           # card from identical props. 2.8.0 is the floor for the drawer.
           assert parts(dmc.__version__) >= (2, 8, 0), dmc.__version__
@@ -203,7 +206,7 @@ jobs:
 
           v = version('dash-improve-my-llms')
           print('dash-improve-my-llms', v)
-          assert parts(v) >= (2, 7, 1), f'expected >=2.7.1 (llms.txt v2 relations), image has {v}'
+          assert parts(v) >= (2, 8, 0), f'expected >=2.8.0 (ledger classify/on_document_read), image has {v}'
 
           v = version('dash-mantine-components')
           print('dash-mantine-components', v)

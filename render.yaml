@@ -47,7 +47,14 @@ services:
     # excluded from traffic counts at write time (lib/analytics_tracker.py).
     healthCheckPath: /healthz
     autoDeploy: true
-    branch: main
+    # `release` is written ONLY by CD (.github/workflows/cd.yml, job
+    # `deploy`: a fast-forward push of the run's sha after the matrix is
+    # green). A push to main is not a deploy. autoDeploy stays on: Render
+    # reacting to this branch IS the mechanism (1.6.35, sync item 13).
+    # If this service is not Blueprint-managed, this line is documentation
+    # only — the dashboard's own Branch field is the actual switch, and
+    # only the owner can flip it (see DIVERGENCES.md `deploy:` posture).
+    branch: release
     envVars:
       # Flask (WSGI) backend, served by gunicorn. Do NOT set fastapi/quart
       # here: those are ASGI and would need uvicorn instead of gunicorn.

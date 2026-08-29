@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **dash-improve-my-llms floored at 2.8.0** (the ledger round, sync items
+  12+13). `lib/analytics_tracker.py` now delegates bot classification to
+  the package's `classify()` instead of its own year-old User-Agent list
+  (which filed ClaudeBot — Anthropic's *training* crawler — under
+  "search"). Reporting consequence: `human_hits` DROPS and `bot_hits`
+  RISES on the day this deploys, because UA-less and library clients
+  (`httpx`, `Go-http-client`, `node-fetch`, an empty UA) move from human
+  to crawler. That is the number becoming true, not a regression — the
+  hub's day-over-day view will show the step.
+- **The ledger gains a `reads` table** (`on_document_read` → new
+  `AnalyticsTracker.record_read`): one row per corpus document the
+  package serves (tier, verdict, bytes, verified vendor). `lib/
+  traffic_rollup.py`'s rollup gains an additive `vendors[]` block on any
+  day with reads, and a new `/admin/traffic` page shows this host its
+  own vendor × day / vendor → tier ledger, gated exactly like the
+  control board.
+- **Render now deploys the `release` branch**, written only by
+  `.github/workflows/cd.yml`'s `deploy` job as a fast-forward push after
+  the CI matrix is green (sync item 13). A push to `main` is a
+  candidate, not a deploy; `verify` now runs only when `deploy` succeeds
+  and re-checks `/healthz build == $GITHUB_SHA` itself before smoke
+  testing. See `DIVERGENCES.md`'s posture fence (`deploy:
+  release-branch`).
+
 ## [1.3.0] - 2026-08-01
 
 ### Changed — flows.2plot.dev joins the 2plot network standard

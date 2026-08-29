@@ -26,7 +26,7 @@ import re
 
 import pytest
 
-from conftest import backend
+from conftest import BROWSER_UA, backend
 from lib import proxy
 
 
@@ -123,11 +123,24 @@ def test_the_server_callable_is_wrapped_not_replaced(app, app_module):
 
 @pytest.mark.skipif(backend() != "flask", reason="one backend proves the tag")
 def test_the_tag_dash_emits_follows_the_forwarded_scheme(app):
-    """The actual defect: `twitter:url`, as a social scraper receives it."""
+    """The actual defect: `twitter:url`, as a social scraper receives it.
+
+    The request NAMES the browser lane. Since dash-improve-my-llms 2.8.0
+    a request with no User-Agent is classified as a crawler and receives
+    the crawler document, which carries no `twitter:url` at all — so a
+    UA-less probe here fails on "no tag" without saying anything about
+    the scheme (found by the 1.6.34 floor bump: green on 2.7.1, red on
+    2.8.0, on every Flask leg). Either lane can be the one you did not
+    mean to test; the browser one is the one this tag lives in.
+    """
     client = app.server.test_client()
     html = client.get(
         "/",
-        headers={"X-Forwarded-Proto": "https", "Host": "boilerplate.2plot.dev"},
+        headers={
+            "X-Forwarded-Proto": "https",
+            "Host": "boilerplate.2plot.dev",
+            "User-Agent": BROWSER_UA,
+        },
     ).get_data().decode("utf-8", "replace")
 
     urls = re.findall(

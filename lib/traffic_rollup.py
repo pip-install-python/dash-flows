@@ -32,6 +32,24 @@ self-report semantics exactly:
   against.
 - ``human_hits`` / ``bot_hits`` include machine-surface fetches (the
   tracker always recorded them; they were only hidden from the report).
+
+Rollup v4 (1.6.34) adds the VENDOR dimension, additively, from the ledger's
+second table — the ``reads`` rows dash-improve-my-llms 2.8.0 emits for every
+corpus document it serves (``on_document_read``, kept by
+``AnalyticsTracker.record_read``):
+
+- ``vendors[]`` — one row per ``(vendor key, verified, policy)`` for the
+  day: hits, bytes, and a per-tier count. The ``null`` key row is the
+  unidentified crawler lane, kept on purpose — it is the unverifiable bulk
+  the ledger plan prices later, and dropping it would hide exactly that.
+- ``reads`` — the day's read total, ``sum(vendors[].hits)``: the
+  reconciliation number the hub checks a host's bot accounting against.
+
+Both keys are present ONLY when the day has reads. Every v3 key is
+byte-identical to before; ``reads`` is a second table JOINED here, never
+summed into ``human_hits`` / ``bot_hits`` / ``pages`` (the request hook still
+writes a ``visits`` row for the same request). A day with reads and no
+visits is reported, by the same rule as the machine-only day.
 """
 from __future__ import annotations
 
@@ -39,7 +57,13 @@ import hashlib
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
+from dash_improve_my_llms._ledger import TIERS
+
 from lib.analytics_tracker import analytics_path
+
+# vendors[] is sorted by hits desc and capped here: a docs site sees a few
+# dozen distinct vendors on a busy day, and the hub keys on the top ones.
+VENDOR_ROWS_MAX = 40
 
 SESSION_GAP_MIN = 30
 
@@ -134,6 +158,72 @@ def load_agent_hits(path=None):
     return out
 
 
+def load_reads(path=None):
+    """The ``reads`` table, each row with a parsed local ``dt``.
+
+    A ledger written before 1.6.34 has no ``reads`` key — absence is empty.
+    No ``_SKIP`` filtering: the package only emits for documents it served,
+    which are exactly the surfaces the visits reader skips.
+    """
+    import json
+
+    try:
+        with open(path or analytics_path()) as f:
+            raw = json.load(f).get("reads") or []
+    except Exception:
+        return []
+    out = []
+    for r in raw:
+        try:
+            dt = datetime.fromtimestamp(float(r.get("ts")))
+        except (TypeError, ValueError, OverflowError, OSError):
+            continue
+        r = dict(r)
+        r["dt"] = dt
+        out.append(r)
+    out.sort(key=lambda r: r["dt"])
+    return out
+
+
+def vendor_rows(reads) -> list[dict]:
+    """Fold one day's read rows into the v4 ``vendors[]`` block.
+
+    One row per ``(key, verified, policy)``; ``policy`` is ``"default"``
+    where the package emitted ``None`` (a host with no per-vendor policy,
+    and every host until dimll 2.8.1 writes the resolved policy). ``tiers``
+    always carries all seven keys from the package's ``TIERS`` tuple so a
+    consumer can build a table without a per-host mapping.
+    """
+    acc: dict[tuple, dict] = {}
+    for r in reads:
+        key = r.get("vendor_key")
+        verified = r.get("verified") or "n/a"
+        policy = r.get("policy") or "default"
+        row = acc.get((key, verified, policy))
+        if row is None:
+            row = acc[(key, verified, policy)] = {
+                "key": key,
+                # vendor_class, never bot_type: the null-key row is the
+                # unidentified lane and its class is null, not "unknown".
+                "class": r.get("vendor_class") or None,
+                "verified": verified,
+                "policy": policy,
+                "hits": 0,
+                "bytes": 0,
+                "tiers": {t: 0 for t in TIERS},
+            }
+        row["hits"] += 1
+        try:
+            row["bytes"] += int(r.get("bytes") or 0)
+        except (TypeError, ValueError):
+            pass
+        tier = r.get("tier")
+        if tier in row["tiers"]:
+            row["tiers"][tier] += 1
+    rows = sorted(acc.values(), key=lambda v: (-v["hits"], v["key"] or "~"))
+    return rows[:VENDOR_ROWS_MAX]
+
+
 def sessionize(visits, gap_min=SESSION_GAP_MIN):
     """Group hits into per-visitor sessions on the 30-minute gap rule."""
     by_key = defaultdict(list)
@@ -173,21 +263,24 @@ def _country(v):
 
 
 def daily_rollup(app: str, day: date | None = None, visits=None,
-                 agent_visits=None) -> dict | None:
-    """Build the v2+v3 satellite payload for ``day`` (default: today, local).
+                 agent_visits=None, reads=None) -> dict | None:
+    """Build the v2+v3(+v4) satellite payload for ``day`` (default: today).
 
     Returns ``None`` when the day has no tracked hits at all — there is
     nothing truthful to report, and an all-zero row would read as "we were
     up and nobody came" rather than "no data". A day with ONLY machine-
     surface fetches IS reported: crawlers hammering llms.txt while no
     human visits is exactly the signal the hub's 402 board exists to see.
+    The same rule covers a day with only ``reads`` rows.
     """
     day = day or datetime.now().date()
     visits = load_visits() if visits is None else visits
     agent_visits = load_agent_hits() if agent_visits is None else agent_visits
+    reads = load_reads() if reads is None else reads
     hits = [v for v in visits if v["dt"].date() == day]
     agent = [v for v in agent_visits if v["dt"].date() == day]
-    if not hits and not agent:
+    day_reads = [r for r in reads if r["dt"].date() == day]
+    if not hits and not agent and not day_reads:
         return None
 
     humans = [v for v in hits if v.get("device_type") != "bot"]
@@ -235,4 +328,12 @@ def daily_rollup(app: str, day: date | None = None, visits=None,
         # Median of MULTI-PAGE human sessions only. Omitted (not zero) when no
         # session had a second pageview — zero would be a claim we can't make.
         payload["median_session_s"] = multi[len(multi) // 2]
+    if day_reads:
+        # v4, additive: the vendor dimension from the package's own read
+        # events. Omitted (not empty) on a day with no reads, so a host
+        # below the 2.8.0 floor and a quiet day are indistinguishable to
+        # the hub by absence — which is the truthful state of both.
+        vendors = vendor_rows(day_reads)
+        payload["vendors"] = vendors
+        payload["reads"] = sum(v["hits"] for v in vendors)
     return payload

@@ -2,12 +2,20 @@ name: CD
 
 # Deploys flows.2plot.dev, then checks the live site.
 #
-# The deploy step POSTs to a Render deploy hook held in the
-# RENDER_DEPLOY_HOOK_URL secret. Without that secret the step is skipped and
-# the workflow goes straight to verification — which is the right behaviour
-# here, because render.yaml sets `autoDeploy: true` and Render is already
-# deploying from GitHub on its own. The hook only makes the timing explicit so
-# the wait loop below knows what it is waiting for.
+# THE ROAD (1.6.35, owner decision A of 2026-08-29): Render auto-deploys the
+# `release` branch, and ONLY this workflow writes `release` — a fast-forward
+# push of the run's own sha, after the CI matrix is green. A push to `main`
+# is therefore not a deploy; it is a candidate. Measured reason (template,
+# 2026-08-29): a push straight to the branch Render watched raced the CI
+# judging that same push — Render could build a commit CI had not yet
+# passed. Now it watches a branch that only ever holds certified commits.
+#
+# The old Render deploy-hook step is GONE from this file; the repository
+# secret it read is inert and safe to delete — its name is deliberately not
+# spelled here, because sync item 13's detect greps this file for it.
+# `main` ahead of `release` means an uncertified push is pending (its run
+# red or still running) — never "drift", never a reason to deploy by hand
+# (kit trap in .claude/CLAUDE.md).
 on:
   push:
     branches: [main]
@@ -38,10 +46,10 @@ jobs:
     name: deploy to render
     needs: [test]
     runs-on: ubuntu-latest
-    # Long enough for the wait loop below (up to 100 × 15s = 25 minutes) and
-    # no longer. Without it the job inherits GitHub's six-hour default, which
-    # is how a platform that never comes back healthy holds the
-    # `cd-production` concurrency group all day.
+    # Long enough for the build-match wait below (up to 100 × 15s = 25
+    # minutes) and no longer. Without it the job inherits GitHub's six-hour
+    # default, which is how a platform that never comes back healthy holds
+    # the `cd-production` concurrency group all day.
     #
     # SIZED FOR THE WORST BUILD, not the median: the round's most important
     # deploy is always the one that busts the pip cache (a floor bump), and
@@ -51,35 +59,53 @@ jobs:
     environment:
       name: production
       url: https://flows.2plot.dev
-    outputs:
-      deployed: ${{ steps.hook.outputs.deployed }}
+    # `contents: write` on THIS job only — it is the one thing in the
+    # workflow that writes to the repository (the `release` ref). The
+    # workflow-level grant above stays `read`.
+    permissions:
+      contents: write
     steps:
-      - name: Trigger the Render deploy hook
-        id: hook
-        env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      - uses: actions/checkout@v4
+        with:
+          # FULL history, not the default depth-1 shallow clone. A shallow
+          # HEAD pushed onto an EXISTING `release` is rejected as
+          # non-fast-forward ("fetch first") because the clone cannot show
+          # the remote that release's tip is an ancestor — the first
+          # promote succeeds regardless because it creates the branch, so
+          # this is invisible until the second push. Reproduced locally:
+          # depth-1 push rejected, `--unshallow` then the same push lands.
+          # tests/test_cd_promotes_release.py pins it.
+          fetch-depth: 0
+
+      - name: Promote to release
+        # Only a push to main promotes. A workflow_dispatch that names
+        # another host (target_url) is a verify-only run against that host
+        # and must not move this repo's release ref — the hook step this
+        # replaced had no such guard.
+        if: github.event_name == 'push' || inputs.target_url == ''
         run: |
-          if [ -z "$HOOK" ]; then
-            # ::warning, not ::notice — dash-email's finding (2026-08-23):
-            # a notice is invisible in the run summary, so a repo whose hook
-            # secret was never set looked identical to one that deployed.
-            echo "::warning::RENDER_DEPLOY_HOOK_URL is not set — this push deploys only if render.yaml autoDeploy fires. The build-match wait below still holds for THIS commit either way."
-            echo "deployed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          curl -fsS -X POST "$HOOK" > /dev/null
-          echo "deployed=true" >> "$GITHUB_OUTPUT"
+          # Fast-forward push of the run's own sha. `needs: [test]` is the
+          # gate: a red matrix never reaches this step, so `release` cannot
+          # receive an uncertified commit by construction. On the FIRST run
+          # `release` does not exist yet and this push creates it.
+          #
+          # NOT --force, on purpose: a non-fast-forward means somebody wrote
+          # `release` by hand (a rollback, a hotfix). This job then FAILS
+          # and says so; a force here would silently undo that person.
+          #
+          # GITHUB_TOKEN pushes trigger no workflows — correct: `on:` is
+          # main-only, and it is Render, not Actions, that reacts to
+          # `release` (render.yaml `branch: release`, autoDeploy on).
+          git push origin "HEAD:refs/heads/release"
+          echo "::notice::release → ${GITHUB_SHA} (fast-forward)"
 
       - name: Wait for THIS build to serve traffic
-        # NOT gated on the hook step, and that is the whole fix: with
-        # RENDER_DEPLOY_HOOK_URL unset — which is the recorded fleet
-        # decision, Render's autoDeploy owns deploy timing — the old shape
-        # SKIPPED this wait entirely and let `verify` run the battery
-        # seconds after the push, against the PREVIOUS release. The defect
-        # was invisible for the workflow's whole life, because the old build
-        # always already passed the old battery; it only shows when a run
-        # adds a new surface. Found on muicharts 2026-08-21, fleet-wide
-        # class, and this repo had it verbatim.
+        # Render deploys `release`, which the step above just set to this
+        # run's sha, so the wait is unchanged: hold until /healthz reports
+        # THIS build. The defect this wait exists for (running the battery
+        # seconds after the push, against the PREVIOUS release) was
+        # invisible for the workflow's whole life until a new surface made
+        # the race lose — muicharts, fleet-wide class, found 2026-08-21.
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -94,15 +120,16 @@ jobs:
           # Fail FAST on supersession (1.6.25; observed live on 4a1d430,
           # 2026-08-25): when a DIFFERENT build serves, one compare-API
           # call per distinct sha classifies it. "ahead" — the live build
-          # is a DESCENDANT of this run's sha — means branch HEAD moved
-          # past us and the hook shipped it; this run's build can never
-          # serve again, so holding the remaining ~25 minutes only turns
-          # a race into a timeout. That commit's own run must certify it.
-          # Every other verdict keeps waiting: "behind" is the previous
-          # release still serving mid-build (the normal case) or a
-          # deliberate rollback — an older build is NOT a descendant and
-          # must not fast-fail; "diverged" and unknown/404 prove nothing,
-          # so the honest generic timeout stays their answer.
+          # is a DESCENDANT of this run's sha — means a later run already
+          # promoted past us (two green pushes in one deploy window); this
+          # run's build can never serve again, so holding the remaining
+          # ~25 minutes only turns a race into a timeout. That commit's
+          # own run must certify it. Every other verdict keeps waiting:
+          # "behind" is the previous release still serving mid-build (the
+          # normal case) or a deliberate rollback — an older build is NOT a
+          # descendant and must not fast-fail; "diverged" and
+          # unknown/404 prove nothing, so the honest generic timeout stays
+          # their answer.
           want="${GITHUB_SHA}"
           matched=0
           ok=0
@@ -140,11 +167,12 @@ jobs:
   verify:
     name: verify the live site
     needs: [deploy]
-    # != 'skipped' too (muicharts' fix, adopted 2026-08-24): when deploy is
-    # skipped there is nothing this run shipped to verify — running anyway
-    # certifies whatever build happens to be serving and turns one cause
-    # into two red jobs.
-    if: always() && needs.deploy.result != 'cancelled' && needs.deploy.result != 'skipped'
+    # ONLY after a successful deploy (1.6.35): the old
+    # `always() && != 'cancelled' && != 'skipped'` admitted `failure`, so a
+    # failed promote still let this job run — and it would report GREEN
+    # against the PREVIOUS build, having smoke-tested a deploy that never
+    # happened. A verify that passes when nothing deployed must not exist.
+    if: needs.deploy.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -152,6 +180,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
+
+      - name: The live build IS this run's sha
+        # Belt to the `if:` above's braces, and stronger: it also catches a
+        # promote that succeeded while Render's build did not, or a later
+        # run that promoted past us between deploy and verify. Skipped on a
+        # workflow_dispatch against another host (its shas are not ours).
+        if: github.event_name == 'push' || inputs.target_url == ''
+        run: |
+          build="$(curl -fsS "$SITE_URL/healthz" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("build",""))')"
+          if [ "$build" != "$GITHUB_SHA" ]; then
+            echo "::error::verify refuses: $SITE_URL serves build '${build:-<none>}', this run is $GITHUB_SHA — nothing this run shipped is on the wire to verify"
+            exit 1
+          fi
+          echo "::notice::verifying build $build (this run's sha)"
 
       # The network battery first: it is the same script, with the same check
       # names, that CI ran against the container this deploy shipped. A name

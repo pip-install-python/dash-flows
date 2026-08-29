@@ -215,3 +215,31 @@ and updated by hand, which is what class `contract` means.
 ```yaml byte-owned
 - scripts/smoke_live.py  # divergence 9; contract-class since 1.6.29
 ```
+
+## Posture
+
+What this host ANSWERS, as measured — never as intended. Sync item 9
+(1.6.30) — the full three-key fence (`ai_bots`, `healthz`, `runtime`)
+plus `tests/test_claude_kit.py`'s shape validator — has not been
+adopted here yet; only `deploy` is declared below, ahead of that item,
+because sync item 13 (1.6.35) asks for it directly. An absent key
+reads as the template default, same as an absent fence would.
+
+    deploy    `release-branch` — Render deploys `release`, which only
+              CD writes after a green matrix (1.6.35, sync item 13);
+              `build` on /healthz is HEAD of `release`, and `main`
+              ahead of it is an uncertified push pending. ABSENT reads
+              as `main`: Render watches main and a push deploys before
+              CI has judged it.
+
+Set 2026-08-29, with the `deploy` job's promote step landing in the
+same change (`.github/workflows/cd.yml`, `render.yaml`). Not yet
+measured on the wire: the dashboard Branch field is an owner-only
+switch (see the contract in `.claude/CLAUDE.md`) and this repo cannot
+confirm from here whether the live service is Blueprint-managed or
+still watching `main` directly — report the second push's outcome
+before treating this as settled.
+
+```yaml posture
+deploy: release-branch
+```
