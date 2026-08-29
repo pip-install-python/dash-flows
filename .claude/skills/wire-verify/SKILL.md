@@ -25,11 +25,24 @@ pasted output; a claim without the artifact is not verified.
    - `geo.resolved` naming a country via cf-ipcountry proves the
      edge's country header reaches the app.
 
-3. **Machine lane**: `curl -s <BASE_URL>/` (no browser UA) must
-   return the static crawler document — real prose, exactly one
-   `<h1>` (strip HTML comments before counting), no "Loading..."
-   stub. Spot-check one content page's `/<page>/llms.txt`: markdown,
-   not an HTML shell.
+3. **Machine lane** — name the crawler, do not rely on curl's
+   default UA (1.6.30): which document you get is the package's UA
+   classification, and an unnamed agent can land in either lane
+   (the template serves `curl/8.x` the crawler document; muicharts
+   saw the browser one). Probe explicitly, and confirm from the
+   body which lane answered:
+
+       curl -s -A "Mozilla/5.0 (compatible; Googlebot/2.1; \
+       +http://www.google.com/bot.html)" <BASE_URL>/
+
+   The crawler document is small (tens of KB, not hundreds) and
+   carries real prose, exactly one `<h1>` (strip HTML comments
+   before counting) and no "Loading..." stub. Spot-check one
+   content page's `/<page>/llms.txt`: markdown, not an HTML shell.
+   If this host blocks AI vendors, its DIVERGENCES.md posture block
+   says which paths 403 — check those with a vendor UA too, and
+   treat a mismatch as either the posture drifting or the block
+   drifting, never as noise.
 
 4. **Browser lane**: with a browser User-Agent, the app shell must
    carry the visible prerender div (no `hidden` attribute) and the
