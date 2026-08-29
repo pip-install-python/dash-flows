@@ -136,6 +136,70 @@ def _machine_fence(kind: str, text: str, where: str) -> None:
             )
 
 
+_POSTURE_KEYS = {"ai_bots", "healthz", "runtime"}
+_POSTURE_ENUMS = {"healthz": {"minimal", "full"}, "runtime": {"docker", "python"}}
+
+
+def _posture_fence(text: str, where: str) -> dict:
+    """The ```yaml posture block in DIVERGENCES.md (1.6.30, F4).
+
+    Declared postures used to live in the hub's own table — a copy of a
+    measurement somebody took once, aging in a repo that cannot see the
+    host. The fence homes each posture in the repo that serves it. SHAPE
+    is all this validates: no test can tell a stale 200 from a fresh one,
+    so the grammar is kept narrow enough that a wrong value is visibly
+    wrong. Empty is valid and means "the template defaults".
+    """
+    fences = re.findall(
+        r"^```yaml posture[ \t]*\n(.*?)^```[ \t]*$", text, re.M | re.S
+    )
+    assert len(fences) == 1, (
+        f"{where}: expected exactly one ```yaml posture fence, "
+        f"found {len(fences)}"
+    )
+    declared: dict = {}
+    for raw in fences[0].splitlines():
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        key, sep, value = stripped.partition(":")
+        key, value = key.strip(), value.strip()
+        assert sep, f"{where} posture: {raw!r} is not a `key: value` line"
+        assert key in _POSTURE_KEYS, (
+            f"{where} posture: unknown key {key!r} — the hub reads "
+            f"{sorted(_POSTURE_KEYS)} and would ignore this one silently"
+        )
+        assert key not in declared, f"{where} posture: {key!r} declared twice"
+        if key in _POSTURE_ENUMS:
+            assert value in _POSTURE_ENUMS[key], (
+                f"{where} posture: {key}: {value!r} — expected one of "
+                f"{sorted(_POSTURE_ENUMS[key])}"
+            )
+            declared[key] = value
+            continue
+        try:
+            statuses = json.loads(value)
+        except ValueError as exc:
+            raise AssertionError(
+                f"{where} posture: ai_bots must be a JSON object like "
+                f'{{"/": 403, "/llms.txt": 200}} — {exc}'
+            ) from None
+        assert isinstance(statuses, dict) and statuses, (
+            f"{where} posture: ai_bots is {statuses!r} — a non-empty JSON "
+            "object of path -> status, or omit the key entirely"
+        )
+        for path, status in statuses.items():
+            assert path.startswith("/"), (
+                f"{where} posture: ai_bots key {path!r} is not a path"
+            )
+            assert isinstance(status, int) and 100 <= status <= 599, (
+                f"{where} posture: ai_bots[{path!r}] is {status!r} — an "
+                "HTTP status, measured with a real vendor UA"
+            )
+        declared[key] = statuses
+    return declared
+
+
 def test_kit_files_exist_and_are_not_ignored():
     """The blanket `.claude/` ignore kept the contract local-only for the
     template's whole life — every fork inherited nothing. The allow-list
@@ -278,3 +342,39 @@ def test_divergences_carry_the_byte_owned_block():
             "mention heuristic"
         )
     _machine_fence("byte-owned", text, "DIVERGENCES.md")
+
+
+def test_divergences_posture_fence_is_wellformed():
+    """The declared posture (1.6.30, F4): shape only, plus the one value
+    the repo can contradict by itself.
+
+    ABSENCE SKIPS, like the byte-owned fence and for the same reason — a
+    fork that has not ported the item yet keeps its CI green and gets the
+    contract item, not a red on arrival. What is declared is held: an
+    unknown key would be read by nobody, and a `runtime:` disagreeing with
+    render.yaml is the posture lying about something in its own tree.
+    """
+    import pytest
+
+    div = REPO / "DIVERGENCES.md"
+    if not div.is_file():
+        pytest.skip("no DIVERGENCES.md — nothing to declare a posture in")
+    text = div.read_text()
+    if not re.search(r"^```yaml posture[ \t]*$", text, re.M):
+        pytest.skip(
+            "DIVERGENCES.md has no posture fence — port the 1.6.30 item; "
+            "until then the hub reads its own seeded table"
+        )
+    declared = _posture_fence(text, "DIVERGENCES.md")
+
+    render = REPO / "render.yaml"
+    if "runtime" in declared and render.is_file():
+        for line in render.read_text().splitlines():
+            m = re.match(r"\s*runtime:\s*(\S+)", line)
+            if m:
+                assert declared["runtime"] == m.group(1), (
+                    f"posture declares runtime {declared['runtime']!r}, "
+                    f"render.yaml says {m.group(1)!r} — the posture is "
+                    "wrong about this repo's own tree"
+                )
+                break
