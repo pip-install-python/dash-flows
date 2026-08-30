@@ -51,7 +51,21 @@ try:
     from lib.constants import INTERNAL_UA as _INTERNAL_UA
 except Exception:  # running outside a repo checkout — keep the token intact
     _INTERNAL_UA = "2plot-internal/1.0 (+https://2plot.ai/docs/satellite-analytics)"
-UA = _INTERNAL_UA + " network-smoke"
+# The default UA names the BROWSER lane first (sync item 17; muischeduler's
+# finding on its item-12 port): at dash-improve-my-llms >= 2.8 a UA with no
+# browser engine token is classified crawler-lane, so a bare internal token
+# made every default-UA check read the prerendered crawler document — a
+# manifest-link or og:image check goes red the moment a floor moves, in CD's
+# verify job. The internal token stays IN the string, after the engine token:
+# INTERNAL_UA_TOKEN is a substring match, so the far side's internal-traffic
+# exclusion still holds. CRAWLER_UA is the other lane and is deliberately
+# untouched.
+BROWSER_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 "
+    + _INTERNAL_UA + " network-smoke"
+)
+UA = BROWSER_UA
 CRAWLER_UA = "Mozilla/5.0 (compatible; Googlebot/2.1) " + _INTERNAL_UA
 
 # The body dash-improve-my-llms serves when a page has no prose registered.
@@ -306,13 +320,18 @@ def satellite_checks(base: str) -> None:
 
         for agent, expected, since in (
             ("OAI-SearchBot", "Allow: /", "2.3.2"),
-            ("ClaudeBot", "Disallow: /", "2.3.3"),
             ("Claude-User", "Allow: /", "2.3.3"),
             ("Claude-SearchBot", "Allow: /", "2.3.3"),
         ):
             got = rule(agent)
             expect(got == expected,
                    f"{agent} -> {got!r}, expected {expected!r}: pre-{since} artifact")
+        # Posture, not artifact (sync item 15): no training stanza is emitted
+        # at all when the wall is retired; absent or Allow is the allow shape.
+        for agent in ("ClaudeBot", "GPTBot"):
+            marker = f"User-agent: {agent}"
+            walled = marker in lines and lines[lines.index(marker) + 1] == "Disallow: /"
+            expect(not walled, f"{agent} still Disallowed: the item 15 posture flip has not landed")
         expect(any(ln.startswith("Sitemap:") for ln in lines), "Sitemap line missing")
 
     def sitemap_absolute_and_on_this_host():

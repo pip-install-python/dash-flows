@@ -5,6 +5,8 @@ endpoint: /layout
 package: dash_flows
 icon: mdi:sitemap-outline
 lastmod: 2026-07-01
+category: Building Graphs
+order: 4
 ---
 
 .. llms_copy::Layout & Handles

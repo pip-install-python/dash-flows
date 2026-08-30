@@ -5,6 +5,8 @@ endpoint: /edges
 package: dash_flows
 icon: tabler:line-dashed
 lastmod: 2026-07-01
+category: Building Graphs
+order: 2
 ---
 
 .. llms_copy::Edges

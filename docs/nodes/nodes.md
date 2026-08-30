@@ -5,6 +5,8 @@ endpoint: /nodes
 package: dash_flows
 icon: carbon:assembly-cluster
 lastmod: 2026-07-01
+category: Building Graphs
+order: 1
 ---
 
 .. llms_copy::Nodes

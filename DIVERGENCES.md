@@ -171,6 +171,35 @@ Applied here on the ops seat's fleet instruction (2026-08-26) and reported
 upstream. RETIRE this entry when the template adopts the same fix — at
 that point the difference is gone, not deliberate.
 
+### 11. `components/header.py` and `components/appshell.py` are not byte-identical to the template (sync item 16)
+
+Sync item 16 (the navigation contract, 1.6.38) ported
+`components/navbar.py`, `components/footer.py`, `pages/api.py`,
+`pages/changelog.py`, `pages/traffic.py`, `lib/api_reference.py`,
+`lib/network_directory.py`, `lib/aside.py` and
+`lib/directives/headings.py` **byte-identical** to the template — each
+diffed empty against template HEAD at 8ceca5c (1.6.40) after porting,
+which is the evidence the item's own reclass note asks for.
+
+`components/header.py` and `components/appshell.py` carry the
+CONTRACT (Other Apps menu, version badge, search, GitHub icon,
+theme toggle, aria-labels, the aside-collapse callback, the footer
+mount) but not the bytes:
+
+- **the wordmark** stays this fork's own (a `carbon:flow` icon + the
+  literal text "dash-flows" in `#3b82f6`), not the template's
+  `WORDMARK` constant + `assets/ddb.png` image — per-fork identity,
+  the design brief's own "freedom" clause;
+- **`components/appshell.py` keeps `beacon_component()`**
+  (`lib/pageview_beacon.py`) in the AppShell's children — this fork's
+  own SPA page-view beacon (the reason its session numbers are honest
+  when every other Dash site reports single-page visits), which the
+  template does not carry and item 16 does not mention.
+
+Both are contract-class, not verbatim: a future sync porting either
+file must preserve these two lines rather than overwrite them with
+the template's own.
+
 *(Retirements: none yet. When one lands, mark it retired here rather
 than deleting it — a record that overclaims teaches the next sync to
 defend a line nobody is attacking.)*

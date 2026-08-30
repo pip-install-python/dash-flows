@@ -138,7 +138,25 @@ AFFILIATED: List[Dict[str, str]] = [
         "url": "https://ai-agent.buzz",
         "description": "Agent tooling directory.",
     },
+    {
+        "name": "2plot.media",
+        "url": "https://2plot.media",
+        "description": "Media and streaming, on the same Dash stack.",
+    },
 ]
+
+# The top bar's *Other Apps* menu lists the PRIMARY applications only
+# (owner, 2026-08-30): the hub, the catalogue and the affiliated sites —
+# never the fleet's docs subdomains, which 2plot.dev's catalogue already
+# lists. A set of URLs, not a hand-typed menu, so the registry stays the
+# source and the menu==registry test asserts this filtered set.
+PRIMARY = frozenset({
+    "https://2plot.ai",
+    "https://2plot.dev",
+    "https://2plot.media",
+    "https://piratesbargain.com",
+    "https://ai-agent.buzz",
+})
 
 EXTERNAL: List[Dict[str, Any]] = [
     {
@@ -190,6 +208,51 @@ def peers_for(app_url: str) -> List[Dict[str, str]]:
     """
     own = app_url.rstrip("/")
     return [p for p in PEERS if p["url"].rstrip("/") != own]
+
+
+# Menu icons, keyed by URL and kept OUT of the entries above: the package's
+# `register_network` forwards every entry key to `register_network_site`
+# verbatim, and an unknown key is a TypeError at boot (measured 1.6.38).
+ICONS: Dict[str, str] = {
+    "https://2plot.ai": "simple-icons:plotly",
+    "https://2plot.dev": "solar:box-bold-duotone",
+    "https://boilerplate.2plot.dev": "streamline-pixel:content-files-favorite-book",
+    "https://leaflet.2plot.dev": "mdi:map-outline",
+    "https://muischeduler.2plot.dev": "mdi:calendar-clock",
+    "https://muicharts.2plot.dev": "mdi:chart-areaspline",
+    "https://flexlayout.2plot.dev": "mdi:view-dashboard-outline",
+    "https://llms.2plot.dev": "mdi:robot-outline",
+    "https://flows.2plot.dev": "mdi:graph-outline",
+    "https://pannellum.2plot.dev": "mdi:panorama-variant-outline",
+    "https://emojimart.2plot.dev": "mdi:emoticon-outline",
+    "https://email.2plot.dev": "mdi:email-outline",
+    "https://modelviewer.2plot.dev": "mdi:cube-outline",
+    "https://excalidraw.2plot.dev": "mdi:draw",
+    "https://piratesbargain.com": "mdi:pirate",
+    "https://ai-agent.buzz": "game-icons:beehive",
+    "https://2plot.media": "mdi:movie-open-play-outline",
+    "https://www.dash-mantine-components.com": "mdi:web",
+    "https://dash.plotly.com": "mdi:web",
+}
+
+
+def other_apps_for(app_url: str) -> List[Dict[str, str]]:
+    """The top bar's *Other Apps* menu (1.6.38): the PRIMARY entries of
+    PEERS + AFFILIATED, in registry order, this app removed, each labelled
+    by its DOMAIN — short enough for a menu, and the one name every host
+    agrees on. Never hand-typed twice again: the survey found 2plot.dev
+    listed twice on four hosts and a retired domain on one. `icon` comes
+    from ICONS below (default `mdi:web`)."""
+    own = app_url.rstrip("/")
+    out = []
+    for entry in PEERS + AFFILIATED:
+        url = entry["url"].rstrip("/")
+        if url == own or url not in PRIMARY:
+            continue
+        domain = url.split("://", 1)[-1].split("/", 1)[0]
+        out.append({"label": domain, "url": entry["url"],
+                    "icon": ICONS.get(url, "mdi:web"), "name": entry["name"]})
+    return out
 
 
 def apply(app_url: str) -> None:

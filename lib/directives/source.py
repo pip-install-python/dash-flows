@@ -33,4 +33,8 @@ class SC(SourceCode):
             code=code,
             defaultExpanded=defaultExpanded == "true",
             withExpandButton=withExpandedButton == "true",
+            # The copy button is icon-only; without these it has no
+            # accessible name (the audit's "copy button without text").
+            copyLabel="Copy code",
+            copiedLabel="Copied",
         )

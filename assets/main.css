@@ -268,6 +268,73 @@ img[alt=logo] { width: 100%; }
     border-radius: 12px;
 }
 
+/* Prop tables and any other markdown2dash table scroll inside their own box
+   instead of stretching the document at phone width (a fork measured 105px
+   of horizontal drag at 414px from one prop table). GitHub's markdown
+   recipe: content-width, capped at the container, scrollable past it — a
+   no-op for tables that already fit. Element+class selector so it outranks
+   Mantine's own width rule regardless of stylesheet load order.
+   markdown2dash stamps m2d-table on every table it renders; `.. kwargs::`
+   prop tables carry m2d-block-kwargs instead — the one table class the
+   m2d-table rule never matches, because the directive's own wrapper
+   overwrites className with its own block name. */
+table.m2d-table,
+table.m2d-block-kwargs {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Code blocks scroll inside their own box, wherever they sit. CodeHighlight's
+   <pre> already scrolls, but a flex parent with the default min-width:auto
+   — Mantine's List item wrapper, a Blockquote, a Stack — refuses to shrink
+   below the code's intrinsic width and drags the whole document wide.
+   Public Mantine class names only — never the hashed .m_* internals (see
+   the trap comment above). */
+.mantine-List-itemWrapper,
+.mantine-List-itemLabel,
+.mantine-List-item,
+.mantine-Blockquote-root,
+.mantine-Timeline-itemBody,
+.mantine-CodeHighlight-root,
+.mantine-CodeHighlightTabs-root {
+    min-width: 0;
+    max-width: 100%;
+}
+/* The wrapper is inline-flex and the label a block child: without
+   min-width:0 on the LABEL too, it grows to the code's width. */
+.mantine-List-itemWrapper {
+    width: 100%;
+}
+.mantine-List-itemLabel {
+    flex: 1 1 auto;
+}
+/* Timeline bullets (/changelog): a Text in a no-wrap Group grows to its
+   longest unbreakable token — a 60-character test name in a code span —
+   and leaves its card. Same rule as the component sets inline; here so the
+   stylesheet alone holds the line. */
+.mantine-Timeline-root .mantine-Text-root,
+.mantine-Timeline-root .mantine-Code-root {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+/* Inline code in prose: a long unbreakable token (a dotted module path, a
+   long prop name) is the last thing that can push a page past the viewport
+   once blocks and tables scroll in their own boxes. Block code
+   (CodeHighlight) keeps pre formatting; this is inline only. */
+code.m2d-codespan,
+.mantine-Code-root:not(.mantine-CodeHighlight-code) {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+.mantine-CodeHighlight-root pre,
+.mantine-CodeHighlightTabs-root pre,
+.mantine-AppShell-main pre {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
 /* Theme-aware code blocks */
 :root[data-mantine-color-scheme="light"] pre,
 :root[data-mantine-color-scheme="light"] code {

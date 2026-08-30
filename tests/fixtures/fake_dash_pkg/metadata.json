@@ -1,0 +1,66 @@
+{
+ "src/lib/components/FakeWidget.react.js": {
+  "description": "A fake widget.",
+  "displayName": "FakeWidget",
+  "props": {
+   "id": {
+    "type": {
+     "name": "string"
+    },
+    "required": false,
+    "description": "The ID."
+   },
+   "value": {
+    "type": {
+     "name": "number"
+    },
+    "required": true,
+    "description": "Current value.",
+    "defaultValue": {
+     "value": "0",
+     "computed": false
+    }
+   },
+   "variant": {
+    "type": {
+     "name": "enum",
+     "value": [
+      {
+       "value": "'a'"
+      },
+      {
+       "value": "'b'"
+      }
+     ]
+    },
+    "required": false,
+    "description": "Which look."
+   },
+   "setProps": {
+    "type": {
+     "name": "func"
+    },
+    "required": false,
+    "description": "internal"
+   }
+  }
+ },
+ "src/lib/components/FakeGauge.react.js": {
+  "description": "A fake gauge.",
+  "displayName": "FakeGauge",
+  "props": {
+   "id": {
+    "type": {
+     "name": "string"
+    },
+    "required": false,
+    "description": "The ID."
+   }
+  }
+ },
+ "src/lib/components/NotExported.react.js": {
+  "description": "never exported",
+  "displayName": "NotExported",
+  "props": {}
+ }
+}

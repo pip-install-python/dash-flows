@@ -5,6 +5,8 @@ endpoint: /getting-started
 package: dash_flows
 icon: mdi:rocket-launch-outline
 lastmod: 2026-07-01
+category: Getting Started
+order: 1
 ---
 
 .. llms_copy::Getting Started

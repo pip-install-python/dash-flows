@@ -5,6 +5,8 @@ endpoint: /api-reference
 package: dash_flows
 icon: mdi:api
 lastmod: 2026-07-01
+category: Reference
+order: 1
 ---
 
 .. llms_copy::API Reference

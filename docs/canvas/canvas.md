@@ -5,6 +5,8 @@ endpoint: /canvas
 package: dash_flows
 icon: mdi:card-outline
 lastmod: 2026-07-01
+category: Building Graphs
+order: 3
 ---
 
 .. llms_copy::Canvas & Controls

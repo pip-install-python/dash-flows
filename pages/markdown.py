@@ -11,7 +11,8 @@ from pydantic import BaseModel, field_validator
 
 from lib.ad_client import inject_ad_into_aside
 from lib.constants import OG_IMAGE_URL, PAGE_TITLE_PREFIX, NAME_CONTENT_MAP
-from lib import gate_layouts, page_tiers, page_visibility
+from lib import aside, gate_layouts, page_tiers, page_visibility
+from lib.directives.headings import patch_renderer
 from lib.directives.kwargs import Kwargs
 from lib.directives.llms_copy import LlmsCopy
 from lib.directives.source import SC
@@ -40,6 +41,8 @@ class Meta(BaseModel):
     endpoint: str
     package: str = "dash_flows"
     category: Optional[str] = None
+    # Sidebar position within its category (sync item 16); ties break on name.
+    order: int = 1000
     icon: Optional[str] = None
     # Who may read this page: public | auth | admin | hidden. Absent means
     # the deployment default (PAGE_DEFAULT_TIER, else public) — see
@@ -151,6 +154,11 @@ def _build_llms_doc(name: str, description: str, expanded_markdown: str, path: s
     return "\n".join(parts)
 
 
+# Headings containing inline code/emphasis crash markdown2dash's renderer and,
+# when they don't, get an id their own TOC anchor doesn't match. Must run
+# before create_parser() instantiates the renderer. See lib/directives/headings.
+patch_renderer()
+
 directives = [Admonition(), BlockExec(), Divider(), Image(), Kwargs(), LlmsCopy(), SC(), TOC()]
 parse = create_parser(directives)
 
@@ -168,6 +176,11 @@ for file in files:
 
     # Store raw markdown content in NAME_CONTENT_MAP for the LLM copy button.
     NAME_CONTENT_MAP[metadata.name] = content
+
+    # Pages with a `.. toc::` fill the aside; the shell collapses it for
+    # every other page (lib/aside.py — full-width /changelog, /api, home).
+    if ".. toc::" in content:
+        aside.register(metadata.endpoint)
 
     layout = parse(content)
 
@@ -201,6 +214,7 @@ for file in files:
             metadata.endpoint, metadata.name, layout
         ),
         category=metadata.category,
+        order=metadata.order,
         icon=metadata.icon,
         image_url=OG_IMAGE_URL,
     )

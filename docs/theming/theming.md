@@ -5,6 +5,8 @@ endpoint: /theming
 package: dash_flows
 icon: mdi:palette-outline
 lastmod: 2026-07-01
+category: Appearance
+order: 1
 ---
 
 .. llms_copy::Theming & UI

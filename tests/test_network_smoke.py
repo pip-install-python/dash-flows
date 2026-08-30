@@ -199,6 +199,24 @@ def test_the_default_base_url_matches_the_container_port(battery):
     assert ":${PORT}" in dockerfile, "the CMD binds a different port"
 
 
+def test_the_batterys_default_ua_is_browser_lane_and_still_internal():
+    """sync item 17 (muischeduler's finding): at dimll >= 2.8 a UA without a
+    browser engine token is crawler-lane, so a default-UA check reads the
+    crawler document. The default names the browser lane FIRST and keeps
+    the internal token (a substring match) so the tracker still drops it;
+    CRAWLER_UA stays the other lane."""
+    from dash_improve_my_llms import classify
+
+    from lib.constants import INTERNAL_UA_TOKEN
+    from scripts import network_smoke as ns
+
+    assert classify(ns.UA)["lane"] == "browser"
+    assert ns.UA.startswith("Mozilla/5.0") and "AppleWebKit" in ns.UA
+    assert INTERNAL_UA_TOKEN in ns.UA and ns.UA.endswith("network-smoke")
+    assert classify(ns.CRAWLER_UA)["lane"] == "crawler"
+    assert INTERNAL_UA_TOKEN in ns.CRAWLER_UA
+
+
 def test_battery_urlopens_pass_the_ssl_context():
     """Source pin: every urlopen in network_smoke.py carries an SSL context.
 

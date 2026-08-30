@@ -1,8 +1,10 @@
 import dash_mantine_components as dmc
-from dash import Output, Input, clientside_callback, dcc, page_container, State
+from dash import Output, Input, callback, clientside_callback, dcc, page_container, State
 
+from components.footer import FOOTER_HEIGHT, create_footer
 from components.header import create_header
 from components.navbar import create_navbar, create_navbar_drawer
+from lib.aside import aside_config
 from lib.constants import HEADER_HEIGHT, PRIMARY_COLOR
 from lib.pageview_beacon import beacon_component
 
@@ -185,27 +187,28 @@ def create_appshell(data):
                     create_navbar_drawer(data),
                     dmc.AppShellMain(
                         children=page_container,
-                        # Full height minus the header. HEADER_HEIGHT, not 70:
-                        # the mobile drawer docks itself at that same constant, so a
-                        # literal here is a gap or an overlap waiting for the next
-                        # time someone changes the header and finds only one of the
-                        # three places it was written down.
-                        style={"minHeight": f"calc(100vh - {HEADER_HEIGHT}px)"}
+                        # Full height minus the header and footer. HEADER_HEIGHT/
+                        # FOOTER_HEIGHT, not literals: the mobile drawer docks
+                        # itself at the same header constant, so a literal here
+                        # is a gap or an overlap waiting for the next time
+                        # someone changes either and finds only one of the
+                        # places it was written down.
+                        style={"minHeight": f"calc(100dvh - {HEADER_HEIGHT + FOOTER_HEIGHT}px)"}
                     ),
+                    create_footer(),
                 ],
                 id="m2d-appshell",
                 header={"height": HEADER_HEIGHT},
+                footer={"height": FOOTER_HEIGHT},
                 padding="xl",
                 navbar={
                     "width": 280,
                     "breakpoint": "md",  # Collapse on medium screens and below
                     "collapsed": {"mobile": True},
                 },
-                aside={
-                    "width": 280,
-                    "breakpoint": "xl",
-                    "collapsed": {"desktop": False, "mobile": True},
-                },
+                # Collapsed wherever the page renders no TOC — the callback
+                # below re-evaluates it per navigation (lib/aside.py).
+                aside=aside_config("/"),
                 withBorder=True,
             ),
         ],
@@ -316,6 +319,16 @@ clientside_callback(
     Input("url", "pathname"),
     State("desktop-navbar-collapsed", "data"),
 )
+
+
+@callback(
+    Output("m2d-appshell", "aside"),
+    Input("url", "pathname"),
+)
+def _collapse_aside_without_toc(pathname):
+    """Full width for pages that render no aside: /changelog, /api, home,
+    the admin pages. The docs pages keep their TOC column."""
+    return aside_config(pathname)
 
 
 # The canonical/og:url SPA-navigation sync that used to live here moved into

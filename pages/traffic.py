@@ -26,7 +26,8 @@ from datetime import date, datetime, timedelta
 
 import dash
 import dash_mantine_components as dmc
-from dash import Input, Output, callback, dcc, html
+from dash import Input, Output, callback, html
+from dash_iconify import DashIconify
 
 from lib.auth import admin_access_open, clerk_enabled, current_user, is_admin_user
 from lib.constants import OG_IMAGE_URL, PAGE_TITLE_PREFIX
@@ -188,17 +189,7 @@ def top_paths_block(reads_day):
     return dmc.SimpleGrid(blocks, cols={"base": 1, "md": 2}, spacing="md")
 
 
-def headline_block(day: date):
-    """The v3 numbers for the same day — the two systems side by side."""
-    from lib.satellite_reporter import app_key
-
-    payload = daily_rollup(app_key(), day) or {}
-    stats = [
-        ("human hits", payload.get("human_hits", 0)),
-        ("bot hits", payload.get("bot_hits", 0)),
-        ("bot visitors", payload.get("bot_visitors", 0)),
-        ("reads", payload.get("reads", 0)),
-    ]
+def _stat_cards(stats):
     return dmc.Group(
         [
             dmc.Paper(
@@ -221,6 +212,49 @@ def headline_block(day: date):
     )
 
 
+def people_block(day: date):
+    """PEOPLE — the v3 human numbers, in their own section (owner requirement
+    11, 2026-08-30). Humans never enter the read ledger: the package emits a
+    read event for the crawler document only, so the tables below this
+    section are crawlers, and "unidentified" there is the UA-less crawler
+    lane, never a person."""
+    from lib.satellite_reporter import app_key
+
+    payload = daily_rollup(app_key(), day) or {}
+    median = payload.get("median_session_s")
+    stats = [
+        ("human hits", payload.get("human_hits", 0)),
+        ("visitors", payload.get("visitors", 0)),
+        ("sessions", payload.get("sessions", 0)),
+        ("median session", f"{int(median)} s" if median is not None else "—"),
+    ]
+    return dmc.Stack(
+        [
+            dmc.Title("People", order=4),
+            _stat_cards(stats),
+            dmc.Text(
+                "Humans never enter the read ledger — the tables below are crawlers only. "
+                "\"(unidentified)\" there is the crawler lane with no vendor match, never a person.",
+                size="xs", c="dimmed", id="traffic-people-note",
+            ),
+        ],
+        gap="xs",
+        id="traffic-people",
+    )
+
+
+def headline_block(day: date):
+    """The v3 crawler numbers for the same day, beside the ledger's own."""
+    from lib.satellite_reporter import app_key
+
+    payload = daily_rollup(app_key(), day) or {}
+    return _stat_cards([
+        ("bot hits", payload.get("bot_hits", 0)),
+        ("bot visitors", payload.get("bot_visitors", 0)),
+        ("reads", payload.get("reads", 0)),
+    ])
+
+
 def day_view(day: date, reads=None):
     """Everything below the day picker, for one day. Pure of Dash callbacks
     so a test can drive it directly."""
@@ -229,6 +263,8 @@ def day_view(day: date, reads=None):
     return dmc.Stack(
         [
             dmc.Text(f"Selected day: {day.isoformat()}", size="sm", c="dimmed"),
+            people_block(day),
+            dmc.Title("Crawlers", order=4),
             headline_block(day),
             dmc.Title("Vendor → tier", order=4),
             vendor_tier_table(reads_day),
@@ -264,6 +300,38 @@ def _footnote():
     )
 
 
+def day_picker(days, reads):
+    """`dmc.DatePickerInput` — a picker, not a plain dropdown (the fleet's
+    DMC-first rule, 2026-08-30): bounded by the ledger's first and last
+    day, with presets for the days someone actually asks about."""
+    today = days[-1]
+    have = sorted({r["dt"].date() for r in reads}) or [today]
+    lo, hi = min(have[0], days[0]), max(have[-1], today)
+    presets = [
+        {"value": today.isoformat(), "label": "Today"},
+        {"value": (today - timedelta(days=1)).isoformat(), "label": "Yesterday"},
+        {"value": (today - timedelta(days=6)).isoformat(), "label": "Last 7 days (start)"},
+    ]
+    return dmc.Group(
+        [
+            dmc.Text("Day", size="sm", fw=600),
+            dmc.DatePickerInput(
+                id="traffic-day",
+                value=today.isoformat(),
+                minDate=lo.isoformat(),
+                maxDate=hi.isoformat(),
+                valueFormat="YYYY-MM-DD",
+                presets=presets,
+                clearable=False,
+                w=200,
+                leftSection=DashIconify(icon="tabler:calendar", width=16),
+                **{"aria-label": "Ledger day"},
+            ),
+        ],
+        gap="sm",
+    )
+
+
 def _build_page(today: date | None = None, reads=None):
     days = _window(today)
     reads = load_reads() if reads is None else reads
@@ -274,20 +342,7 @@ def _build_page(today: date | None = None, reads=None):
                 _footnote(),
                 dmc.Title("Vendor × day (hits)", order=4),
                 html.Div(vendor_day_table(reads, days), style={"overflowX": "auto"}),
-                dmc.Group(
-                    [
-                        dmc.Text("Day", size="sm", fw=600),
-                        dcc.Dropdown(
-                            id="traffic-day",
-                            options=[{"label": d.isoformat(), "value": d.isoformat()}
-                                     for d in reversed(days)],
-                            value=days[-1].isoformat(),
-                            clearable=False,
-                            style={"width": "180px"},
-                        ),
-                    ],
-                    gap="sm",
-                ),
+                day_picker(days, reads),
                 html.Div(day_view(days[-1], reads), id="traffic-day-container"),
             ],
             gap="md",

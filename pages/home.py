@@ -2,9 +2,11 @@ from pathlib import Path
 
 import frontmatter
 import dash_mantine_components as dmc
-from dash import dcc, register_page
+from dash import html, register_page
+from markdown2dash import Admonition, Divider, Image, create_parser
 
 from lib.constants import OG_IMAGE_URL, PAGE_TITLE_PREFIX, SITE_DESCRIPTION
+from lib.directives.headings import patch_renderer
 from lib.versions import substitute_versions
 
 # `description=` and `image_url=` are BOTH load-bearing: Dash emits the
@@ -37,16 +39,18 @@ content = substitute_versions(content, source=str(md_file))
 # and serves it verbatim at /llms.txt. No layout walking, no extraction.
 LLMS_DOC = content
 
+# markdown2dash, not dcc.Markdown (the fleet's no-`dcc` rule): the same
+# renderer the docs pages use, so home and docs share one typography and one
+# set of DMC components. patch_renderer() adds the inline-image renderer
+# markdown2dash otherwise lacks — home.md's hero screenshot needs it.
+patch_renderer()
+
 layout = dmc.Container(
     size="lg",
     py="xl",
-    children=[
-        dcc.Markdown(
-            content,
-            className="home-markdown",
-            style={
-                "maxWidth": "none",  # Allow Container to control width
-            }
-        )
-    ]
+    children=html.Div(
+        create_parser([Admonition(), Divider(), Image()])(content),
+        className="home-markdown",
+        style={"maxWidth": "none"},  # Allow Container to control width
+    ),
 )

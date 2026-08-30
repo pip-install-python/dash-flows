@@ -5,6 +5,8 @@ endpoint: /drag-drop
 package: dash_flows
 icon: mdi:drag-variant
 lastmod: 2026-07-01
+category: Interaction
+order: 2
 ---
 
 .. llms_copy::Drag & Drop

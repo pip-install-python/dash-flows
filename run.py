@@ -260,12 +260,20 @@ app._base_url = DOCS_BASE_URL
 # add_llms_routes so the routes are built with it in place.
 network_directory.apply(DOCS_BASE_URL)
 
-# Training crawlers (GPTBot, ClaudeBot, CCBot, …) disallowed; user-triggered
-# and search fetchers (Claude-User, Claude-SearchBot, ChatGPT-User,
-# OAI-SearchBot, PerplexityBot) and traditional engines allowed. Correct as of
-# dimll 2.3.3, which buckets per vendor rather than per company.
+# DEFAULT ALLOW (sync item 15, owner decision 2026-08-29): the wall used to
+# decide by vendor CLASS what nobody could account for. Since sync item 12
+# every corpus read is a ledger row this app keeps and the hub can
+# reconcile against the wire, so a training-crawler read is now recorded
+# and priceable rather than blocked outright — the tool becomes per-vendor
+# policy (`vendor_policy={"<key>": "block" | "meter"}`) for one vendor
+# whose rows justify it, never the whole class. `allow_ai_search` /
+# `allow_traditional` are unchanged; robots.txt now carries no Disallow
+# stanza for GPTBot/ClaudeBot/CCBot/… at all (they fall under
+# `User-agent: *` / Allow), and the package's bot middleware stops 403ing
+# the browser document and /healthz for them. See DIVERGENCES.md's
+# `ai_bots` posture for the measured wire numbers.
 app._robots_config = RobotsConfig(
-    block_ai_training=True,
+    block_ai_training=False,
     allow_ai_search=True,
     allow_traditional=True,
     crawl_delay=10,

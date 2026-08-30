@@ -181,6 +181,55 @@ SAME_AS = [
 # Change it here only — the two must never drift apart.
 HEADER_HEIGHT = 70
 
+# ---------------------------------------------------------------------------
+# Navigation contract (sync item 16) — the parts of the sidebar/top bar that
+# are IDENTICAL on every host come from template code (components/navbar.py,
+# components/header.py, components/footer.py) and these constants; the app's
+# own sections come from each doc page's frontmatter. This block is edited
+# here, never in components/navbar.py.
+# ---------------------------------------------------------------------------
+
+# The app's own sections, in sidebar order. Every docs page declares
+# `category:` in its frontmatter; categories not listed here follow the
+# listed ones, alphabetically. Keep names short — they are sidebar titles.
+CATEGORY_ORDER = [
+    "Getting Started",
+    "Building Graphs",
+    "Interaction",
+    "Data & Export",
+    "Appearance",
+    "Reference",
+]
+
+# Network-wide community links — identical on every host.
+DISCORD_URL = "https://discord.gg/e5s5uHWUHH"
+YOUTUBE_URL = "https://www.youtube.com/@2plotai"
+YOUTUBE_SUBSCRIBE_URL = YOUTUBE_URL + "?sub_confirmation=1"
+DMC_URL = "https://www.dash-mantine-components.com/"
+
+# dash-flows wraps @xyflow/react (React Flow) — the last Resources link.
+UPSTREAM = {"name": "React Flow", "url": "https://reactflow.dev/"}
+
+# The component package whose props the generated /api page documents. The
+# version badge in the header reads this entry's __version__.
+API_PACKAGES: list = ["dash_flows"]
+
+# The owner's profile — the FOOTER's GitHub link (the repo is the top bar's).
+GITHUB_PROFILE_URL = "https://github.com/pip-install-python"
+
+
+def resources() -> list:
+    """The sidebar's Resources section: THIRD-PARTY ONLY. `dmc` and the
+    upstream project this component wraps. The owner's own links (repo,
+    Discord, YouTube) live in the top bar and the footer, never here."""
+    items = [
+        {"label": "dmc", "url": DMC_URL, "icon": "ic:baseline-design-services"},
+    ]
+    if UPSTREAM:
+        items.append({"label": UPSTREAM["name"], "url": UPSTREAM["url"],
+                      "icon": UPSTREAM.get("icon", "mdi:open-in-new")})
+    return items
+
 
 def require_owned_base_url(base_url: str = DOCS_BASE_URL) -> None:
     """Fail fast in production when the base URL isn't this app's real origin.

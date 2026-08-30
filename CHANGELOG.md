@@ -32,6 +32,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and re-checks `/healthz build == $GITHUB_SHA` itself before smoke
   testing. See `DIVERGENCES.md`'s posture fence (`deploy:
   release-branch`).
+- **Training crawlers (GPTBot, ClaudeBot, CCBot, …) are allowed by
+  default** (sync item 15): `run.py`'s `RobotsConfig(block_ai_training=
+  False, …)` — since sync item 12 every corpus read is a ledger row this
+  app keeps, so a training-crawler fetch is now recorded and priceable
+  instead of walled outright. `robots.txt` carries no `Disallow` stanza
+  for them at all; the package's bot middleware stops 403ing `/` and
+  `/healthz` for them too. `allow_ai_search` / `allow_traditional` are
+  unchanged.
+- **Navigation, /changelog, /api and /admin/traffic follow the fleet's
+  navigation contract** (sync item 16): the sidebar's sections now come
+  from each docs page's frontmatter (`category:` + `order:`) against a
+  fork-owned `CATEGORY_ORDER`, never a hand-edited `page_order` list; the
+  top bar gains an **Other Apps** hover menu (the network's primary
+  applications, from `lib/network_directory.py`) and a version badge; the
+  sidebar's Resources section is third-party only (`dmc` + React Flow);
+  a new `/changelog` page renders this file as a timeline; a new `/api`
+  page documents every `dash_flows` component's props, generated from
+  the installed package's `metadata.json`; `/admin/traffic` gains a
+  `dmc.DatePickerInput` day picker (replacing a bare `dcc.Dropdown`) and
+  a **People** section separating the v3 human numbers from the crawler
+  ledger below it; `pages/home.py` renders through markdown2dash instead
+  of `dcc.Markdown`. Admin pages (`/admin/control-board`,
+  `/admin/traffic`) are hidden from the sidebar and search unless the
+  viewer is the owner. See `DIVERGENCES.md` divergence 11 for the two
+  lines this fork kept (the wordmark, the SPA page-view beacon).
+- **The network battery's default User-Agent names the browser lane**
+  (sync item 17): `scripts/network_smoke.py`'s `UA` now leads with a
+  Chrome/AppleWebKit token before the internal token — at
+  dash-improve-my-llms ≥ 2.8 a UA with no browser engine token is
+  crawler-lane, so the old bare-internal-token default made every
+  default-UA check (the manifest link, the social card) read the
+  prerendered crawler document instead of the browser one.
 
 ## [1.3.0] - 2026-08-01
 

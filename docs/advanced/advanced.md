@@ -5,6 +5,8 @@ endpoint: /advanced
 package: dash_flows
 icon: mdi:star-outline
 lastmod: 2026-07-01
+category: Data & Export
+order: 2
 ---
 
 .. llms_copy::Advanced Features
