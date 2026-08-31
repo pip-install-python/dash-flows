@@ -59,9 +59,19 @@ def test_admin_paths_absent_from_sitemap_llms_and_sidebar(client, app):
     # added is not a changelog, and a mere mention of the path in prose (a
     # code span) is not the defect. A link is what makes the path
     # REACHABLE.
+    #
+    # BOTH clauses link-shaped: the first cut left the machine path as a
+    # bare substring, so a changelog code span naming `/admin/x/llms.txt`
+    # — documenting the very battery fix that hid it — still tripped a pin
+    # whose other half already made the prose/reachability distinction. A
+    # fork that cannot describe its own admin pages must not go red for
+    # being honest.
     for tier in ("/llms-small.txt", "/llms-full.txt"):
         body = client.get(tier).text
-        linked = [p for p in _admin_paths() if f"]({p})" in body or f"{p}/llms.txt" in body]
+        linked = [
+            p for p in _admin_paths()
+            if f"]({p})" in body or f"]({p}/llms.txt)" in body
+        ]
         assert linked == [], f"admin pages linked from {tier}: {linked}"
 
     # Positive control: a real page IS listed, so an empty sitemap or a
