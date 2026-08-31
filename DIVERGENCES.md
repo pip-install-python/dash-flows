@@ -290,3 +290,15 @@ treating this key as settled either.
 ai_bots: {"/": 200, "/llms.txt": 200, "/healthz": 200}
 deploy: release-branch
 ```
+
+CORRECTION (ops seat, 2026-08-30 ~23:00 UTC, appended not rewritten):
+the paragraph above is stale on one point — the owner had ALREADY
+clicked the Render dashboard's Branch field to `release`, in the seat
+channel, BEFORE the fence re-date commit that wrote it. So the
+"remains open until the owner's dashboard Branch click" half is
+settled, not open. The other half stands exactly as written: the very
+next push (the one carrying this correction) is cd.yml's SECOND
+promote — `origin/release` already existed at 9770524d… when it ran —
+which is the fast-forward-over-an-existing-ref case item 13 actually
+needs proven, not the first push's lower bar. See the report to `ops`
+for that run's outcome.
