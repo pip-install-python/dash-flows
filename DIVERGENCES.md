@@ -171,34 +171,71 @@ Applied here on the ops seat's fleet instruction (2026-08-26) and reported
 upstream. RETIRE this entry when the template adopts the same fix — at
 that point the difference is gone, not deliberate.
 
-### 11. `components/header.py` and `components/appshell.py` are not byte-identical to the template (sync item 16)
+### 11. `components/header.py` and `components/appshell.py` are not byte-identical to the template (sync items 16, 18)
 
 Sync item 16 (the navigation contract, 1.6.38) ported
 `components/navbar.py`, `components/footer.py`, `pages/api.py`,
 `pages/changelog.py`, `pages/traffic.py`, `lib/api_reference.py`,
 `lib/network_directory.py`, `lib/aside.py` and
-`lib/directives/headings.py` **byte-identical** to the template — each
-diffed empty against template HEAD at 8ceca5c (1.6.40) after porting,
-which is the evidence the item's own reclass note asks for.
+`lib/directives/headings.py` **byte-identical** to the template. Item
+18 (the 1.6.41/1.6.42 remainder, re-measured against 4ac02e0) kept all
+nine byte-identical after porting their diffs — each diffs empty
+against template HEAD at 4ac02e0, which is the evidence the item's own
+reclass note asks for; `tests/test_excluded_links_hidden.py` and
+`tests/test_traffic_rollup_v4.py` are byte-identical too.
 
 `components/header.py` and `components/appshell.py` carry the
 CONTRACT (Other Apps menu, version badge, search, GitHub icon,
 theme toggle, aria-labels, the aside-collapse callback, the footer
-mount) but not the bytes:
+mount, the skip link, the LOGO_ICON/WORDMARK_COLOR constants lift)
+but not the bytes:
 
-- **the wordmark** stays this fork's own (a `carbon:flow` icon + the
-  literal text "dash-flows" in `#3b82f6`), not the template's
-  `WORDMARK` constant + `assets/ddb.png` image — per-fork identity,
-  the design brief's own "freedom" clause;
+- **the wordmark** stays this fork's own (`lib.constants.LOGO_ICON =
+  "carbon:flow"` + `WORDMARK_COLOR = "#3b82f6"`, rendered as a
+  DashIconify icon), not the template's `WORDMARK` constant +
+  `LOGO_ASSET = "ddb.png"` image — per-fork identity, the design
+  brief's own "freedom" clause. Item 18's LOGO_ASSET-lift pattern is
+  adopted in shape (identity lifted out of header.py into
+  lib/constants.py) but not in the literal constant name, since this
+  fork has no image asset to point one at;
 - **`components/appshell.py` keeps `beacon_component()`**
   (`lib/pageview_beacon.py`) in the AppShell's children — this fork's
   own SPA page-view beacon (the reason its session numbers are honest
   when every other Dash site reports single-page visits), which the
-  template does not carry and item 16 does not mention.
+  template does not carry and neither item mentions.
 
 Both are contract-class, not verbatim: a future sync porting either
-file must preserve these two lines rather than overwrite them with
+file must preserve these two seams rather than overwrite them with
 the template's own.
+
+### 12. `lib/directives/kwargs.py` carries `props_for`/`props_markdown` (sync item 18, contract highlight 7-amended)
+
+The markdown `.. kwargs::` directive (used by
+`docs/api_reference/api_reference.md`, this fork's own curated API
+doc — distinct from the generated `/api` page item 16 added) renders
+Dash COMPONENTS, so its table existed only in the browser's React
+tree: the machine lane (`/<page>/llms.txt`, the crawler document) and
+the non-JS prerender are built from the markdown SOURCE, where the
+directive line is stripped. Measured live on this tree before the
+fix: `/api-reference/llms.txt` carried zero markdown table rows across
+five `.. kwargs::` directives.
+
+The template's own fix for this class (muicharts, 1b2ac12) landed a
+NEW `lib/api_reference.py` with `props_for`/`props_markdown` — a name
+this fork already owns for the item-16 generated `/api` page's
+metadata-driven table builder (`load_package`, `slim_generated_on`,
+different output shape: `{name, type, required, default,
+description}` vs the directive's `{name, type, description}`).
+Porting muicharts' file verbatim would have silently replaced that
+mechanism. `props_for`/`props_markdown` instead live in
+`lib/directives/kwargs.py`, next to the `PACKAGE_MAP` and docstring
+parsers the `.. kwargs::` directive already used, and
+`pages/markdown.py`'s `_expand_source_directives` calls
+`lib.directives.kwargs.props_markdown` the same fence-aware way it
+already expanded `.. source::`. One parse
+(`lib.directives.kwargs.props_for`), two renderings — the browser
+table and the machine prose — so the lanes cannot drift apart again;
+`tests/test_nav_contract.py`'s row-count parity test pins it.
 
 *(Retirements: none yet. When one lands, mark it retired here rather
 than deleting it — a record that overclaims teaches the next sync to

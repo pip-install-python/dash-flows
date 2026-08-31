@@ -77,14 +77,7 @@ def is_nav_page(entry) -> bool:
         return False
     if entry.get("name") in ("Not found 404",) or path in ("/404", "/changelog", "/api"):
         return False
-    try:
-        from lib import page_tiers
-
-        if page_tiers.local_tier(path) == "hidden":
-            return False
-    except Exception:  # pragma: no cover - tiers optional on a fork
-        pass
-    return True
+    return page_tier(path) != "hidden"
 
 
 def _sort_key(entry):
@@ -117,8 +110,40 @@ def admin_pages(data) -> list:
                   key=lambda e: e.get("name") or "")
 
 
+def page_tier(path: str) -> str:
+    """This page's locally-declared tier, or "public" when tiers are not
+    wired on this fork."""
+    try:
+        from lib import page_tiers
+
+        return page_tiers.local_tier(path)
+    except Exception:  # pragma: no cover — tiers optional on a fork
+        return "public"
+
+
+_LOCK_LABELS = {"auth": "Sign in required", "admin": "Admin access required"}
+
+
 def _page_link(entry):
-    return create_nav_link(entry.get("icon") or DEFAULT_ICON, entry["name"], entry["path"])
+    """A sidebar link, with a lock when the page needs an account (1.6.41,
+    adopted from excalidraw): the contract hid `hidden` pages and said
+    nothing about `auth`; listing a locked page indistinguishably sends a
+    reader to a sign-in card with no warning. The gate is unchanged — this
+    is signage. dmc.Tooltip, NOT `title=`: DMC 2.8's Anchor accepts aria-*
+    wildcards but REJECTS `title` with a TypeError at app construction."""
+    link = create_nav_link(entry.get("icon") or DEFAULT_ICON,
+                           entry.get("nav") or entry["name"], entry["path"])
+    label = _LOCK_LABELS.get(page_tier(entry["path"]))
+    if not label:
+        return link
+    group = link.children
+    group.children = list(group.children) + [
+        # DashIconify takes no aria-* (measured: TypeError at construction);
+        # the Tooltip's label is the accessible text.
+        DashIconify(icon="fluent:lock-closed-16-regular", width=13,
+                    style={"opacity": 0.55, "marginLeft": "auto"}),
+    ]
+    return dmc.Tooltip(link, label=label, position="right", withArrow=True, openDelay=300)
 
 
 def _has_api_page(data) -> bool:
@@ -214,7 +239,7 @@ def search_data(data) -> list:
     """Search entries: the pages the sidebar lists, and nothing else —
     never /admin/*, never a hidden-tier page (an anonymous visitor could
     otherwise enumerate them from the dropdown)."""
-    return [{"label": e["name"], "value": e["path"]}
+    return [{"label": e.get("nav") or e["name"], "value": e["path"]}
             for e in sorted((e for e in data if is_nav_page(e)), key=_sort_key)]
 
 

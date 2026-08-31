@@ -19,12 +19,14 @@ from lib.constants import OG_IMAGE_URL, PAGE_TITLE_PREFIX, SITE_SHORT_NAME
 
 CHANGELOG_PATH = Path(__file__).resolve().parent.parent / "CHANGELOG.md"
 
+CHANGELOG_DESCRIPTION = f"Version history of {SITE_SHORT_NAME}, rendered from CHANGELOG.md."
+
 dash.register_page(
     __name__,
     path="/changelog",
     name="Changelog",
     title=PAGE_TITLE_PREFIX + "Changelog",
-    description=f"Version history of {SITE_SHORT_NAME}, rendered from CHANGELOG.md.",
+    description=CHANGELOG_DESCRIPTION,
     image_url=OG_IMAGE_URL,
     icon="tabler:history",
 )
@@ -55,6 +57,17 @@ def _build_llms_doc() -> str:
 LLMS_DOC = _build_llms_doc()
 
 
+def newest_date(path: Path = CHANGELOG_PATH) -> str | None:
+    """The newest dated release heading — /changelog's sitemap lastmod. It
+    moves exactly when the content moves (a release is dated by hand)."""
+    dates = [v["date"] for v in parse_changelog(path) if v.get("date")]
+    return max(dates) if dates else None
+
+
+def _is_version(label: str) -> bool:
+    return bool(re.fullmatch(r"\d+(\.\d+)*", label))
+
+
 def parse_changelog(path: Path = CHANGELOG_PATH) -> list[dict]:
     """``[{version, date, sections: {name: [items]}}]`` in file order."""
     if not path.exists():
@@ -70,12 +83,28 @@ def parse_changelog(path: Path = CHANGELOG_PATH) -> list[dict]:
             sections.setdefault(section, []).extend(items)
 
     for line in path.read_text(encoding="utf-8").split("\n"):
-        vm = re.match(r"^## \[([^\]]+)\](?: - (.+))?", line)
+        # ASCII hyphen, en dash or em dash between version and date —
+        # leaflet's headings use "—" and rendered every version DATELESS.
+        # Every heading shape the fleet writes (measured 2026-08-30):
+        #   ## [1.4.0] - 2026-08-03            hyphen
+        #   ## [1.0.0] — 2026-08-21            em dash (en dash too)
+        #   ## 2.0.0 — 2026-08-02              no brackets
+        #   ## [0.2.0] — 2026-07-31 (note)     trailing note
+        #   ## [0.1.0] — unreleased            words where the date goes
+        #   ## [2026-08-30] — title            the date IS the label
+        #   ## [Unreleased]
+        # Parsed as [?label]? (sep)? rest?, with the ISO date taken from
+        # wherever it sits and the leftover kept as a note.
+        vm = re.match(r"^## \[?(?P<label>[^\]#\n]+?)\]?(?:\s+[-–—]\s+(?P<rest>.+?))?\s*$", line)
         if vm:
             close_section()
             if current is not None:
                 versions.append({**current, "sections": sections})
-            current = {"version": vm.group(1), "date": vm.group(2) or ""}
+            label, rest = vm.group("label").strip(), (vm.group("rest") or "").strip()
+            iso = re.search(r"\d{4}-\d{2}-\d{2}", rest) or re.search(r"\d{4}-\d{2}-\d{2}", label)
+            date = iso.group(0) if iso else ""
+            note = rest.replace(date, "").strip(" -–—()") if rest else ""
+            current = {"version": label, "date": date, "note": note}
             sections, section, items = {}, None, []
             continue
         sm = re.match(r"^### (.+)", line)
@@ -83,14 +112,29 @@ def parse_changelog(path: Path = CHANGELOG_PATH) -> list[dict]:
             close_section()
             section, items = sm.group(1), []
             continue
-        if current is None or not section:
+        if current is None:
             continue
+        if not section:
+            # Prose-first releases (pannellum: `## 2.0.0 — date` then
+            # paragraphs, no ### sections) rendered EIGHT EMPTY HEADINGS
+            # silently. Prose under a version heading is its own section.
+            if line.strip() and not line.startswith("#"):
+                section, items = "Notes", []
+            else:
+                continue
         if line.startswith("- "):
             items.append({"type": "item", "text": line[2:]})
         elif line.startswith("  - "):
             items.append({"type": "subitem", "text": line[4:]})
         elif line.startswith("  ") and items and items[-1]["type"] in ("item", "subitem"):
             items[-1]["text"] += " " + line.strip()      # wrapped bullet
+        elif line.strip() and not line.startswith("#"):
+            if items and items[-1]["type"] == "para" and not items[-1].get("closed"):
+                items[-1]["text"] += " " + line.strip()
+            else:
+                items.append({"type": "para", "text": line.strip()})
+        elif not line.strip() and items and items[-1]["type"] == "para":
+            items[-1]["closed"] = True
     close_section()
     if current is not None:
         versions.append({**current, "sections": sections})
@@ -115,18 +159,29 @@ def _section_icon(name: str):
     return "tabler:point", "gray"
 
 
-def _inline(text: str):
-    """`code` and **bold** inside one bullet."""
+def _code(text: str):
     out = []
     for i, part in enumerate(re.split(r"`([^`]+)`", text)):
-        if i % 2:
-            out.append(dmc.Code(part, style={"overflowWrap": "anywhere"}))
+        if not part:
             continue
-        for j, bp in enumerate(re.split(r"\*\*([^*]+)\*\*", part)):
-            if not bp:
-                continue
-            out.append(html.Strong(bp) if j % 2 else bp)
+        out.append(dmc.Code(part, style={"overflowWrap": "anywhere"}) if i % 2 else part)
     return out
+
+
+def _inline(text: str):
+    """**bold** first, then `code` — in that order on purpose (note 67):
+    a bold span CONTAINING inline code rendered its asterisks raw when
+    code was split first, because the bold markers then sat in different
+    fragments."""
+    out = []
+    for j, part in enumerate(re.split(r"\*\*(.+?)\*\*", text)):
+        if not part:
+            continue
+        if j % 2:
+            out.append(html.Strong(_code(part)))
+        else:
+            out.extend(_code(part))
+    return out or [text]
 
 
 # A bullet in a no-wrap Group: without min-width:0 the Text grows to the
@@ -146,6 +201,8 @@ def _section(name: str, items: list):
                 [DashIconify(icon="tabler:point-filled", width=8, color=f"var(--mantine-color-{color}-6)"),
                  dmc.Text(_inline(it["text"]), size="sm", style=_WRAP)],
                 gap="xs", align="flex-start", wrap="nowrap"))
+        elif it["type"] == "para":
+            rows.append(dmc.Text(_inline(it["text"]), size="sm", style=_WRAP))
         else:
             rows.append(dmc.Group(
                 [dmc.Box(w=16), DashIconify(icon="tabler:point", width=6),
@@ -161,12 +218,16 @@ def _section(name: str, items: list):
 
 def _version_item(v: dict, is_current: bool):
     cards = [_section(n, items) for n, items in v["sections"].items() if items]
+    # `v` only when the label IS a version: `## [Unreleased]` read as
+    # "VUNRELEASED" and a date-labelled release as "v2026-08-30" (note 67).
+    label = f"v{v['version']}" if _is_version(v["version"]) else v["version"]
+    when = " ".join(x for x in (v.get("date", ""), v.get("note", "")) if x)
     return dmc.TimelineItem(
         bullet=dmc.ThemeIcon(DashIconify(icon="tabler:rocket", width=16),
                              variant="filled" if is_current else "light", size=28, radius="xl"),
         title=dmc.Group(
-            [dmc.Badge(f"v{v['version']}", variant="filled" if is_current else "light", size="lg"),
-             dmc.Text(v["date"], size="sm", c="dimmed") if v["date"] else None,
+            [dmc.Badge(label, variant="filled" if is_current else "light", size="lg"),
+             dmc.Text(when, size="sm", c="dimmed") if when else None,
              dmc.Badge("Current", color="green", variant="outline", size="sm") if is_current else None],
             gap="sm"),
         children=dmc.Stack(cards, gap="xs", mt="sm") if cards
@@ -206,3 +267,26 @@ def layout(**kwargs):
         size="md",
         py="xl",
     )
+
+
+# The full machine record (1.6.41; leaflet's finding): a module-level
+# LLMS_DOC alone leaves the package to discover the page with no
+# `lastmod`, so /changelog entered the sitemap undated — and outside the
+# control board's llms.txt toggle. Same two calls pages/markdown.py makes
+# for every docs page; lastmod = the newest dated release heading.
+from dash_improve_my_llms import register_page_metadata  # noqa: E402
+
+from lib import page_tiers, page_visibility  # noqa: E402
+
+page_visibility.register_default("/changelog", "Changelog", visibility="public", llms_public=True)
+page_tiers.register("/changelog", "public", llms_public=True)
+register_page_metadata(
+    path="/changelog",
+    name="Changelog",
+    description=CHANGELOG_DESCRIPTION,
+    title=PAGE_TITLE_PREFIX + "Changelog",
+    image_url=OG_IMAGE_URL,
+    schema_type="TechArticle",
+    lastmod=newest_date(),
+    llms_doc=LLMS_DOC,
+)

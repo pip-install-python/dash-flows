@@ -64,6 +64,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   crawler-lane, so the old bare-internal-token default made every
   default-UA check (the manifest link, the social card) read the
   prerendered crawler document instead of the browser one.
+- **The 1.6.41/1.6.42 navigation-contract remainder** (sync item 18):
+  frontmatter gains a `nav:` short-sidebar-label field (separate from
+  `name:`, which stays the `<title>`/og:title/llms.txt heading) and
+  sidebar links show a lock icon on `auth`/`admin`-tier pages;
+  `/api`'s sitemap `lastmod` now reads the committed
+  `dash_flows/api_metadata.json` extract's `generated` stamp (built by
+  `python scripts/build_api_metadata.py` — re-run it when a
+  component's props change) instead of always being absent; `/changelog`
+  parses every heading shape the fleet writes (hyphen, en dash, em
+  dash, bare or bracketed version, prose-first releases with no `###`
+  sections) and gains a sitemap `lastmod` of its own; the AppShell
+  gains a keyboard skip-link to `#main-content`; `lib/constants.py`
+  gains `LOGO_ICON`/`WORDMARK_COLOR`/`WORDMARK_VISIBLE_FROM`, lifting
+  the header's identity out of `components/header.py`.
+
+### Fixed
+
+- **`docs/api_reference/api_reference.md`'s `.. kwargs::` prop tables
+  reached the browser only** (sync item 18 contract highlight
+  7-amended, muicharts' finding): a markdown2dash directive renders
+  Dash components, so its table exists only in the React tree — the
+  machine lane (`/api-reference/llms.txt`, the crawler document) and
+  the non-JS prerender are built from the markdown source, where the
+  directive line is stripped. Measured before the fix: zero markdown
+  table rows anywhere outside a JavaScript browser, across all five
+  `.. kwargs::` directives on that page. `pages/markdown.py` now
+  expands `.. kwargs::` fence-aware into a real markdown table, the
+  same treatment it already gave `.. source::`, through a new
+  `lib.directives.kwargs.props_markdown()` — one parse
+  (`props_for()`) for both the directive's own table and the
+  expansion, so the two lanes cannot drift apart again.
 
 ## [1.3.0] - 2026-08-01
 

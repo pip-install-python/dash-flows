@@ -53,6 +53,13 @@ def test_admin_paths_absent_from_sitemap_llms_and_sidebar(client, app):
 
     # Positive control: a real page IS listed, so an empty sitemap or a
     # broken llms.txt cannot make the assertions above pass vacuously.
-    assert "/getting-started</loc>" in sitemap
-    assert "/getting-started" in llms
-    assert "/getting-started" in tree
+    # Derived from the sidebar's own first page (1.6.41), never named, so
+    # the file is fork-invariant.
+    from components.navbar import sections_for
+
+    sections = sections_for(dash.page_registry.values())
+    assert sections, "the sidebar has no docs section"
+    control = sections[0][1][0]["path"]
+    assert f"{control}</loc>" in sitemap
+    assert control in llms
+    assert control in tree

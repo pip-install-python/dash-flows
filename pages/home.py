@@ -45,6 +45,11 @@ LLMS_DOC = content
 # markdown2dash otherwise lacks — home.md's hero screenshot needs it.
 patch_renderer()
 
+# create_parser(...)(content) returns a LIST. Passed here as html.Div's own
+# `children` (not nested inside another list) it renders fine; putting that
+# call directly inside a list display instead (`children=[hero, parse(...)]`)
+# nests the list one level deep, which Dash does not descend into — React #31,
+# the page renders EMPTY with a green suite (tests/test_layout_nesting.py).
 layout = dmc.Container(
     size="lg",
     py="xl",

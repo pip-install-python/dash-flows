@@ -1,5 +1,5 @@
 import dash_mantine_components as dmc
-from dash import Output, Input, callback, clientside_callback, dcc, page_container, State
+from dash import Output, Input, callback, clientside_callback, dcc, html, page_container, State
 
 from components.footer import FOOTER_HEIGHT, create_footer
 from components.header import create_header
@@ -171,6 +171,10 @@ def create_appshell(data):
             },
         },
         children=[
+            # a11y: the first tab stop jumps past the sidebar's stops
+            # straight to the page content; visible only on keyboard focus
+            # — .skip-link in assets/main.css.
+            html.A("Skip to content", href="#main-content", className="skip-link"),
             dcc.Location(id="url", refresh="callback-nav"),
             # Sink for the 2plot.ai page-view beacon (SPA route changes never
             # reach the server, so without it every session looks single-page).
@@ -187,6 +191,7 @@ def create_appshell(data):
                     create_navbar_drawer(data),
                     dmc.AppShellMain(
                         children=page_container,
+                        id="main-content",   # the skip link's target
                         # Full height minus the header and footer. HEADER_HEIGHT/
                         # FOOTER_HEIGHT, not literals: the mobile drawer docks
                         # itself at the same header constant, so a literal here

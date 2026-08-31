@@ -41,6 +41,14 @@ SITE_DESCRIPTION = (
 # otherwise run past every platform's truncation point.
 SITE_SHORT_NAME = "dash-flows"
 
+# The header's mark, lifted out of components/header.py (sync item 18) so
+# that file holds no fork content: an icon (this fork's identity, not the
+# template's ddb.png asset — DIVERGENCES.md 11), its colour, and the
+# breakpoint the wordmark text appears from.
+LOGO_ICON = "carbon:flow"
+WORDMARK_COLOR = "#3b82f6"
+WORDMARK_VISIBLE_FROM = "xs"
+
 # The <title> Dash falls back to for any path outside the page registry, and
 # `resolve_site_title`'s second candidate. An alias rather than a second
 # string: the network's shared tests import APP_TITLE by that name on every

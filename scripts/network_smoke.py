@@ -94,13 +94,13 @@ DEFAULT_BASE_URL = "http://localhost:8560"
 # The getting-started page is the one this library cannot lose.
 SAMPLE_PAGE = "/getting-started"
 
-# Owner-only surfaces that must 404 their llms.txt to an anonymous reader.
-# This app marks no page hidden today, so the list is a canary rather than a
-# census: `/admin` is what gets added first, and `mark_hidden("/admin")` has to
-# keep working. Add paths here in the same change that marks them hidden.
+# Owner-only surfaces that must 404 their llms.txt to an anonymous reader —
+# every registered /admin/* page (sync item 18: pinned against the registry
+# by tests/test_nav_contract.py::test_battery_hidden_paths_match_the_registry,
+# so a page added, renamed or deleted moves this tuple in the same change).
 HIDDEN_DOC_PATHS = (
-    "/admin/llms.txt",
-    "/analytics/llms.txt",
+    "/admin/control-board/llms.txt",
+    "/admin/traffic/llms.txt",
 )
 
 # The hub one level up the chain. A satellite's llms.txt must name it — that

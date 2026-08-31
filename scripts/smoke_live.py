@@ -391,6 +391,32 @@ def main(base: str) -> int:
             f"got {got}: this host still walls training crawlers (sync item 15)",
         )
 
+    # The repository link must RESOLVE (sync item 18; pannellum's finding:
+    # its icon, JSON-LD codeRepository and llms-github-repo meta all spelled
+    # the repo wrong — a live 404 that "profile vs repo" framing never
+    # caught). GitHub answers GET on a repo page with 200; a wrong slug 404s.
+    # Its OWN request, not `fetch`: every fork's test suite stubs `fetch`
+    # with a fixed signature and routes it to the in-process app (the 1.6.29
+    # lesson), and GitHub is not this app. Unreachable (a sandbox with no
+    # egress) is a notice, not a red; a reachable 404 is red.
+    try:
+        from lib.constants import GITHUB_URL as _GITHUB_URL
+    except Exception:  # noqa: BLE001
+        _GITHUB_URL = None
+    if _GITHUB_URL:
+        try:
+            req = urllib.request.Request(_GITHUB_URL, headers={"User-Agent": BROWSER_UA}, method="GET")
+            with urllib.request.urlopen(req, timeout=15, context=SSL_CONTEXT) as resp:
+                gh_status = resp.status
+        except urllib.error.HTTPError as exc:
+            gh_status = exc.code
+        except Exception as exc:  # noqa: BLE001 — no route to GitHub from here
+            gh_status = None
+            print(f"  [notice] GITHUB_URL not checked — {type(exc).__name__}: {exc}")
+        if gh_status is not None:
+            check("GITHUB_URL resolves (the repository, spelled right)",
+                  gh_status == 200, f"{_GITHUB_URL} answered {gh_status}")
+
     status, sitemap, _ = fetch(f"{base}/sitemap.xml")
     check("/sitemap.xml responds 200", status == 200, f"got {status}")
     page_urls = re.findall(r"<loc>([^<]+)</loc>", sitemap)

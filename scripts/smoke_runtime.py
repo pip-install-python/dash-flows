@@ -35,8 +35,10 @@ spec = importlib.util.spec_from_file_location("smoke_target", path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 client = module.app.server.test_client()
+BROWSER_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 for route in ("/", "/_dash-layout", "/_dash-dependencies"):
-    resp = client.get(route)
+    resp = client.get(route, headers={"User-Agent": BROWSER_UA})
     if resp.status_code != 200:
         sys.exit(f"GET {route} -> {resp.status_code}")
     if route != "/":

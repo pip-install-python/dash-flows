@@ -8,6 +8,8 @@ entry and the /api/llms.txt document for free.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import dash
 import dash_mantine_components as dmc
 from dash import html
@@ -58,14 +60,51 @@ def layout(**kwargs):
     return build_page()
 
 
-if API_PACKAGES:
+def _docs_page_owns(path: str) -> bool:
+    """A fork may serve /api as a DOCS page (pannellum, muicharts: a
+    `.. kwargs::` table plus curated prose). Page modules load before
+    pages/markdown.py, so the registry cannot be asked yet — read the
+    docs' frontmatter directly and yield (1.6.41)."""
+    import frontmatter
+
+    for md in Path("docs").glob("**/*.md"):
+        try:
+            if (frontmatter.loads(md.read_text()).metadata.get("endpoint") or "").rstrip("/") == path:
+                return True
+        except Exception:  # noqa: BLE001
+            continue
+    return False
+
+
+if API_PACKAGES and not _docs_page_owns("/api"):
     LLMS_DOC = api_reference.as_markdown(API_PACKAGES)
+    API_DESCRIPTION = f"Component props reference for {', '.join(API_PACKAGES)}."
     dash.register_page(
         __name__,
         path="/api",
         name="API",
         title=PAGE_TITLE_PREFIX + "API",
-        description=f"Component props reference for {', '.join(API_PACKAGES)}.",
+        description=API_DESCRIPTION,
         image_url=OG_IMAGE_URL,
         icon="mdi:api",
+    )
+    # The full machine record (1.6.41): visibility + tier so the control
+    # board's llms.txt toggle covers /api, and lastmod = the committed
+    # extract's `generated` stamp (None when the package ships metadata.json
+    # and no extract — then the sitemap omits the tag, honestly).
+    from dash_improve_my_llms import register_page_metadata
+
+    from lib import page_tiers, page_visibility
+
+    page_visibility.register_default("/api", "API", visibility="public", llms_public=True)
+    page_tiers.register("/api", "public", llms_public=True)
+    register_page_metadata(
+        path="/api",
+        name="API",
+        description=API_DESCRIPTION,
+        title=PAGE_TITLE_PREFIX + "API",
+        image_url=OG_IMAGE_URL,
+        schema_type="TechArticle",
+        lastmod=api_reference.slim_generated_on(API_PACKAGES[0]),
+        llms_doc=LLMS_DOC,
     )

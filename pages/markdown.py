@@ -43,6 +43,9 @@ class Meta(BaseModel):
     category: Optional[str] = None
     # Sidebar position within its category (sync item 16); ties break on name.
     order: int = 1000
+    # Short sidebar label; default = name. Shortening `name:` would churn
+    # <title>, og:title and the llms.txt heading; this is the seam.
+    nav: Optional[str] = None
     icon: Optional[str] = None
     # Who may read this page: public | auth | admin | hidden. Absent means
     # the deployment default (PAGE_DEFAULT_TIER, else public) — see
@@ -77,6 +80,15 @@ class Meta(BaseModel):
 
 
 _SOURCE_DIRECTIVE = re.compile(r'^\.\. source::(.+?)$', re.MULTILINE)
+# The SAME treatment for `.. kwargs::`. A markdown2dash directive renders
+# Dash COMPONENTS, so its output reaches the browser's React tree and
+# nothing else: the machine lane and the non-JS prerender are both built
+# from this markdown SOURCE, where the directive line is stripped.
+# docs/api_reference/api_reference.md served real prop tables to a browser
+# and ZERO rows to /api-reference/llms.txt, the crawler document and the
+# prerender — measured 2026-08-30, sync item 18 contract highlight
+# 7-amended (muicharts' finding). See lib/directives/kwargs.py::props_markdown.
+_KWARGS_DIRECTIVE = re.compile(r'^\.\. kwargs::(.+?)$', re.MULTILINE)
 _LANG_MAP = {
     'py': 'python', 'pyi': 'python',
     'js': 'javascript', 'jsx': 'jsx',
@@ -126,6 +138,15 @@ def _expand_source_directives(markdown_content: str) -> str:
         except Exception as exc:
             return f'\n<!-- Error reading {file_path}: {exc} -->\n'
 
+    def kwargs_expansion(directive_line: str) -> str:
+        from lib.directives.kwargs import props_markdown
+
+        spec = _KWARGS_DIRECTIVE.match(directive_line).group(1).strip()
+        try:
+            return props_markdown(spec)
+        except Exception as exc:
+            return f'\n<!-- Error reading props for {spec}: {exc} -->\n'
+
     out: List[str] = []
     fence = None  # the marker that opened the block we are inside, if any
     for line in markdown_content.split('\n'):
@@ -136,6 +157,9 @@ def _expand_source_directives(markdown_content: str) -> str:
             fence = None
         elif fence is None and _SOURCE_DIRECTIVE.match(line):
             out.append(expansion(line))
+            continue
+        elif fence is None and _KWARGS_DIRECTIVE.match(line):
+            out.append(kwargs_expansion(line))
             continue
         out.append(line)
     return '\n'.join(out)
@@ -215,6 +239,7 @@ for file in files:
         ),
         category=metadata.category,
         order=metadata.order,
+        nav=metadata.nav,
         icon=metadata.icon,
         image_url=OG_IMAGE_URL,
     )

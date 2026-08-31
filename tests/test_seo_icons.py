@@ -57,6 +57,22 @@ def _declared_lastmods() -> set[str]:
         m = re.search(r"^lastmod:\s*(\d{4}-\d{2}-\d{2})\s*$", head, re.MULTILINE)
         if m:
             dates.add(m.group(1))
+    # Two pages declare no frontmatter but still stamp a truthful lastmod
+    # (sync item 18): /changelog's is the newest dated release heading;
+    # /api's is the committed metadata extract's own `generated` date —
+    # both move only when the content they describe does, never "today".
+    from lib.constants import API_PACKAGES
+    from pages.changelog import newest_date
+
+    date = newest_date()
+    if date:
+        dates.add(date)
+    if API_PACKAGES:
+        from lib.api_reference import slim_generated_on
+
+        stamp = slim_generated_on(API_PACKAGES[0])
+        if stamp:
+            dates.add(stamp)
     return dates
 
 

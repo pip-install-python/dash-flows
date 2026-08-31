@@ -89,6 +89,13 @@ jobs:
           # receive an uncertified commit by construction. On the FIRST run
           # `release` does not exist yet and this push creates it.
           #
+          # If this push is rejected with the whole matrix green, the REPO's
+          # Actions default workflow permission is read-only and caps the
+          # job-level `contents: write` above: Settings → Actions → General
+          # → Workflow permissions → "Read and write", then re-run failed
+          # jobs. Never a PAT, never --force (measured on muischeduler's
+          # first promote).
+          #
           # NOT --force, on purpose: a non-fast-forward means somebody wrote
           # `release` by hand (a rollback, a hotfix). This job then FAILS
           # and says so; a force here would silently undo that person.
@@ -96,6 +103,15 @@ jobs:
           # GITHUB_TOKEN pushes trigger no workflows — correct: `on:` is
           # main-only, and it is Render, not Actions, that reacts to
           # `release` (render.yaml `branch: release`, autoDeploy on).
+          # Refs are a filesystem: a `release/<anything>` branch (any depth)
+          # makes `release` a DIRECTORY and this push fails with "cannot
+          # lock ref". Owner step: delete or rename every release/* branch
+          # — never --force.
+          if git ls-remote --heads origin 'release/*' | grep -q .; then
+            echo "::error::a release/* branch exists — 'release' cannot also be a ref. Delete or rename every release/* branch (owner step), then re-run failed jobs."
+            git ls-remote --heads origin 'release/*'
+            exit 1
+          fi
           git push origin "HEAD:refs/heads/release"
           echo "::notice::release → ${GITHUB_SHA} (fast-forward)"
 

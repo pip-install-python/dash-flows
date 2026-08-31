@@ -10,6 +10,7 @@ from __future__ import annotations
 import flask
 import pytest
 
+from conftest import BROWSER_UA
 from lib import agent_key
 
 NO_STORE = "private, no-store"
@@ -28,7 +29,7 @@ def route_client():
 
 
 def test_anonymous_gets_204_with_no_store(route_client):
-    r = route_client.get("/api/agent-key")
+    r = route_client.get("/api/agent-key", headers={"User-Agent": BROWSER_UA})
     assert r.status_code == 204
     assert r.headers["Cache-Control"] == NO_STORE
 
@@ -37,7 +38,7 @@ def test_a_minted_key_returns_200_json_with_no_store(route_client, monkeypatch):
     monkeypatch.setattr(agent_key, "_mint_from_token",
                         lambda t: "k2p_minted" if t == "tok" else None)
     route_client.set_cookie("__session", "tok")
-    r = route_client.get("/api/agent-key")
+    r = route_client.get("/api/agent-key", headers={"User-Agent": BROWSER_UA})
     assert r.status_code == 200
     assert r.get_json() == {"key": "k2p_minted"}
     assert r.headers["Cache-Control"] == NO_STORE
@@ -47,7 +48,8 @@ def test_the_token_is_read_from_the_cookie_never_the_query(route_client, monkeyp
     seen = []
     monkeypatch.setattr(agent_key, "_mint_from_token",
                         lambda t: seen.append(t) or None)
-    route_client.get("/api/agent-key?token=forged&__session=forged2")
+    route_client.get("/api/agent-key?token=forged&__session=forged2",
+                     headers={"User-Agent": BROWSER_UA})
     assert seen == [""], "a query-string token reached the mint path"
 
 

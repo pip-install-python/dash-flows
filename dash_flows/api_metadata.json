@@ -1,0 +1,2321 @@
+{
+ "components": [
+  {
+   "description": "AnimatedCircleNode - A circular node designed for use with animated edges.\nFeatures a distinctive pink circular design that works well with AnimatedNodeEdge\nto create animated dot effects along connections.",
+   "name": "AnimatedCircleNode",
+   "props": [
+    {
+     "default": "",
+     "description": "Node data object containing the label content",
+     "name": "data",
+     "required": true,
+     "type": "dict"
+    }
+   ]
+  },
+  {
+   "description": "AnimatedNodeEdge is a custom edge component that animates a node along its path.",
+   "name": "AnimatedNodeEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "The ID of the edge",
+     "name": "id",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "{ animatedNode: '' }",
+     "description": "Edge data containing the ID of the node to animate",
+     "name": "data",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Position of the source handle",
+     "name": "sourcePosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the source node",
+     "name": "sourceX",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the source node",
+     "name": "sourceY",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Position of the target handle",
+     "name": "targetPosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the target node",
+     "name": "targetX",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the target node",
+     "name": "targetY",
+     "required": false,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "AnimatedSvgEdge - An edge that animates a custom SVG element along the path\nUseful for showing data flow direction or active connections",
+   "name": "AnimatedSvgEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the edge",
+     "name": "id",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Configuration data for the animated SVG edge",
+     "name": "data",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge end",
+     "name": "markerEnd",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge start",
+     "name": "markerStart",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Whether the edge is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Position of the source handle ('top', 'bottom', 'left', 'right')",
+     "name": "sourcePosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge source",
+     "name": "sourceX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge source",
+     "name": "sourceY",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the edge path",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Position of the target handle ('top', 'bottom', 'left', 'right')",
+     "name": "targetPosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge target",
+     "name": "targetX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge target",
+     "name": "targetY",
+     "required": true,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "ButtonEdge - Glass morphism styled edge with an interactive button and optional toolbar",
+   "name": "ButtonEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the edge",
+     "name": "id",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Configuration data for the button edge",
+     "name": "data",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Label text to display on the edge",
+     "name": "label",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the label",
+     "name": "labelStyle",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge end",
+     "name": "markerEnd",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge start",
+     "name": "markerStart",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Whether the edge is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Position of the source handle ('top', 'bottom', 'left', 'right')",
+     "name": "sourcePosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge source",
+     "name": "sourceX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge source",
+     "name": "sourceY",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the edge path",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Position of the target handle ('top', 'bottom', 'left', 'right')",
+     "name": "targetPosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge target",
+     "name": "targetX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge target",
+     "name": "targetY",
+     "required": true,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "ButtonHandle - A handle that can also function as a button\nUseful for triggering actions when clicking on a connection point",
+   "name": "ButtonHandle",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the handle",
+     "name": "id",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "CSS class for the button",
+     "name": "buttonClassName",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Content to display in the button",
+     "name": "buttonContent",
+     "required": false,
+     "type": "node"
+    },
+    {
+     "default": "",
+     "description": "Inline styles for the button",
+     "name": "buttonStyle",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Child content for the button",
+     "name": "children",
+     "required": false,
+     "type": "node"
+    },
+    {
+     "default": "",
+     "description": "CSS class for the handle",
+     "name": "className",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "true",
+     "description": "Whether the handle can connect to other nodes",
+     "name": "isConnectable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Click handler for the button",
+     "name": "onClick",
+     "required": false,
+     "type": "func"
+    },
+    {
+     "default": "",
+     "description": "Called when a connection is made",
+     "name": "onConnect",
+     "required": false,
+     "type": "func"
+    },
+    {
+     "default": "'bottom'",
+     "description": "Position of the handle on the node",
+     "name": "position",
+     "required": false,
+     "type": "one of 'top', 'bottom', 'left', 'right'"
+    },
+    {
+     "default": "false",
+     "description": "Whether to show the button (default: false)",
+     "name": "showButton",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Inline styles for the handle",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Type of handle - source or target",
+     "name": "type",
+     "required": true,
+     "type": "one of 'source', 'target'"
+    }
+   ]
+  },
+  {
+   "description": "DashFlows - A React Flow-based node graph component for Dash applications.\nProvides interactive node-based workflow visualization with support for\ncustom node types, edge types, glass morphism styling, and extensive\ncallback integration for Python-based interactivity.",
+   "name": "DashFlows",
+   "props": [
+    {
+     "default": "",
+     "description": "The ID used to identify this component in Dash callbacks.",
+     "name": "id",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "When true, dragging a connection from a handle and dropping on empty canvas\ncreates a new default node at that position and connects it.",
+     "name": "addNodeOnEdgeDrop",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "false",
+     "description": "Enable smooth animated transitions when applying ELK layout.\nNodes interpolate from current to target positions with an ease-out curve.",
+     "name": "animateLayout",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "300",
+     "description": "Duration of layout animation in milliseconds (default: 300)",
+     "name": "animateLayoutDuration",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "ARIA label configuration for accessibility. Customize labels for screen readers.\nKeys: nodes, edges, controls, minimap. Values are label strings.",
+     "name": "ariaLabelConfig",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "true",
+     "description": "Auto-pan viewport when making a new connection near edges",
+     "name": "autoPanOnConnect",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Auto-pan viewport when dragging a node near edges",
+     "name": "autoPanOnNodeDrag",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Auto-pan the viewport when focusing a node via keyboard (Tab key).",
+     "name": "autoPanOnNodeFocus",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "15",
+     "description": "Speed of auto-panning (default: 15)",
+     "name": "autoPanSpeed",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Color of the background pattern",
+     "name": "backgroundColor",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "16",
+     "description": "Gap between background pattern elements",
+     "name": "backgroundGap",
+     "required": false,
+     "type": "number | list of number"
+    },
+    {
+     "default": "1",
+     "description": "Size of background pattern elements",
+     "name": "backgroundSize",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "'dots'",
+     "description": "Background pattern type: 'dots', 'lines', 'cross'",
+     "name": "backgroundVariant",
+     "required": false,
+     "type": "one of 'dots', 'lines', 'cross'"
+    },
+    {
+     "default": "''",
+     "description": "CSS class name for the container div",
+     "name": "className",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "The edge that was clicked",
+     "name": "clickedEdge",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "The node that was clicked",
+     "name": "clickedNode",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Internal clipboard containing copied nodes and edges.\nPopulated by copyAction, consumed by pasteAction.",
+     "name": "clipboard",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "List of currently collapsed group node IDs (read-only output).",
+     "name": "collapsedGroups",
+     "required": false,
+     "type": "list of string"
+    },
+    {
+     "default": "'light'",
+     "description": "Color mode: 'light', 'dark', or 'system'",
+     "name": "colorMode",
+     "required": false,
+     "type": "one of 'light', 'dark', 'system'"
+    },
+    {
+     "default": "",
+     "description": "Color scheme preset for node and edge colors.\nWorks in combination with themePreset for full customization.\nEach scheme includes light and dark mode variants.\n- default: Neutral blue/purple (default)\n- ocean: Blues and teals\n- forest: Greens and browns\n- sunset: Oranges and reds\n- midnight: Deep blues and purples\n- rose: Pinks and reds",
+     "name": "colorScheme",
+     "required": false,
+     "type": "one of 'default', 'ocean', 'forest', 'sunset', 'midnight', 'rose'"
+    },
+    {
+     "default": "",
+     "description": "Trigger a graph computation. Set to { action: 'compute' } to perform\ntopological sort and emit traversal order with input mappings.\nWill be reset to null after execution.",
+     "name": "computeAction",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Result of the last computation. Contains traversalOrder (array of node IDs\nin topological order) and nodeInputs (map of nodeId to input details).",
+     "name": "computeResult",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "true",
+     "description": "Enable click-based connection mode (click source then target)",
+     "name": "connectOnClick",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "0",
+     "description": "Minimum drag distance in pixels before a connection line appears.\nUseful to prevent accidental connections. Default is 0 (immediate).",
+     "name": "connectionDragThreshold",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Style for the connection line while dragging",
+     "name": "connectionLineStyle",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "'bezier'",
+     "description": "Type of connection line: 'bezier', 'straight', 'step', 'smoothstep', 'simplebezier'",
+     "name": "connectionLineType",
+     "required": false,
+     "type": "one of 'bezier', 'straight', 'step', 'smoothstep', 'simplebezier'"
+    },
+    {
+     "default": "'strict'",
+     "description": "Connection mode: 'strict' (same handle type) or 'loose' (any handle)",
+     "name": "connectionMode",
+     "required": false,
+     "type": "one of 'strict', 'loose'"
+    },
+    {
+     "default": "20",
+     "description": "Radius for connection drop detection (default: 20)",
+     "name": "connectionRadius",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Rules for validating connections",
+     "name": "connectionRules",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Current connection being created",
+     "name": "connectionStartHandle",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Context menu info for an edge",
+     "name": "contextMenuEdge",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Context menu info for a node",
+     "name": "contextMenuNode",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "'bottom-left'",
+     "description": "Position of controls panel",
+     "name": "controlsPosition",
+     "required": false,
+     "type": "one of 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'top-center', 'bottom-center'"
+    },
+    {
+     "default": "true",
+     "description": "Show fit-view button in controls",
+     "name": "controlsShowFitView",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Show interactive toggle in controls",
+     "name": "controlsShowInteractive",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Show zoom buttons in controls",
+     "name": "controlsShowZoom",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Trigger to copy selected nodes and edges to clipboard.\nSet to true to copy. Will be reset to false after copying.\nIf nothing is selected, copies all nodes and their connecting edges.",
+     "name": "copyAction",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Default options applied to all new edges",
+     "name": "defaultEdgeOptions",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "'#555'",
+     "description": "Default color for edge markers",
+     "name": "defaultMarkerColor",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "The initial viewport position and zoom level",
+     "name": "defaultViewport",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Delete specific nodes and/or edges by ID. Routes through\nreactFlowInstance.deleteElements() so undo/redo middleware can capture\nthe change. Set to { nodeIds: [...], edgeIds: [...] }; auto-resets to null.",
+     "name": "deleteElementsAction",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "'Backspace'",
+     "description": "Key code for deleting selected elements (default: 'Backspace', null to disable)",
+     "name": "deleteKeyCode",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "IDs of recently deleted edges",
+     "name": "deletedEdges",
+     "required": false,
+     "type": "list of string"
+    },
+    {
+     "default": "",
+     "description": "IDs of recently deleted nodes",
+     "name": "deletedNodes",
+     "required": false,
+     "type": "list of string"
+    },
+    {
+     "default": "false",
+     "description": "Disable keyboard accessibility features",
+     "name": "disableKeyboardA11y",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "The edge that was double-clicked",
+     "name": "doubleClickedEdge",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "The node that was double-clicked",
+     "name": "doubleClickedNode",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Trigger to download the flow as an image.\nSet to a config object to initiate download. Will be reset to null after download.\n\nConfig options:\n- format: 'png' | 'svg' | 'jpeg' (default: 'png')\n- filename: string (default: 'flow')\n- quality: number 0-1 (default: 0.95, for jpeg only)\n- backgroundColor: string (default: '#ffffff')\n- pixelRatio: number (default: 2, for higher resolution)",
+     "name": "downloadImage",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "The node being dragged",
+     "name": "draggedNode",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Node data from a drop event (drag and drop from external source).\nContains the type, position, and data of the dropped item.\nUse this in a callback to create a new node at the drop position.",
+     "name": "droppedNode",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Info about the node created by dropping an edge on empty canvas.\nContains nodeId, position, sourceNodeId, sourceHandleId, handleType, timestamp.",
+     "name": "edgeDroppedNode",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "[]",
+     "description": "Array of edges defining connections between nodes",
+     "name": "edges",
+     "required": false,
+     "type": "list of dict"
+    },
+    {
+     "default": "true",
+     "description": "Enable/disable keyboard focus on edges",
+     "name": "edgesFocusable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Allow edges to be reconnected after creation",
+     "name": "edgesReconnectable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Enable/disable the ability to select elements",
+     "name": "elementsSelectable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "false",
+     "description": "Raise z-index of selected edges",
+     "name": "elevateEdgesOnSelect",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Raise z-index of selected nodes",
+     "name": "elevateNodesOnSelect",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "false",
+     "description": "Enable the undo/redo history system. When enabled, node and edge changes\n(add, remove, position drag-stop) are recorded to a history stack.",
+     "name": "enableUndoRedo",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Trigger to export the current flow state. Set to true to export.\nAfter export, this will be reset to false and flowState will be populated.",
+     "name": "exportFlowState",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "false",
+     "description": "Automatically fit all nodes in view on initialization",
+     "name": "fitView",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Options for fitView behavior",
+     "name": "fitViewOptions",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "The exported flow state as a serializable object containing nodes, edges, and viewport.\nThis is populated when exportFlowState is triggered.",
+     "name": "flowState",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Distance in pixels within which helper lines snap and appear (default: 5)",
+     "name": "helperLineThreshold",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Enable visual alignment guides (helper lines) when dragging nodes.\nLines appear when a node aligns with another node's top/center/bottom or left/center/right.",
+     "name": "helperLines",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "The edge being hovered",
+     "name": "hoveredEdge",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "The node being hovered",
+     "name": "hoveredNode",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Information about the last successful image download.\nPopulated after a successful downloadImage operation.",
+     "name": "imageDownloaded",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Whether the flow has been initialized",
+     "name": "initialized",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "The last connection that was made",
+     "name": "lastConnection",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Last error that occurred",
+     "name": "lastError",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Layout options for arranging nodes using the ELK layout engine (JSON string)",
+     "name": "layoutOptions",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "2",
+     "description": "Maximum zoom level (default: 2)",
+     "name": "maxZoom",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "0.5",
+     "description": "Minimum zoom level (default: 0.5)",
+     "name": "minZoom",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Color for the minimap mask (viewport indicator)",
+     "name": "miniMapMaskColor",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Border radius for minimap nodes",
+     "name": "miniMapNodeBorderRadius",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Color function or string for minimap nodes",
+     "name": "miniMapNodeColor",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Stroke color for minimap nodes",
+     "name": "miniMapNodeStrokeColor",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "false",
+     "description": "Allow panning by dragging the minimap",
+     "name": "miniMapPannable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "'bottom-right'",
+     "description": "Position of the minimap",
+     "name": "miniMapPosition",
+     "required": false,
+     "type": "one of 'top-left', 'top-right', 'bottom-left', 'bottom-right'"
+    },
+    {
+     "default": "false",
+     "description": "Allow zooming via the minimap",
+     "name": "miniMapZoomable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Key code for adding to selection",
+     "name": "multiSelectionKeyCode",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "'nodrag'",
+     "description": "CSS class name that prevents dragging when applied to elements",
+     "name": "noDragClassName",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "'nopan'",
+     "description": "CSS class name that prevents panning when applied to elements",
+     "name": "noPanClassName",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "'nowheel'",
+     "description": "CSS class name that prevents wheel zoom when applied to elements",
+     "name": "noWheelClassName",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Map of nodeId to connection metadata. Each entry has 'incoming' and 'outgoing' arrays\nwith edge/node details. Updated automatically when edges change.",
+     "name": "nodeConnections",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Limit where nodes can be placed [[minX, minY], [maxX, maxY]]",
+     "name": "nodeExtent",
+     "required": false,
+     "type": "list of list of number"
+    },
+    {
+     "default": "[]",
+     "description": "Array of nodes to display in the flow",
+     "name": "nodes",
+     "required": false,
+     "type": "list of dict"
+    },
+    {
+     "default": "true",
+     "description": "Enable/disable the ability to make new connections between nodes",
+     "name": "nodesConnectable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Enable/disable node dragging behavior",
+     "name": "nodesDraggable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Enable/disable keyboard focus on nodes",
+     "name": "nodesFocusable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "false",
+     "description": "Only render nodes and edges that are visible in the viewport",
+     "name": "onlyRenderVisibleElements",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "'Space'",
+     "description": "Key code to activate pan mode (default: 'Space')",
+     "name": "panActivationKeyCode",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "true",
+     "description": "Enable/disable panning by dragging. Can be boolean or array of mouse buttons [0,1,2]",
+     "name": "panOnDrag",
+     "required": false,
+     "type": "bool | list of number"
+    },
+    {
+     "default": "false",
+     "description": "Enable panning by scrolling",
+     "name": "panOnScroll",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "'free'",
+     "description": "Restrict scroll panning direction: 'free', 'vertical', 'horizontal'",
+     "name": "panOnScrollMode",
+     "required": false,
+     "type": "one of 'free', 'vertical', 'horizontal'"
+    },
+    {
+     "default": "0.5",
+     "description": "Speed of scroll-based panning (default: 0.5)",
+     "name": "panOnScrollSpeed",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Position where the pane was clicked",
+     "name": "paneClickPosition",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Context menu info for the pane",
+     "name": "paneContextMenu",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Array of panel configurations for custom UI overlays",
+     "name": "panels",
+     "required": false,
+     "type": "list of dict"
+    },
+    {
+     "default": "",
+     "description": "Trigger to paste nodes and edges from clipboard.\nSet to an object with optional offset: { offset: { x: 50, y: 50 } }\nWill be reset to null after pasting.",
+     "name": "pasteAction",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Information about the last paste operation.\nContains the IDs of newly created nodes and edges.",
+     "name": "pastedElements",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "false",
+     "description": "Enable delete prevention checks",
+     "name": "preventDelete",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "List of edge IDs that cannot be deleted",
+     "name": "preventDeleteEdges",
+     "required": false,
+     "type": "list of string"
+    },
+    {
+     "default": "",
+     "description": "List of node IDs that cannot be deleted",
+     "name": "preventDeleteNodes",
+     "required": false,
+     "type": "list of string"
+    },
+    {
+     "default": "true",
+     "description": "Prevent scrolling on the page when the mouse is over the flow",
+     "name": "preventScrolling",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "10",
+     "description": "Radius for reconnection detection (default: 10)",
+     "name": "reconnectRadius",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Import/restore a previously exported flow state.\nSet this to a flowState object to restore the flow.",
+     "name": "restoreFlowState",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "true",
+     "description": "Select nodes when dragging over them",
+     "name": "selectNodesOnDrag",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "IDs of currently selected edges",
+     "name": "selectedEdges",
+     "required": false,
+     "type": "list of string"
+    },
+    {
+     "default": "",
+     "description": "IDs of currently selected nodes",
+     "name": "selectedNodes",
+     "required": false,
+     "type": "list of string"
+    },
+    {
+     "default": "'Shift'",
+     "description": "Key code for multi-selection box (default: 'Shift')",
+     "name": "selectionKeyCode",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "'full'",
+     "description": "Selection mode: 'full' (fully enclosed) or 'partial' (touching)",
+     "name": "selectionMode",
+     "required": false,
+     "type": "one of 'full', 'partial'"
+    },
+    {
+     "default": "false",
+     "description": "Enable selection box by dragging on the pane",
+     "name": "selectionOnDrag",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Show/hide the background pattern",
+     "name": "showBackground",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Show/hide the control panel",
+     "name": "showControls",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "false",
+     "description": "Show/hide the developer tools panel",
+     "name": "showDevTools",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Show/hide the minimap navigation component",
+     "name": "showMiniMap",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Enable smart handle positioning. When true, nodes render handles on all 4 sides\nand edges automatically connect to the closest handle pair based on relative node\npositions. This prevents edges from wrapping around nodes unnecessarily.",
+     "name": "smartHandles",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "[15, 15]",
+     "description": "The grid size for snapping [x, y] (default: [15, 15])",
+     "name": "snapGrid",
+     "required": false,
+     "type": "list of number"
+    },
+    {
+     "default": "false",
+     "description": "Whether to snap nodes to a grid when dragging",
+     "name": "snapToGrid",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "{}",
+     "description": "Custom CSS styles for the container div",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Custom theme configuration. Overrides CSS variables for fine-grained control.\nAll properties are optional - only specify what you want to customize.",
+     "name": "theme",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Theme preset: 'glass' (default), 'solid', or 'minimal'\n- glass: Glassmorphism with blur and transparency\n- solid: Opaque nodes with subtle shadows (better for complex backgrounds)\n- minimal: Clean lines with minimal styling",
+     "name": "themePreset",
+     "required": false,
+     "type": "one of 'glass', 'solid', 'minimal'"
+    },
+    {
+     "default": "",
+     "description": "Set to a group node ID to toggle its collapsed/expanded state.\nWhen collapsed, child nodes are hidden and boundary edges remap to the group.\nWill be reset to null after processing.",
+     "name": "toggleCollapseNode",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "false",
+     "description": "Track node position during drag (can be expensive)",
+     "name": "trackNodeDrag",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "false",
+     "description": "Track viewport changes during pan/zoom",
+     "name": "trackViewport",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Limit the viewport panning extent [[minX, minY], [maxX, maxY]]",
+     "name": "translateExtent",
+     "required": false,
+     "type": "list of list of number"
+    },
+    {
+     "default": "",
+     "description": "Trigger an undo or redo action. Set to { action: 'undo' } or { action: 'redo' }.\nWill be reset to null after execution.",
+     "name": "undoRedoAction",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "50",
+     "description": "Maximum number of history snapshots to keep (default: 50)",
+     "name": "undoRedoMaxHistory",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Current undo/redo state. Contains canUndo, canRedo, undoCount, redoCount.\nUpdated automatically when history changes.",
+     "name": "undoRedoState",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Current viewport state (read-only, updated by callbacks)",
+     "name": "viewport",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Trigger viewport actions programmatically.\nSet to an action object to execute. Will be reset to null after execution.\n\nSupported actions:\n- { action: 'fitView', options: {...} }\n- { action: 'zoomIn', options: {...} }\n- { action: 'zoomOut', options: {...} }\n- { action: 'setZoom', zoom: 1.5, options: {...} }\n- { action: 'setCenter', x: 100, y: 100, options: {...} }\n- { action: 'setViewport', viewport: {x, y, zoom}, options: {...} }\n- { action: 'focusNode', nodeId: 'node-1', zoom: 1.5, duration: 500 }",
+     "name": "viewportAction",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Whether viewport is currently moving (panning/zooming)",
+     "name": "viewportMoving",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Array of overlay elements rendered in flow coordinates via ViewportPortal.\nEach overlay moves with the viewport (pan/zoom) and is positioned at (x, y) in flow space.",
+     "name": "viewportOverlays",
+     "required": false,
+     "type": "list of dict"
+    },
+    {
+     "default": "",
+     "description": "Z-index calculation mode. 'default' uses standard stacking. 'elevate' raises\nselected nodes and connected edges above all other elements.",
+     "name": "zIndexMode",
+     "required": false,
+     "type": "one of 'default', 'elevate'"
+    },
+    {
+     "default": "",
+     "description": "Key code to activate zoom mode",
+     "name": "zoomActivationKeyCode",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "true",
+     "description": "Enable zooming by double-clicking",
+     "name": "zoomOnDoubleClick",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Enable zooming by pinching on touch devices",
+     "name": "zoomOnPinch",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "true",
+     "description": "Enable zooming by scrolling",
+     "name": "zoomOnScroll",
+     "required": false,
+     "type": "bool"
+    }
+   ]
+  },
+  {
+   "description": "DataEdge - An edge that displays data from the source node\nUseful for showing data flow between nodes",
+   "name": "DataEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the edge",
+     "name": "id",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Configuration data for the data edge",
+     "name": "data",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge end",
+     "name": "markerEnd",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge start",
+     "name": "markerStart",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Whether the edge is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "ID of the source node to read data from",
+     "name": "source",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Position of the source handle ('top', 'bottom', 'left', 'right')",
+     "name": "sourcePosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge source",
+     "name": "sourceX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge source",
+     "name": "sourceY",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the edge path",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Position of the target handle ('top', 'bottom', 'left', 'right')",
+     "name": "targetPosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge target",
+     "name": "targetX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge target",
+     "name": "targetY",
+     "required": true,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "DefaultNode - Glass morphism styled node with source and target handles\nEquivalent to React Flow's built-in 'default' node type\n\nUses CSS classes from glass-theme.css for styling, supporting:\n- Light/dark mode via colorMode prop or Mantine color scheme\n- Theme presets (glass, solid, minimal)\n- Custom CSS variable overrides via theme prop\n- Status indicators (initial, loading, success, error)\n- Custom icons via DashIconify or any Dash component",
+   "name": "DefaultNode",
+   "props": [
+    {
+     "default": "",
+     "description": "Node data object containing label, styling, and handle configuration",
+     "name": "data",
+     "required": true,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Whether connections can be made to/from this node",
+     "name": "isConnectable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Whether the node is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    }
+   ]
+  },
+  {
+   "description": "DevTools component for displaying debug information about the flow",
+   "name": "DevTools",
+   "props": [
+    {
+     "default": "",
+     "description": "Array of nodes to display information about",
+     "name": "nodes",
+     "required": true,
+     "type": "list of dict"
+    }
+   ]
+  },
+  {
+   "description": "FloatingEdge - Edge that connects to the nearest point on each node's border\ninstead of fixed handle positions. Creates more natural-looking connections.",
+   "name": "FloatingEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the edge",
+     "name": "id",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Additional data passed to the edge",
+     "name": "data",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Label text to display on the edge",
+     "name": "label",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the label",
+     "name": "labelStyle",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge end",
+     "name": "markerEnd",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge start",
+     "name": "markerStart",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Whether the edge is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Source node ID",
+     "name": "source",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge source",
+     "name": "sourceX",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge source",
+     "name": "sourceY",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the edge path",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Target node ID",
+     "name": "target",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge target",
+     "name": "targetX",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge target",
+     "name": "targetY",
+     "required": false,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "GroupNode - A simple labeled group container for child nodes\n\nThis follows the React Flow pattern for group nodes:\n- The node's width/height is controlled via the style prop on the node definition\n- Child nodes use parentId to reference this node\n- Child nodes can use extent: 'parent' to stay within bounds\n- Supports collapse/expand via data.collapsed (managed by DashFlows toggleCollapseNode prop)\n\nUnlike standard nodes, group nodes are rendered as simple containers\nthat React Flow manages for parent-child relationships.",
+   "name": "GroupNode",
+   "props": [
+    {
+     "default": "",
+     "description": "Node ID",
+     "name": "id",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Node data object containing label, icon, and styling options",
+     "name": "data",
+     "required": false,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Whether the group is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    }
+   ]
+  },
+  {
+   "description": "InputNode - Glass morphism styled node with only a source handle (no incoming connections)\nFeatures a green accent bar at the top\n\nUses CSS classes from glass-theme.css for styling, supporting:\n- Light/dark mode via colorMode prop or Mantine color scheme\n- Theme presets (glass, solid, minimal)\n- Custom CSS variable overrides via theme prop\n- Custom icons via DashIconify or any Dash component",
+   "name": "InputNode",
+   "props": [
+    {
+     "default": "",
+     "description": "Node data configuration object containing display and behavior settings",
+     "name": "data",
+     "required": true,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Whether connections can be made from this node",
+     "name": "isConnectable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Whether the node is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    }
+   ]
+  },
+  {
+   "description": "NodeSearch - A search panel for finding and focusing nodes\nSupports searching by node id, label, or data properties",
+   "name": "NodeSearch",
+   "props": [
+    {
+     "default": "",
+     "description": "Additional CSS class name",
+     "name": "className",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "true",
+     "description": "Whether to focus on the selected node",
+     "name": "focusOnSelect",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "2000",
+     "description": "Duration of highlight effect in ms",
+     "name": "highlightDuration",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "true",
+     "description": "Whether to highlight the selected node",
+     "name": "highlightOnSelect",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "false",
+     "description": "Whether the search panel is open",
+     "name": "isOpen",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Callback when the panel should close",
+     "name": "onClose",
+     "required": false,
+     "type": "func"
+    },
+    {
+     "default": "'Search nodes...'",
+     "description": "Placeholder text for the search input",
+     "name": "placeholder",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "['id', 'label', 'type', 'title', 'name']",
+     "description": "Keys to search in node data (default: ['id', 'label', 'type'])",
+     "name": "searchKeys",
+     "required": false,
+     "type": "list of string"
+    },
+    {
+     "default": "",
+     "description": "Custom inline styles",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "1.5",
+     "description": "Zoom level when focusing on a node",
+     "name": "zoomLevel",
+     "required": false,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "NodeStatusIndicator - A wrapper component that shows status indicators around nodes\nStatus can be: \"initial\", \"loading\", \"success\", \"error\"\nLoading variants: \"border\" (spinning border) or \"overlay\" (full overlay with spinner)",
+   "name": "NodeStatusIndicator",
+   "props": [
+    {
+     "default": "",
+     "description": "The node content to wrap",
+     "name": "children",
+     "required": false,
+     "type": "node"
+    },
+    {
+     "default": "",
+     "description": "Additional CSS class name",
+     "name": "className",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "'border'",
+     "description": "Loading animation variant - \"border\" shows spinning border, \"overlay\" shows full overlay",
+     "name": "loadingVariant",
+     "required": false,
+     "type": "one of 'border', 'overlay'"
+    },
+    {
+     "default": "'initial'",
+     "description": "The current status of the node",
+     "name": "status",
+     "required": false,
+     "type": "one of 'initial', 'loading', 'success', 'error'"
+    },
+    {
+     "default": "",
+     "description": "Custom inline styles",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    }
+   ]
+  },
+  {
+   "description": "NodeTooltip - A wrapper that displays a tooltip when hovered\nBuilt on top of React Flow's NodeToolbar component",
+   "name": "NodeTooltip",
+   "props": [
+    {
+     "default": "",
+     "description": "The node content",
+     "name": "children",
+     "required": false,
+     "type": "node"
+    },
+    {
+     "default": "",
+     "description": "CSS class for the container",
+     "name": "className",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "10",
+     "description": "Offset from the node in pixels",
+     "name": "offset",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "'top'",
+     "description": "Position of the tooltip relative to the node",
+     "name": "position",
+     "required": false,
+     "type": "one of 'top', 'bottom', 'left', 'right'"
+    },
+    {
+     "default": "true",
+     "description": "Show tooltip only on hover (default: true)",
+     "name": "showOnHover",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Inline styles for the container",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "CSS class for the tooltip",
+     "name": "tooltipClassName",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Content to display in the tooltip",
+     "name": "tooltipContent",
+     "required": false,
+     "type": "node"
+    },
+    {
+     "default": "",
+     "description": "Inline styles for the tooltip",
+     "name": "tooltipStyle",
+     "required": false,
+     "type": "object"
+    }
+   ]
+  },
+  {
+   "description": "OutputNode - Glass morphism styled node with only a target handle (no outgoing connections)\nFeatures a purple accent bar at the bottom\n\nUses CSS classes from glass-theme.css for styling, supporting:\n- Light/dark mode via colorMode prop or Mantine color scheme\n- Theme presets (glass, solid, minimal)\n- Custom CSS variable overrides via theme prop\n- Custom icons via DashIconify or any Dash component",
+   "name": "OutputNode",
+   "props": [
+    {
+     "default": "",
+     "description": "Node data configuration object containing display and behavior settings",
+     "name": "data",
+     "required": true,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Whether connections can be made to this node",
+     "name": "isConnectable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Whether the node is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    }
+   ]
+  },
+  {
+   "description": "ResizableNode - A node that can be resized by the user\n\nThis node supports embedding Dash components that will resize\nalong with the node container. The node receives width/height\nfrom React Flow when resized.",
+   "name": "ResizableNode",
+   "props": [
+    {
+     "default": "",
+     "description": "Node data object containing label, handles, and styling options",
+     "name": "data",
+     "required": true,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Current height of the node (set by React Flow during resize)",
+     "name": "height",
+     "required": false,
+     "type": "number"
+    },
+    {
+     "default": "false",
+     "description": "Whether the node is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Current width of the node (set by React Flow during resize)",
+     "name": "width",
+     "required": false,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "SimpleBezierEdge - Glass morphism styled simple bezier curve edge",
+   "name": "SimpleBezierEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the edge",
+     "name": "id",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Additional data passed to the edge",
+     "name": "data",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Label text to display on the edge",
+     "name": "label",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the label",
+     "name": "labelStyle",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge end",
+     "name": "markerEnd",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge start",
+     "name": "markerStart",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Whether the edge is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Position of the source handle ('top', 'bottom', 'left', 'right')",
+     "name": "sourcePosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge source",
+     "name": "sourceX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge source",
+     "name": "sourceY",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the edge path",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Position of the target handle ('top', 'bottom', 'left', 'right')",
+     "name": "targetPosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge target",
+     "name": "targetX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge target",
+     "name": "targetY",
+     "required": true,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "SmoothStepEdge - Glass morphism styled stepped edge with rounded corners",
+   "name": "SmoothStepEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the edge",
+     "name": "id",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Additional data passed to the edge (borderRadius can be set here)",
+     "name": "data",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Label text to display on the edge",
+     "name": "label",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the label",
+     "name": "labelStyle",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge end",
+     "name": "markerEnd",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge start",
+     "name": "markerStart",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Whether the edge is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Position of the source handle ('top', 'bottom', 'left', 'right')",
+     "name": "sourcePosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge source",
+     "name": "sourceX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge source",
+     "name": "sourceY",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the edge path",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Position of the target handle ('top', 'bottom', 'left', 'right')",
+     "name": "targetPosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge target",
+     "name": "targetX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge target",
+     "name": "targetY",
+     "required": true,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "StepEdge - Glass morphism styled stepped edge with sharp corners",
+   "name": "StepEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the edge",
+     "name": "id",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Additional data passed to the edge",
+     "name": "data",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Label text to display on the edge",
+     "name": "label",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the label",
+     "name": "labelStyle",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge end",
+     "name": "markerEnd",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge start",
+     "name": "markerStart",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Whether the edge is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Position of the source handle ('top', 'bottom', 'left', 'right')",
+     "name": "sourcePosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge source",
+     "name": "sourceX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge source",
+     "name": "sourceY",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the edge path",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Position of the target handle ('top', 'bottom', 'left', 'right')",
+     "name": "targetPosition",
+     "required": false,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge target",
+     "name": "targetX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge target",
+     "name": "targetY",
+     "required": true,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "StraightEdge - Glass morphism styled straight line edge",
+   "name": "StraightEdge",
+   "props": [
+    {
+     "default": "",
+     "description": "Unique identifier for the edge",
+     "name": "id",
+     "required": true,
+     "type": "string"
+    },
+    {
+     "default": "",
+     "description": "Additional data passed to the edge",
+     "name": "data",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Label text to display on the edge",
+     "name": "label",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the label",
+     "name": "labelStyle",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge end",
+     "name": "markerEnd",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Marker configuration for the edge start",
+     "name": "markerStart",
+     "required": false,
+     "type": "any"
+    },
+    {
+     "default": "",
+     "description": "Whether the edge is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge source",
+     "name": "sourceX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge source",
+     "name": "sourceY",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Custom CSS styles for the edge path",
+     "name": "style",
+     "required": false,
+     "type": "object"
+    },
+    {
+     "default": "",
+     "description": "X coordinate of the edge target",
+     "name": "targetX",
+     "required": true,
+     "type": "number"
+    },
+    {
+     "default": "",
+     "description": "Y coordinate of the edge target",
+     "name": "targetY",
+     "required": true,
+     "type": "number"
+    }
+   ]
+  },
+  {
+   "description": "ToolbarNode - Glass morphism styled node with a configurable toolbar",
+   "name": "ToolbarNode",
+   "props": [
+    {
+     "default": "",
+     "description": "Node data configuration object",
+     "name": "data",
+     "required": true,
+     "type": "dict"
+    },
+    {
+     "default": "",
+     "description": "Whether connections can be made to/from this node",
+     "name": "isConnectable",
+     "required": false,
+     "type": "bool"
+    },
+    {
+     "default": "",
+     "description": "Whether the node is currently selected",
+     "name": "selected",
+     "required": false,
+     "type": "bool"
+    }
+   ]
+  }
+ ],
+ "generated": "2026-08-30"
+}

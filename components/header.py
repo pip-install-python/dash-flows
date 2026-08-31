@@ -5,7 +5,14 @@ from dash_iconify import DashIconify
 from components.backend_badge import create_backend_badge
 from components.navbar import search_data
 from lib.backend import get_backend_info
-from lib.constants import API_PACKAGES, GITHUB_URL, HEADER_HEIGHT
+from lib.constants import (
+    API_PACKAGES,
+    GITHUB_URL,
+    HEADER_HEIGHT,
+    LOGO_ICON,
+    WORDMARK_COLOR,
+    WORDMARK_VISIBLE_FROM,
+)
 
 
 def create_clerk_avatar():
@@ -29,13 +36,15 @@ def create_clerk_avatar():
     return create_clerk_menu(show_dropdown=True, dropdown_align="right")
 
 
-def create_link(icon, href, label):
+def create_link(icon, href, label, visible_from=None):
     """Create an external link icon button.
 
     ``label`` is REQUIRED: an icon-only link has no accessible name, so
     screen readers announce it as "link" and AI agents can't tell what it
     does — the exact Lighthouse/Agentic-Browsing failure measured on the
     fleet 2026-08-21. The label lands on both the anchor and the button.
+    ``visible_from`` (a Mantine breakpoint) lets a link drop at phone
+    widths where the header runs out of room.
 
     NEVER pass ``title=`` to a DMC component to do this instead: DMC 2.8's
     ActionIcon and Anchor accept ``aria-*`` wildcards but REJECT ``title``,
@@ -53,6 +62,7 @@ def create_link(icon, href, label):
         ),
         href=href,
         target="_blank",
+        visibleFrom=visible_from,
         **{"aria-label": label},
     )
 
@@ -225,17 +235,17 @@ def create_header(data):
                             dmc.Group(
                                 [
                                     DashIconify(
-                                        icon="carbon:flow",
+                                        icon=LOGO_ICON,
                                         width=30,
-                                        color="#3b82f6",
+                                        color=WORDMARK_COLOR,
                                     ),
                                     dmc.Text(
                                         "dash-flows",
                                         size="lg",
                                         fw=700,
-                                        c="#3b82f6",
+                                        c=WORDMARK_COLOR,
                                         id="dash-docs-title",
-                                        visibleFrom="xs",
+                                        visibleFrom=WORDMARK_VISIBLE_FROM,
                                     ),
                                 ],
                                 gap="sm",
@@ -261,6 +271,7 @@ def create_header(data):
                             "radix-icons:github-logo",
                             GITHUB_URL,
                             "View the source on GitHub",
+                            visible_from="xs",   # the footer carries GitHub on phones
                         ),
                         dmc.ActionIcon(
                             [
