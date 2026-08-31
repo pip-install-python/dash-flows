@@ -51,6 +51,19 @@ def test_admin_paths_absent_from_sitemap_llms_and_sidebar(client, app):
             leaked.append(f"{path} in the startup sidebar tree")
     assert leaked == [], f"admin pages published: {leaked}"
 
+    # The CORPUS, not only the index: prose leaks what structure hides —
+    # hyperlinking an admin path from a docs page puts it into the tiered
+    # corpus while every sitemap and sidebar pin passes.
+    #
+    # LINKS only, deliberately: a changelog that cannot name the page it
+    # added is not a changelog, and a mere mention of the path in prose (a
+    # code span) is not the defect. A link is what makes the path
+    # REACHABLE.
+    for tier in ("/llms-small.txt", "/llms-full.txt"):
+        body = client.get(tier).text
+        linked = [p for p in _admin_paths() if f"]({p})" in body or f"{p}/llms.txt" in body]
+        assert linked == [], f"admin pages linked from {tier}: {linked}"
+
     # Positive control: a real page IS listed, so an empty sitemap or a
     # broken llms.txt cannot make the assertions above pass vacuously.
     # Derived from the sidebar's own first page (1.6.41), never named, so

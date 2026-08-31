@@ -95,6 +95,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lib.directives.kwargs.props_markdown()` — one parse
   (`props_for()`) for both the directive's own table and the
   expansion, so the two lanes cannot drift apart again.
+- **This file had a phantom release.** The `## Migration Guide`
+  section at the foot of this CHANGELOG parsed as a release (the
+  1.6.41 heading match accepts unbracketed `## label — date`, and
+  free text came through with it), rendering an extra Timeline card
+  with no version number. `pages/changelog.py` now requires an
+  UNBRACKETED `## ` heading to look like a release — a version, an
+  ISO date, or Unreleased — before treating it as one; bracketed
+  headings (`## [x.y.z]`) stay trusted as intent.
+- `tests/test_nav_contract.py`'s "every test client names a UA" pin
+  is now resolved per CALL SITE instead of per file — the file-scoped
+  substring check could pass a file whose `headers=` sat on an
+  unrelated code path while its actual `.test_client()` calls stayed
+  bare. `tests/test_excluded_links_hidden.py`'s admin-leak sweep now
+  covers `/llms-small.txt` and `/llms-full.txt`, not only `/llms.txt`.
 
 ## [1.3.0] - 2026-08-01
 
