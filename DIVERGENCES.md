@@ -248,12 +248,18 @@ and updated by hand, which is what class `contract` means.
 ## Posture
 
 What this host ANSWERS, as measured — never as intended. Sync item 9
-(1.6.30) — the full three-key fence (`ai_bots`, `healthz`, `runtime`)
+(1.6.30) — the full three-key fence's `healthz` and `runtime` keys
 plus `tests/test_claude_kit.py`'s shape validator — has not been
-adopted here yet; only `deploy` is declared below, ahead of that item,
-because sync item 13 (1.6.35) asks for it directly. An absent key
-reads as the template default, same as an absent fence would.
+adopted here yet; `ai_bots` and `deploy` are declared below, ahead of
+that item, because sync items 15 and 13 ask for them directly. An
+absent key reads as the template default, same as an absent fence
+would.
 
+    ai_bots   the status a real AI-crawler UA receives per path. DEFAULT
+              ALLOW since sync item 15 (2026-08-30, Round 3.4):
+              training crawlers are no longer walled — every read is
+              now a ledger row (sync item 12) the hub can reconcile
+              against.
     deploy    `release-branch` — Render deploys `release`, which only
               CD writes after a green matrix (1.6.35, sync item 13);
               `build` on /healthz is HEAD of `release`, and `main`
@@ -261,14 +267,26 @@ reads as the template default, same as an absent fence would.
               as `main`: Render watches main and a push deploys before
               CI has judged it.
 
-Set 2026-08-29, with the `deploy` job's promote step landing in the
-same change (`.github/workflows/cd.yml`, `render.yaml`). Not yet
-measured on the wire: the dashboard Branch field is an owner-only
-switch (see the contract in `.claude/CLAUDE.md`) and this repo cannot
-confirm from here whether the live service is Blueprint-managed or
-still watching `main` directly — report the second push's outcome
-before treating this as settled.
+Measured on flows.2plot.dev, 2026-08-30 23:54 UTC, build
+9770524dfba354e15f0299336a334c4797603efb (run 33342837846, `deploy` +
+`verify` both green): ClaudeBot and GPTBot both 200 on `/`, `/llms.txt`
+and `/healthz` — six of six, the `ai_bots` row below.
+
+`deploy: release-branch` landed with items 12+13/15+16+17 in the same
+push (2026-08-30). `origin/release` did not exist before this push, so
+this was cd.yml's FIRST promote — the item's own text says the first
+promote always succeeds because it creates the branch, which is a
+lower bar than the fast-forward-over-an-existing-ref case the second
+push actually proves. `origin/main` and `origin/release` are
+byte-identical at this sha (both `9770524d…`), which also means the
+wire CANNOT YET distinguish "Render is watching `release`" from
+"Render is still watching `main`, coincidentally serving the same
+commit" — the discriminating observation is the NEXT push, which
+should move `main` while `release` (and the wire) hold still until the
+owner's dashboard Branch click. Report that push's outcome before
+treating this key as settled either.
 
 ```yaml posture
+ai_bots: {"/": 200, "/llms.txt": 200, "/healthz": 200}
 deploy: release-branch
 ```
