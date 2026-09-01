@@ -109,6 +109,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unrelated code path while its actual `.test_client()` calls stayed
   bare. `tests/test_excluded_links_hidden.py`'s admin-leak sweep now
   covers `/llms-small.txt` and `/llms-full.txt`, not only `/llms.txt`.
+- **The read ledger counted the network's own health sweeps and
+  batteries as crawler traffic** (sync 1.6.43 item 1): `record_read`
+  — the `on_document_read` hook the 2.8.0 floor added — never learned
+  the internal-traffic contract `track_visit` has held since it
+  existed. A request carrying `lib.constants.INTERNAL_UA_TOKEN` now
+  drops before any field is read, keyed on the event's `ua` field
+  (not `user_agent`, which `EVENT_FIELDS` does not have).
 
 ## [1.3.0] - 2026-08-01
 

@@ -17,6 +17,8 @@ from pathlib import Path
 
 from conftest import BROWSER_UA
 
+from lib.constants import INTERNAL_UA
+
 GPTBOT = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; +https://openai.com/gptbot)"
 
 
@@ -60,6 +62,40 @@ def test_one_llms_txt_fetch_writes_exactly_one_read_row(app_module, client):
     # policy is None until dimll 2.8.1 writes it; the rollup groups it as
     # "default". The KEY is present regardless (EVENT_FIELDS is fixed).
     assert "policy" in row
+
+
+def test_internal_traffic_is_dropped_from_the_read_table_too(app_module, client, capsys):
+    """sync 1.6.43 item 1 (note 83a): `record_read` never learned the
+    internal-traffic contract `track_visit` has held since it existed —
+    "counted nowhere" includes the READ table. A probe carrying the vendor
+    shape PLUS the internal token (never a bare vendor UA, which would
+    write an unverified vendor row) must write zero rows; a real crawler
+    probe with no internal token must still write exactly one, so this pin
+    cannot pass by dropping everything.
+    """
+    import dash_improve_my_llms
+
+    before = _reads(app_module)
+    internal_probe = f"{GPTBOT} {INTERNAL_UA}"
+    r = client.get("/llms.txt", user_agent=internal_probe)
+    assert r.status == 200
+    internal_rows = _new_reads(app_module, before)
+
+    after_internal = _reads(app_module)
+    r2 = client.get("/llms.txt", user_agent=GPTBOT)
+    assert r2.status == 200
+    real_rows = _new_reads(app_module, after_internal)
+
+    print(f"dash-improve-my-llms resolved: {dash_improve_my_llms.__version__}")
+    print(f"internal-token probe -> {len(internal_rows)} reads rows")
+    print(f"real crawler probe -> {len(real_rows)} reads rows")
+
+    assert internal_rows == [], (
+        f"internal-token probe wrote {len(internal_rows)} reads rows: {internal_rows}"
+    )
+    assert len(real_rows) == 1, (
+        f"real crawler probe wrote {len(real_rows)} reads rows, expected 1: {real_rows}"
+    )
 
 
 def test_a_browser_page_view_writes_no_read_row(app_module, client):

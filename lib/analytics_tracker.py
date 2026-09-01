@@ -400,8 +400,22 @@ class AnalyticsTracker:
         it appends; the flush does the disk work.
 
         ``client_ip`` is dropped unless ``ANALYTICS_KEEP_CLIENT_IP=1``.
+
+        The network's internal-traffic contract applies HERE too, before
+        any field is read — exactly as ``track_visit`` drops a
+        token-carrying request before device detection. "Counted nowhere"
+        includes the read table: the hub's own health sweep and every
+        satellite's link-audit/post-deploy battery fetch corpus documents,
+        and without this drop those requests are read rows — currently the
+        busiest "vendor" on the ledger. Keyed on ``ua`` (``EVENT_FIELDS``
+        has ``ua``, not ``user_agent``) — a drop keyed on the wrong name is
+        silently a no-op.
         """
         if not isinstance(event, dict):
+            return
+        from lib.constants import INTERNAL_UA_TOKEN
+
+        if INTERNAL_UA_TOKEN in (event.get("ua") or "").lower():
             return
         row = {k: event.get(k) for k in EVENT_FIELDS}
         if not KEEP_CLIENT_IP:
