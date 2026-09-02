@@ -10,11 +10,19 @@ its own body and forgot `build`, the exact field cd.yml's build-match wait
 polls for. This fork never had that split: all three backends here render from
 the ONE `_health_body()` in run.py and always have, so both of the defects
 1.6.10 fixed were already absent. Porting lib/health.py verbatim would have
-created a SECOND source of truth for a payload whose shape this fork does not
-share anyway (`app`/`version`/`dash`/`reporting`, which scripts/network_smoke.py
-asserts by name, against the template's `ok`/`backend`/`dash_version`). What is
-ported is the contract: per-request construction, the identity field, the geo
-diagnostic, and each backend handing its own headers through.
+created a SECOND source of truth for a payload this fork assembles in one
+place. What is ported is the contract: per-request construction, the identity
+field, the geo diagnostic, and each backend handing its own headers through.
+
+THE SHAPE IS THE FLEET'S (sync item 10). This file used to say the payload
+shape "this fork does not share anyway" — that reading was the defect, not a
+divergence. Every reader of /healthz (the hub's hourly sweep, the F4 battery,
+cd.yml's build-match wait, scripts/network_smoke.py) reads it BY KEY NAME, so
+serving `dash` where the fleet asks for `dash_version` read as MISSING to all
+of them for months while every value was correct. A fork may ADD keys freely;
+it may not rename or omit one. `test_healthz_carries_the_fleet_key_set` below
+is the pin, and this fork keeps `dash` beside `dash_version` because an extra
+costs nothing and a substitute costs the fleet a red cell.
 """
 
 import json
@@ -67,6 +75,37 @@ def test_healthz_is_live_not_a_snapshot(probe, monkeypatch):
         "`build` must be OMITTED where the platform variable does not exist, "
         "so the fleet's probe contract is unchanged off-Render"
     )
+
+
+FLEET_KEYS = {"app", "backend", "build", "dash_version", "geo", "ok", "python"}
+
+
+def test_healthz_carries_the_fleet_key_set(probe, monkeypatch):
+    """Sync item 10: KEYS, not values — a renamed key is invisible to every
+    check that reads the value rather than the key, which is how this host
+    served `dash` for months and read as missing `dash_version` to the hub,
+    the battery and the F4 sweep at once.
+
+    `build` is the one environment-dependent member (it comes from
+    RENDER_GIT_COMMIT, so offline it is absent legitimately) — set the
+    variable and assert the key appears, rather than exempting it.
+    """
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "cafebabe")
+    body = probe()
+    missing = sorted(FLEET_KEYS - set(body))
+    assert missing == [], (
+        f"/healthz is missing fleet keys {missing}; served {sorted(body)}. "
+        "Extra keys are always fine — a RENAME or an omission is the defect."
+    )
+    # Shallow value pins: seven correctly-named empty strings would pass a
+    # key check and tell the fleet nothing.
+    assert body["ok"] is True
+    assert body["dash_version"] and body["dash_version"] == body["dash"], (
+        "`dash` is kept BESIDE `dash_version`, never instead of it"
+    )
+    assert body["backend"] in ("flask", "fastapi", "quart")
+    assert body["python"].startswith(f"{__import__('sys').version_info.major}.")
+    assert body["app"] == "flows"
 
 
 def test_healthz_identity_fields(app_module, monkeypatch):

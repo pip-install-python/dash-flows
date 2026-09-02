@@ -116,6 +116,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   existed. A request carrying `lib.constants.INTERNAL_UA_TOKEN` now
   drops before any field is read, keyed on the event's `ua` field
   (not `user_agent`, which `EVENT_FIELDS` does not have).
+- **`/healthz` read as missing two keys to every automated reader**
+  (sync item 10): this host served `dash` where the fleet key set
+  names `dash_version`, and no `backend` at all. Every value on the
+  wire was correct, but the hub's hourly sweep, the F4 battery,
+  `cd.yml`'s build-match wait and `scripts/network_smoke.py` all read
+  the payload BY KEY NAME, so a renamed key is indistinguishable from
+  a missing one. `dash_version` and `backend` are now served BESIDE
+  `dash` (additive — an extra costs nothing, a substitute costs a red
+  cell). `DIVERGENCES.md` §3 corrected in the same change: it had
+  recorded this key set as a deliberate divergence, which is what kept
+  several rounds of syncs from fixing it — the file layout is the real
+  divergence, the key set never was.
 
 ## [1.3.0] - 2026-08-01
 

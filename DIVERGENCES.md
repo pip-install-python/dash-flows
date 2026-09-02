@@ -51,15 +51,39 @@ There is no `lib/health.py` and no `lib/asgi_routes.py` here. One
 `_health_body(headers=None)` in run.py renders for all three backends
 and always has, so neither defect template 1.6.10 fixed — a payload
 snapshotted at registration, and a FastAPI route that built its own
-body without `build` — ever existed in this fork. The payload shape is
-this repo's own: `{ok, app, version, dash, reporting, python}` plus
-`build` and `geo` when they apply.
+body without `build` — ever existed in this fork.
 
 Porting the template's file would create a SECOND source of truth for
-a payload whose shape this fork does not share. What is ported is the
+a payload this fork assembles in one place. What is ported is the
 CONTRACT: per-request construction, the identity field, the geo
 diagnostic, each backend handing its own framework's headers to the
 resolver. `tests/test_healthz.py` carries those pins.
+
+**CORRECTED 2026-09-01 (sync item 10), and the correction is the
+point.** This entry used to read: "The payload shape is this repo's
+own: `{ok, app, version, dash, reporting, python}` plus `build` and
+`geo` when they apply… a payload whose shape this fork does not
+share." That was an OVERCLAIM, and it is exactly the failure the
+byte-owned/divergence discipline exists to prevent: the FILE LAYOUT is
+this fork's (one builder in run.py, no lib/health.py — still true and
+still deliberate), but the KEY SET never was a divergence. Every
+reader of /healthz — the hub's hourly sweep, the F4 battery, cd.yml's
+build-match wait, `scripts/network_smoke.py` — reads it BY KEY NAME,
+so serving `dash` where the fleet asks for `dash_version`, and no
+`backend` at all, read as MISSING to all of them for months while
+every value on the wire was correct. A recorded "divergence" that is
+really a defect keeps the next sync from fixing it, which is what
+happened here across several rounds.
+
+Now additive, per item 10's settled remedy for this host: `dash_version`
+and `backend` are served BESIDE `dash`, never instead of it — a fork may
+ADD keys freely, and an extra costs the fleet nothing while a rename
+costs it a red cell. `tests/test_healthz.py::test_healthz_carries_the_fleet_key_set`
+pins the full set {app, backend, build, dash_version, geo, ok, python}
+and is mutation-checked (removing either new key turns it red naming
+that key). What remains a real divergence here is the file layout above
+and the two EXTRA keys this fork keeps — `dash` and `version` — which
+the fleet set does not name and does not mind.
 
 ### 4. `app`'s no-env fallback is `"boilerplate"`, not `"unknown"`
 

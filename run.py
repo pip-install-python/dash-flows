@@ -392,7 +392,22 @@ def _health_body(headers=None) -> dict:
         "ok": True,  # the network battery asserts this exact field
         "app": app_key(),
         "version": APP_VERSION,
+        # BOTH spellings, deliberately (sync item 10). The fleet key set is
+        # {app, backend, build, dash_version, geo, ok, python} and every
+        # reader — the hub's hourly sweep, the F4 battery, cd.yml's
+        # build-match wait, scripts/network_smoke.py — reads it BY KEY NAME.
+        # This host shipped `dash` alone for months and read as MISSING
+        # `dash_version` to all of them, which is the failure mode the item
+        # exists for: a renamed key is invisible to every check that reads
+        # the value rather than the key. The remedy is ADDITIVE — an extra
+        # costs the fleet nothing, a substitute costs it a red cell — so
+        # `dash` stays for anything of this fork's own that reads it.
         "dash": dash.__version__,
+        "dash_version": dash.__version__,
+        # Which of the three lib/backend.py lanes is actually serving.
+        # Declared in render.yaml and the Dockerfile as `flask`; this is the
+        # surface that can contradict either if a deploy ever disagrees.
+        "backend": BACKEND,
         "reporting": bool(os.environ.get("CROSS_APP_WEBHOOK_SECRET")),
         # WHICH interpreter is actually serving. Three declared Pythons can
         # coexist for months without a single surface able to contradict any
