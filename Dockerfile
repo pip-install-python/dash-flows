@@ -20,7 +20,7 @@
 # half of spec item 5, landed before the rest of the item. Production has
 # served 3.14 since build 4a62a9f, which is what proves this dependency set
 # builds and boots on it.
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 # PYTHONUNBUFFERED   -> stream logs straight to stdout (Render shows them live)
 # PYTHONDONTWRITEBYTECODE -> no .pyc clutter in the image
